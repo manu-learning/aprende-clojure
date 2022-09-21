@@ -1,0 +1,58 @@
+* TODO Conceptos
+* Atajos Spacemacs
+** Desarrollo
+   |-----------+-----------------------------------------|
+   | Atajo     | Descripción                             |
+   |-----------+-----------------------------------------|
+   | ~SPC ; ;~ | Comentar linea actual del código fuente |
+   |-----------+-----------------------------------------|
+** Gestor de Buffers/Windows
+   |-------------+-------------------------------------------------|
+   | Atajo       | Descripción                                     |
+   |-------------+-------------------------------------------------|
+   | ~SPC w .~   | Abrir menú del gestor de buffers entre ventanas |
+   | ~SPC w . q~ | Cerrar menú del gestor de buffers/ventanas      |
+   |-------------+-------------------------------------------------|
+   | ~SPC w . d~ | Cerrar el buffer actual                         |
+   | ~SPC w . J~ | Mover el buffer abajo                           |
+   | ~SPC w . K~ | Mover el buffer arriba                          |
+   | ~SPC w . H~ | Mover el buffer a izquierda                     |
+   | ~SPC w . L~ | Mover el buffer a derecha                       |
+   |-------------+-------------------------------------------------|
+** Cider
+   |---------------------+----------------------------------------------------|
+   | Atajo               | Descripción                                        |
+   |---------------------+----------------------------------------------------|
+   | ~M-x cider-jack-in~ | Iniciar el servidor Cider                          |
+   | ~, s a~             | Abrir el Buffer REPL                               |
+   | ~, e f~             | Evaluar la función actual (del código fuente .clj) |
+   |---------------------+----------------------------------------------------|
+* Referencias
+** Referencias Oficiales
+   1. [[https://develop.spacemacs.org/layers/+lang/clojure/README.html][Clojure layer (spacemacs.org)]]
+   2. [[https://clojure.org/community/tools][Clojure Tools (clojure.org)]]
+** Referencias Extraoficiales
+   1. [[https://flexiana.com/2019/07/emacs-for-clojure-cheatsheet][Emacs/Spacemacs for clojure Cheatsheet (flexiana.com)]]
+   2. [[https://www.braveclojure.com/basic-emacs/][How to use emacs as Clojure Editor (braveclojure.com)]]
+
+   #+BEGIN_COMMENT
+   https://kimh.github.io/clojure-by-example/#hello-world parece copado (?)
+   #+END_COMMENT
+** Tutoriales
+   2. https://yogthos.net/ClojureDistilled.html
+   3. https://exercism.org/tracks/clojure 
+   4. http://clojurekoans.com/
+   5. https://4clojure.oxal.org/ 
+   6. https://tryclojure.org/
+
+   #+BEGIN_COMMENT
+   https://exercism.org/tracks/clojure/concepts/basics
+
+   https://www.youtube.com/watch?v=P-OzjJ2Aumg&t=40s&ab_channel=OsmanCea
+   https://www.youtube.com/watch?v=ro7SFEufBmo&t=16s&ab_channel=OsmanCea
+   https://www.youtube.com/watch?v=iPLsuw9U9Ek&ab_channel=OsmanCea
+   #+END_COMMENT
+** Referencias Youtube
+   1. [[https://www.youtube.com/watch?v=tzj1y4hNwrA&ab_channel=CommunityDeveloper][Spacemacs basics for Clojure development (By Community Developer)]]
+   2. [[https://www.youtube.com/watch?v=NDrpclY54E0&ab_channel=Practicalli][REPL driven development with Clojure+Spacemacs+CIDER (By Practicalli)]]
+   2. [[https://www.youtube.com/watch?v=cadXnbAEfUo&ab_channel=CommunityDeveloper][Spacemacs Helm transient state (By Community Developer]]
