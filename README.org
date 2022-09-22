@@ -1,24 +1,33 @@
 * TODO Conceptos
 * Atajos Spacemacs
 ** Desarrollo
-   |-----------+-----------------------------------------|
-   | Atajo     | Descripción                             |
-   |-----------+-----------------------------------------|
-   | ~SPC ; ;~ | Comentar linea actual del código fuente |
-   |-----------+-----------------------------------------|
+   |-------------+----------------------------------------------|
+   | Atajo       | Descripción                                  |
+   |-------------+----------------------------------------------|
+   | ~SPC ; ;~   | Comentar linea actual del código fuente      |
+   | ~C-c C-w s~ | Cambiar de workspace                         |
+   | ~C-c C-w a~ | Crear de workspace                           |
+   | ~C-c C-p a~ | Agregar proyecto dentro del workspace actual |
+   | ~C-c C-p d~ | Remover proyecto del workspace actual        |
+   |-------------+----------------------------------------------|
 ** Gestor de Buffers/Windows
-   |-------------+-------------------------------------------------|
-   | Atajo       | Descripción                                     |
-   |-------------+-------------------------------------------------|
-   | ~SPC w .~   | Abrir menú del gestor de buffers entre ventanas |
-   | ~SPC w . q~ | Cerrar menú del gestor de buffers/ventanas      |
-   |-------------+-------------------------------------------------|
-   | ~SPC w . d~ | Cerrar el buffer actual                         |
-   | ~SPC w . J~ | Mover el buffer abajo                           |
-   | ~SPC w . K~ | Mover el buffer arriba                          |
-   | ~SPC w . H~ | Mover el buffer a izquierda                     |
-   | ~SPC w . L~ | Mover el buffer a derecha                       |
-   |-------------+-------------------------------------------------|
+   |-------------+---------------------------------------------------------------------|
+   | Atajo       | Descripción                                                         |
+   |-------------+---------------------------------------------------------------------|
+   | ~SPC w .~   | Abrir menú del gestor de buffers entre ventanas                     |
+   | ~SPC w . q~ | Cerrar menú del gestor de buffers/ventanas                          |
+   | ~SPC w m~   | Maximizar el buffer actual (repetir para volver al estado anterior) |
+   |-------------+---------------------------------------------------------------------|
+   | ~SPC w s~   | Dividir el buffer verticalmente (lo coloca abajo)                   |
+   | ~SPC w v~   | Dividir el buffer actual horizontalmente                            |
+   | ~SPC w F~   | Abrir un nuevo marco/frame (ventana)                                |
+   |-------------+---------------------------------------------------------------------|
+   | ~SPC w . d~ | Cerrar el buffer actual                                             |
+   | ~SPC w . J~ | Mover el buffer abajo                                               |
+   | ~SPC w . K~ | Mover el buffer arriba                                              |
+   | ~SPC w . H~ | Mover el buffer a izquierda                                         |
+   | ~SPC w . L~ | Mover el buffer a derecha                                           |
+   |-------------+---------------------------------------------------------------------|
 ** Cider
    |---------------------+----------------------------------------------------|
    | Atajo               | Descripción                                        |
