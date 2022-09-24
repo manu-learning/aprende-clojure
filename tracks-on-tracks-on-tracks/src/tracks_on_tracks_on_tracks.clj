@@ -23,8 +23,9 @@
 (defn remove-language
   "Removes the first language added to the list."
   [lang-list]
-  (drop 1 lang-list)
-  )
+  ;;(drop 1 lang-list)
+  ;; Fix: es más expresivo que devuelva la cola de la lista que dropearlo
+  (rest lang-list))
 
 (defn count-languages
   "Returns the total number of languages on the list."
@@ -41,9 +42,9 @@
   (-> (new-list)
       (add-language "Clojure")
       (add-language "Lisp")
-      (remove-language)
+      ;; Fix: cuando se utiliza -> si una función no requiere argumentos, entonces no es necesario los paréntesis
+      ;(remove-language)
+      remove-language
       (add-language "Java")
       (add-language "Javascript")
-      (count-languages)
-      )
-  )
+      count-languages))
