@@ -1,5 +1,9 @@
 MKDIR=mkdir -p
-COPY=rsync -vzr
+COPY_OPTIONS= --exclude='project.clj' --exclude='HELP.md' \
+							--include='*.md' --include='*.clj' \
+							--include='*/' --exclude='*' \
+							--prune-empty-dirs
+COPY=rsync -vzr $(COPY_OPTIONS)
 
 DIR_RELATIVE_ROOT = .
 DIR_EXERCISES = clojure
