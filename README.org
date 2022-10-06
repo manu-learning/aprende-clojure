@@ -29,19 +29,31 @@
    | ~SPC w . L~ | Mover el buffer a derecha                                           |
    |-------------+---------------------------------------------------------------------|
 ** Cider
+   #+BEGIN_COMMENT
+   Debemos validar si la siguiente secuencia de comandos se cumple siempre,
+   por el momento funciona..
+   1. Iniciamos el servidor cider ~M-x cider-jack-in~
+   1. Abrimos el buffer con REPL ~, s a~
+   2. Cargamos el buffer actual en el REPL ~, s b~
+   3. Cargamos el Namespace al REPL ~, s n~
+   #+END_COMMENT
+
    |---------------------+----------------------------------------------------------------------------|
    | Atajo               | Descripción                                                                |
    |---------------------+----------------------------------------------------------------------------|
    | ~M-x cider-jack-in~ | Iniciar el servidor Cider                                                  |
    | ~, s a~             | Abrir el Buffer REPL usando el archivo .clj actual                         |
+   | ~, s b~             | Cargar el Buffer actual al REPL (si actualizamos el buffer)                |
+   | ~, s n~             | Enviar el Namespace actual al REPL                                         |
    | ~, s f~             | Evaluar la función actual en el Buffer REPL (/útil para probar funciones/) |
    | ~, e f~             | Evaluar la función actual                                                  |
    | ~, e e~             | Evaluar la última expresion-s (a partir de la posición del cursor)         |
    |---------------------+----------------------------------------------------------------------------|
 * Referencias
 ** Referencias Oficiales
-   1. [[https://develop.spacemacs.org/layers/+lang/clojure/README.html][Clojure layer (spacemacs.org)]]
-   2. [[https://clojure.org/community/tools][Clojure Tools (clojure.org)]]
+   1. [[https://clojure.org/guides/learn/clojure][Learn Clojure (clojure.org)]]
+   2. [[https://develop.spacemacs.org/layers/+lang/clojure/README.html][Clojure layer (spacemacs.org)]]
+   3. [[https://clojure.org/community/tools][Clojure Tools (clojure.org)]]
 ** Referencias Extraoficiales
    1. [[https://flexiana.com/2019/07/emacs-for-clojure-cheatsheet][Emacs/Spacemacs for clojure Cheatsheet (flexiana.com)]]
    2. [[https://www.braveclojure.com/basic-emacs/][How to use emacs as Clojure Editor (braveclojure.com)]]
@@ -50,6 +62,7 @@
    https://kimh.github.io/clojure-by-example/#hello-world parece copado (?)
    #+END_COMMENT
 ** Tutoriales
+   1. [[https://practical.li/clojure/reference/clojure-syntax/syntax.html][Syntax Clojure (practical.li)]]
    2. https://yogthos.net/ClojureDistilled.html
    3. https://exercism.org/tracks/clojure 
    4. http://clojurekoans.com/
@@ -63,7 +76,13 @@
    https://www.youtube.com/watch?v=ro7SFEufBmo&t=16s&ab_channel=OsmanCea
    https://www.youtube.com/watch?v=iPLsuw9U9Ek&ab_channel=OsmanCea
    #+END_COMMENT
+** Issues
+   1. https://stackoverflow.com/questions/12518320/counting-only-truthy-values-in-a-collection
+   2. https://stackoverflow.com/questions/38759125/how-to-sum-all-values-in-a-vector-or-maps
+   3. https://stackoverflow.com/questions/3249334/test-whether-a-list-contains-a-specific-value-in-clojure
 ** Referencias Youtube
    1. [[https://www.youtube.com/watch?v=tzj1y4hNwrA&ab_channel=CommunityDeveloper][Spacemacs basics for Clojure development (By Community Developer)]]
    2. [[https://www.youtube.com/watch?v=NDrpclY54E0&ab_channel=Practicalli][REPL driven development with Clojure+Spacemacs+CIDER (By Practicalli)]]
    2. [[https://www.youtube.com/watch?v=cadXnbAEfUo&ab_channel=CommunityDeveloper][Spacemacs Helm transient state (By Community Developer]]
+* Libros
+  1. [[https://livebook.manning.com/book/clojure-the-essential-reference/chapter-12/v-30/8][Clojure The Essential Reference, Vectors (livebook.manning.com)]]
