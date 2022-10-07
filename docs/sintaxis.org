@@ -1,0 +1,86 @@
+#+TITLE: Sintáxis
+* Control de Flujo
+  #+BEGIN_SRC clojure
+    ;; if
+    ;; - el segundo parámetro es la rama if, se evalúa si se cumple la condición
+    ;; - el tercer parámetro es al rama else, se evalúa si NO se cumple la condición
+    (if true
+      "se cumplió la condición!"
+      "algo no salió bien :(")
+
+    (if false
+      "nil? pucha que hicimos mal?")
+
+    ;; do
+    ;; - encapsula lógica de varias acciones
+    ;; - útil para el condicional if, que por defecto sólo ejecuta 1 acción en caso de éxito/fracaso
+    (if true
+      (do (println "Bien..!")
+          "se cumplió la condición :o")
+      (do (println "Mal..!")
+          "algo no salió bien :("))
+
+    ;; when
+    ;; - actúa como el if + do
+    ;; - no contiene la rama else
+    (when true
+      (println "Se cumplió la condición! :)")
+      "vamos por buen camino")
+
+    ;; nil
+    ;; - en otros lenguajes se conoce por NULL
+    ;; - es el resultado de que una expresión-s no tiene un valor asignado
+    ;; - una buena práctica sería usar la función (nil? sexp) en vez del if
+    (nil? 1)
+    (nil? nil)
+
+    (if nil
+      "esta cadena no se imprimirá porque no es nil se trata como un false"
+      "nil actúa similar al false")
+  #+END_SRC
+* Operadores lógicos y relacionales
+  #+BEGIN_SRC clojure
+    ;; =
+    ;; - operador de igualdad
+    (= 1 1)
+    (= nil nil)
+    (= 1 2)
+
+    ;; or
+    ;; - operador lógico OR
+    ;; - si algún valor evaluado es verdadero, devuelve el primero que sea verdadero
+    ;; - si ninguno es verdadero, devuelve el último
+    (or false nil :fuerza :velocidad)
+
+    (or (= 0 9) (= "pedrito" "carlitos"))
+
+    (or nil)
+
+    ;; and
+    ;; - operador lógico AND
+    ;; - si todos los valores son verdaderos, devuelve el último
+    ;; - si alguno no es verdadero, devuelve el primero que sea falso
+    (and :fuerza :velocidad)
+
+    (and :fuerza nil false)
+  #+END_SRC
+* Bindear/Atar valores con def
+  #+BEGIN_SRC clojure
+    ;; def
+    ;; - bindeamos/atamos/asociamos un valor a un nombre
+    ;; - similar a definir una "variable constante" ó inmutable (no se puede alterar, cambiar su valor)
+    ;; - no confundir con una "asignación", ese concepto permite multiples asignaciones
+    (def startrek-personajes-nombres
+      ["Jean Luc Picard" "William Riker" "Deanna Troi"])
+
+    ;; defn
+    ;; - crear funciones
+    (defn error-message
+      [level]
+      (str "Estamos en problemas tío..! "
+           (if (= level :warning)
+             "pero.. no es tan grave che..."
+             "corrán..! va a explotar!")))
+
+    (error-message :warning)
+  #+END_SRC
