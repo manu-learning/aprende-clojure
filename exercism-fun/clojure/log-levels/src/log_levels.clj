@@ -5,6 +5,7 @@
   "Takes a string representing a log line
    and returns its message with whitespace trimmed."
   [s]
+  (str/replace s #"\[.*\]\:|\\d" "")
   )
 
 (defn log-level
