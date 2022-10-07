@@ -5,18 +5,18 @@ COPY_OPTIONS= --exclude='project.clj' --exclude='HELP.md' \
 							--prune-empty-dirs
 COPY=rsync -vzr $(COPY_OPTIONS)
 
-DIR_RELATIVE_ROOT = .
-DIR_EXERCISES = clojure
+DIR_RELATIVE_ROOT = ./exercism-exercises
+DIR_EXERCISM_EXERCISES = clojure
 
-DIRS := $(dir $(wildcard $(DIR_EXERCISES)/*/))
+DIRS := $(dir $(wildcard $(DIR_EXERCISM_EXERCISES)/*/))
 
-$(DIR_EXERCISES):
+$(DIR_EXERCISM_EXERCISES):
 	@$(MKDIR) $@
 
-copy-exercises: $(DIR_EXERCISES)
+copy-exercises: $(DIR_EXERCISM_EXERCISES)
 	$(info Copiando ejercicios de la carpeta de Exercism al raíz)
 	@$(foreach DIR, $(DIRS), \
-		$(COPY) $(DIR) $(subst $(DIR_EXERCISES),,$(DIR_RELATIVE_ROOT)/$(DIR));\
+		$(COPY) $(DIR) $(subst $(DIR_EXERCISM_EXERCISES),,$(DIR_RELATIVE_ROOT)/$(DIR));\
 	)
 
 install:
