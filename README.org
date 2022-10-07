@@ -1,4 +1,8 @@
-* TODO Conceptos
+#+BEGIN_COMMENT
+Pendiente seguir...
+https://www.braveclojure.com/do-things/
+https://www.braveclojure.com/do-things/#Data_Structures
+#+END_COMMENT
 * Atajos Spacemacs
 ** Desarrollo
    |-------------+----------------------------------------------|
@@ -86,3 +90,5 @@
    2. [[https://www.youtube.com/watch?v=cadXnbAEfUo&ab_channel=CommunityDeveloper][Spacemacs Helm transient state (By Community Developer]]
 * Libros
   1. [[https://livebook.manning.com/book/clojure-the-essential-reference/chapter-12/v-30/8][Clojure The Essential Reference, Vectors (livebook.manning.com)]]
+  2. [[https://doc.lagout.org/programmation/Lisp/Clojure/The%20Joy%20of%20Clojure.pdf][They Joy of Clojure (doc.lagout.org)]]
+  3. [[https://www.braveclojure.com/do-things/][A clojure Crash Course (braveclojure.com)]]
