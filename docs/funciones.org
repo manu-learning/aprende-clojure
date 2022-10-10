@@ -1,0 +1,135 @@
+#+TITLE: Funciones
+* Llamadas a Funciones
+  #+BEGIN_SRC clojure
+    ;; inc
+    ;; - incrementa en 1 cualquier valor numérico
+    (inc 1.2)
+
+    ;; map
+    ;; - aplica una función a cada elemento de una lista
+    ;; - devuelve una nueva lista (concepto de inmutabilidad)
+    (map inc [0 1 2 3])
+  #+END_SRC
+* Definir funciones
+** Conceptos
+   - 1º parámetro: nombre de la función
+   - 2º parámetro: Docstring (es opcional) para describir la función
+   - 3º parámetro: los argumentos que recibe, delimitados por corchetes
+   - 4º parámetro: el cuerpo de la función
+** Ejemplo
+  #+BEGIN_SRC clojure
+    ;; defn
+    (defn comentar-frase-animosa
+      "Devolverá una frase célebre de Jean-Luc Picard"
+      [nombre]
+      (str "Mi amigo " nombre ", es posible no cometer errores y aún así perder."
+           "Eso no es debilidad, es vida.!"))
+
+    ;; llamada a la función
+    (comentar-frase-animosa "Manu")
+  #+END_SRC
+* Documentar
+** Conceptos
+   - La función ~doc~ imprime la documentación de una función
+   - Se debe ejecutar en el *REPL*
+** Ejemplo
+   #+BEGIN_SRC clojure
+     ;; - imprime en el REPL la documentación de la función "comentar-frase-animosa"
+     (doc comentar-frase-animosa)
+   #+END_SRC
+* Aridad de una función
+** Conceptos
+   - La *aridad* es la cantidad de *argumentos* que toma una función
+** Ejemplo
+  #+BEGIN_SRC clojure
+    ;; función de aridad-0
+    (defn saludo-anonimo
+      []
+      "Hola..!")
+
+    ;; función de aridad-1
+    (defn saludar-por-nombre
+      [nombre]
+      (str "Hola " nombre "!"))
+
+    ;; función de aridad-2
+    (defn saludar-por-nombre-completo
+      [nombre apellido]
+      (str "Hola " nombre " " apellido "!"))
+  #+END_SRC
+* Sobrecarga de aridad (Overloading)
+  #+BEGIN_SRC clojure
+    ;; función con sobrecarga de aridad
+    (defn atacar
+      "Realiza la acción de atacar a un enemigo"
+      ;; aridad-0
+      ([]
+       "Oh no, no puedo pelear si no me dices tu nombre..")
+      ;; aridad-1
+      ([nombre-enemigo]
+       (str "Atacando a " nombre-enemigo " con patada voladora"))
+      ;; aridad-2
+      ([nombre-enemigo tipo-ataque]
+       (str "Atacando a " nombre-enemigo " con un " tipo-ataque)))
+
+    ;; Comportamiento por default, si no nos pasan un parámetro
+    (defn saludar-aliado
+      ([nombre pais]
+       (str "Hola " nombre ", en dónde queda " pais "?"))
+      ;; ej. si no nos pasa el 2º argumento, le damos un comportamiento por defecto
+      ([nombre]
+       (str "Hola " nombre ", seguro eres de un país exótico...")))
+
+    (defn saludar-enemigo
+      "Saluda al enemigo antes de la gran batalla"
+      ;; aridad-3
+      ([nombre pais habilidad-secreta]
+       (if (= habilidad-secreta "invisibilidad")
+         (str "Hola " nombre " no peleo con personas invisibles..")
+         (str "Hola " nombre " asi que eres de " pais ".. Wow tu habilidad es " habilidad-secreta)))
+      ;; aridad-2
+      ([nombre pais]
+       (str "Hola " nombre " asi que sos de " pais ", que emocionante!"))
+      ;; aridad-1
+      ([nombre]
+       (str "Hola " nombre " tu eres mi enemigo!")))
+  #+END_SRC
+* Funciones Variádicas (Rest parameter)
+** Conceptos
+  - Las *funciones variádicas* reciben un número indefinido de argumentos
+  - El *rest parameter* se indica con el símbolo ~&~ seguido del nombre que tendrá la lista indefinida de parámetros
+** Ejemplos
+*** Ejemplo 1
+   #+BEGIN_SRC clojure
+     ;; - es una función variádica porque al usar el & indíca que tiene el "rest parameter"
+     ;; - libros es el nombre de éste "rest parameter" y debe ir al final
+     (defn sugerir-libros-favoritos
+       "Recibe el nombre del tripulante y el nombre de los libros a sugerir"
+       [nombre & libros]
+       (str "Hola tripulante " nombre "! hoy te sugiremos los siguientes libros: "
+            (clojure.string/join ", " libros)))
+
+     (sugerir-libros-favoritos "Picard" "A games of Thrones" "Crice" "American Gods")
+   #+END_SRC
+*** Ejemplo 2
+   #+BEGIN_SRC clojure
+     (defn atacar
+       "Recibe el nombre del enemigo a atacar"
+       [nombre]
+       (str "Atacando ferozmente a " nombre "..!"))
+
+     (defn atacar-multiples-enemigos
+       "Recibe el nombre de los enemigos a atacar"
+       [hora & enemigos]
+       (if (> hora 12)
+         "A esa hora dormimos..!"
+         (do
+           ;; expresión
+           (println "Ups..! estamos apurados! atacaremos ahora! ")
+           ;; otra expresión
+           (map atacar enemigos)
+           ))
+       )
+
+     (atacar-multiples-enemigos 10 "Thor" "Iron Man" "Hulk" "Avispa")
+   #+END_SRC
