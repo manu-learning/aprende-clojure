@@ -244,3 +244,89 @@
 
       (solicitar-ingreso "Wesley Crusher" 16)
     #+END_SRC
+* Funciones Anónimas
+** Conceptos
+   - Se crean similar que con ~defn~ pero usamos ~fn~ y no las nombramos
+   - La forma corta de usarlas es usando ~#~ como prefijo y ~%~ para los parámetros
+** Ejemplos
+*** Ejemplo 1 - Básico
+   #+BEGIN_SRC clojure
+     ;; una función anónima es similar a definir una con defn
+     (fn []
+       "mi primer función anónima")
+
+     ;; 1. el map recibe un vector con 3 nombres
+     ;; 2. el map aplica la función anónima a cada nombre
+     ;; 3. la función anónima recibe el nombre y lo saluda
+     (map (fn [nombre] (str "Hola " nombre))
+          ["Pinocchio" "Geppeto" "Gingerbread Man"])
+
+     ;; - función anónima que recibe un parámetro y devuelve el doble
+     ;; - invocamos a la función anónima y le pasamos el valor 8 como parámetro
+     ((fn [x] (* x 2)) 8)
+   #+END_SRC
+*** Ejemplo 2 - Nombrar a una función anónima
+    #+BEGIN_SRC clojure
+     ;; - nombramos a la función anónima anterior
+     (def el-doble
+       (fn [x] (* x 2)))
+
+     (el-doble 2)
+    #+END_SRC
+*** Ejemplo 3 - Forma corta de una función anónima
+    #+BEGIN_SRC clojure
+      ;; - forma corta de escribir una función anónima
+      ;; - * es la función que aplica
+      ;; - % es el parámetro que recibe
+      #(* % 2)
+
+      ;; la función anónima anterior de la forma sin acortar sería
+      (fn [x] (* x 2))
+
+      ;; invocamos la misma función anónima, que recibe sólo 1 parámetro
+      ;; 1. le pasamos el valor 4 de argumento
+      ;; 2. devuelve el doble del valor
+      (#(* % 2) 4)
+
+      ;; la llamada anterior con la función anónima sin acortar sería
+      ((fn [x] (* x 2)) 4)
+
+      ;; - str es la función que aplica la función anónima
+      ;; - % es el parámetro que recibe la función anónima
+      (map #(str "Hola " %)
+           ["Pinocchio" "Geppeto" "Gingerbread Man"])
+
+      ;; idem casos anteriores
+      (map (fn [nombre] (str "Hola " nombre))
+           ["Pinocchio" "Geppeto" "Gingerbread Man"])
+    #+END_SRC
+*** Ejemplo 4 - Forma corta de una función anónima con multiples parámetros
+    #+BEGIN_SRC clojure
+      ;; % es lo mismo que %1
+      ;; %1 recibe el primer parámetro
+      ;; %2 recibe el segundo parámetro y asi..
+      (#(* 2 %1) 4)
+
+      ;; otro ejemplo
+      (map #(str % " busca pareja..") ["Fiona" "Shrek"])
+
+      (#(str %1 " corazoncito " %2) "Fiona" "Shrek")
+    #+END_SRC
+* TODO Closures
+  - El retorno de funciones se denominan *closures*
+
+  #+BEGIN_COMMENT
+  falta pulir con más ejemplos...
+  #+END_COMMENT
+** Ejemplo
+   #+BEGIN_SRC clojure
+     (defn incrementador
+       "crea un incrementador personalizado"
+       [incrementar-por]
+       #(+ % incrementar-por))
+
+     (def incrementar-en-1 (incrementador 1))
+
+     (incrementar-en-1 10)
+   #+END_SRC
+
