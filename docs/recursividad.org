@@ -26,8 +26,8 @@
    Un posible caso sería un contador que se ejecuta 4 veces
    1. si no recibe ningún parámetro, se llama asi misma pasandose por parámetro un valor (Ej. 0)
    2. si recibe un parámetro lo bindea/vincula a un nombre (Ej. iteracion)
-   2.1 si no se cumple ~(> iteracion 3)~, hacemos la llamada recursiva pasandose como parámetro la variable iteracion incrementada en 1
-   2.2 si se cumple ~(> iteracion 3)~, cortamos el flujo devolviendo la última expresión que queremos evaluar ~Ej.(println "fin..")~
+      1. si no se cumple ~(> iteracion 3)~, hacemos la llamada recursiva pasandose como parámetro la variable iteracion incrementada en 1
+      2. si se cumple ~(> iteracion 3)~, cortamos el flujo devolviendo la última expresión que queremos evaluar ~Ej.(println "fin..")~
    #+END_QUOTE
 ** Ejemplo
 *** Ejemplo 1 - Contador recursivo
