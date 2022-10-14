@@ -1,0 +1,47 @@
+#+TITLE: Recursividad
+* Loop y Recur
+** Conceptos
+  - Permiten la recursividad, y es menos verboso que definir una *función recursiva*
+  - ~loop~ actúa como una función que recibe un argumento y es llamada sólo por ~recur~
+  - ~loop~ bindea/vincula un valor a una variable
+  - ~recur~ hace el llamado recursivo a ~loop~ pasandole un parámetro
+** Ejemplos
+*** Ejemplo 1 - Contador con loop y recur
+    #+BEGIN_SRC clojure
+      ;; la recursividad finaliza cuando se cumple (> iteracion 3)
+      (loop [iteracion 0]
+        (println (str "Iterando.. " iteracion))
+        (if (> iteracion 3)
+          (println "Fin de la iteración")
+          (recur (inc iteracion))))
+    #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure.org/guides/learn/flow#_recursion][Clojure, Flow Control, Recursion (clojure.org)]]
+* Función Recursiva
+** Conceptos
+   - Con el concepto de *sobrecarga de aridad* podemos plantear un caso base y caso recursivo de una función
+
+   #+BEGIN_QUOTE
+   Un posible caso sería un contador que se ejecuta 4 veces
+   1. si no recibe ningún parámetro, se llama asi misma pasandose por parámetro un valor (Ej. 0)
+   2. si recibe un parámetro lo bindea/vincula a un nombre (Ej. iteracion)
+   2.1 si no se cumple ~(> iteracion 3)~, hacemos la llamada recursiva pasandose como parámetro la variable iteracion incrementada en 1
+   2.2 si se cumple ~(> iteracion 3)~, cortamos el flujo devolviendo la última expresión que queremos evaluar ~Ej.(println "fin..")~
+   #+END_QUOTE
+** Ejemplo
+*** Ejemplo 1 - Contador recursivo
+    #+BEGIN_SRC clojure
+      ;; la recursividad finaliza cuando se cumple (> iteracion 3)
+      (defn contar-recursivamente
+        ([]
+         (contar-recursivamente 0))
+
+        ([iteracion]
+         (println (str "Iterando.." iteracion))
+         (if (> iteracion 3)
+           (println "Fin de la iteración")
+           (contar-recursivamente (inc iteracion)))))
+
+      (contar-recursivamente)
+    #+END_SRC
