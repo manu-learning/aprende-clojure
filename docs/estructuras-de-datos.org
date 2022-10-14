@@ -84,7 +84,11 @@
   #+END_SRC
 * Set - Colección sin elementos duplicados
   #+BEGIN_SRC clojure
-    ;; set con 3 elementos
+    ;; set
+    ;; - crea una colección sin elementos duplicados
+    (set [3 3 3 3 1 1])
+
+    ;; otra forma de crear un set
     #{"picard" 33 :velocidad}
 
     ;; conj

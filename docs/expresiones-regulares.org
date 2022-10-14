@@ -1,0 +1,40 @@
+#+TITLE: Expresiones Regulares
+* Conceptos
+  - Las expresiones regulares comienzan con ~#~ como prefijo seguidas del patrón de la regex dentro de un string
+* Validar patrones con re-find 
+** Conceptos
+    - ~re-find~ permite comprobar si un string coincide con el patrón de la expresión regular
+    - si coincide devuelve la cadena que coincide, caso contrario devuelve nil
+
+   #+BEGIN_QUOTE
+   Un caso de uso usando ~re-find~ sería
+   1. Primer parámetro la regex con el patrón a buscar (/es el QUE queremos buscar/)
+   2. Segundo parámetro el string dónde queremos aplicar el patrón (/es DÓNDE queremos buscar/)
+   #+END_QUOTE
+** Ejemplo
+  #+BEGIN_SRC clojure
+    ;; buscamos la cadena que empieza con "pierna-"
+    (re-find #"^pierna-" "pierna-izquierda")
+    (re-find #"^pierna-" "pierna-derecha")
+
+    ;; buscamos la cadena que termina con "-derecha"
+    (re-find #"-derecha$" "pierna-derecha")
+    (re-find #"-derecha$" "mano-derecha")
+
+    ;; buscamos la cadena que termina con "-derecha" ó "-derecho"
+    (re-find #"-derech[oa]$" "ojo-derecho")
+    (re-find #"-derech[oa]$" "brazo-derecho")
+    (re-find #"-derech[oa]$" "mano-derecha")
+  #+END_SRC
+* Definir funciones para reemplazar cadenas
+** Conceptos
+   - Podemos usar la función ~replace~ de la biblioteca ~clojure.string~
+** Ejemplos
+*** Ejemplo 1 - Censurar palabras de un texto
+   #+BEGIN_SRC clojure
+     (defn censurar-palabras-prohibidas
+       [texto]
+       (clojure.string/replace texto #"marihuana|sexy|hot|ostias" "xxx"))
+
+     (censurar-palabras-prohibidas "ostias eres tan sexy")
+   #+END_SRC
