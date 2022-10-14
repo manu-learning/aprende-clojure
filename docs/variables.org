@@ -1,0 +1,38 @@
+* Let
+** Conceptos
+   - Crea un nuevo scope, y prioriza el vínculo de las variables definidas en su scope
+   - Permite aplicar el concepto de *Destructuring*
+   - Evalúa una expresión una única vez y reutiliza el resultado, muy útil en escenarios dónde
+     1. si el obtener el resultado implíca llamar a una función costosa en términos de eficiencia/velocidad
+     2. queremos generar efecto en la variable pero sólo dentro de let
+** Ejemplos
+*** Ejemplo 1 - Scope de Let
+   #+BEGIN_SRC clojure
+     ;; def
+     ;; - bindeamos/enlazamos/vinculamos globalmente al nombre num al valor 1
+     (def num 1)
+
+     ;; let
+     ;; - crea un nuevo scope/ámbito dentro del cuerpo de let
+     ;; - let prioriza el vínculo de las variables definidas dentro de su scope, apesar de si ya existían en un scope superior
+     ;; - bindeamos/enlazamos/vinculamos localmente al nombre num el valor 3
+     (let [num 3] num)
+   #+END_SRC
+*** Ejemplo 2 - Bindear resultados de funciones
+   #+BEGIN_SRC clojure
+     (def personajes-marvel
+       ["Iron Man" "Capitan America" "Hulk" "Doctor Doom" "Thor"])
+
+     ;; bindeamos/enlazamos/vinculamos al nombre personajes-destacados el resultado de la expresión (take 3 personajes-marvel)
+     (let [personajes-destacados (take 3 personajes-marvel)]
+       personajes-destacados)
+   #+END_SRC
+*** Ejemplo 2 - Let + Destructuring
+    #+BEGIN_SRC clojure
+      (def tv-series ["foundation" "Glitch" "Avenue" "Cosmos"])
+
+      ;; - podemos usar el "parameter rest" como si fuera una función variádica
+      ;; - usamos el concepto de "destructuring" que usamos al recibir argumentos en las funciones
+      (let [[serie-mas-vista & series-menos-vistas] tv-series]
+        (println (str "La serie más vista es " serie-mas-vista)))
+    #+END_SRC
