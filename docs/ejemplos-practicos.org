@@ -1,0 +1,32 @@
+* Androide Data
+** Ejemplo
+  #+BEGIN_SRC clojure
+    (def androide-data-cuerpo-asimetrico [{:nombre "cabeza" :size 3}
+                                          {:nombre "ojo-izquierdo" :size 1}
+                                          {:nombre "pierna-izquierda" :size 4}
+                                          {:nombre "brazo-izquierdo" :size 4}
+                                          {:nombre "hombro-izquierdo" :size 1}
+                                          {:nombre "boca" :size 1}
+                                          {:nombre "nariz" :size 1}])
+
+    (defn componente-cibernetico-simetrico
+      [componente]
+      {:nombre (clojure.string/replace (:nombre componente) #"-izquierd(.)$" "-derech$1")
+       :size (:size componente)})
+
+    (defn cuerpo-androide-simetrico
+      "Espera un vector de map con :nombre y :size"
+      [componentes-cuerpo-asimetrico]
+      (loop [componentes-pendientes componentes-cuerpo-asimetrico
+             cuerpo-simetrico []]
+        (if (empty? componentes-pendientes)
+          cuerpo-simetrico
+          (let [[componente-revisado & resto-componentes] componentes-pendientes]
+            (recur resto-componentes
+                   (into cuerpo-simetrico
+                         (set [componente-revisado (componente-cibernetico-simetrico componente-revisado)])))))))
+
+    (cuerpo-androide-simetrico androide-data-cuerpo-asimetrico)
+  #+END_SRC
+** Referencias
+   1. https://memory-alpha.fandom.com/es/wiki/Data
