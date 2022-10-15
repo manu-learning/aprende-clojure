@@ -1,20 +1,34 @@
 * Androide Data
 ** Ejemplo
+   #+BEGIN_QUOTE
+   Una explicación muy general de la función ~cuerpo-androide-simetrico~ sería..
+   1. bindeamos/vinculamos el vector de map en ~componentes-pendientes~
+      y bindeamos un vector vacío a ~cuerpo-simetrico~ que iremos agregando componentes en los llamados recursivos
+   2. mientras haya componentes sin revisar, aplicamos el concepto de *destructuring* en ~componentes-pendientes~
+      para separar la cabeza ~componente-revisado~ y la cola ~resto-componentes~ (/aunque éste sea un vector, clojure lo permite/)
+   3. hacemos el llamado recursivo pasando la cola ~resto-componentes~ como parámetro
+      que volverá a aplicarse *destructuring* hasta no quedar elementos
+   4. agregamos en el vector ~cuerpo-simetrico~ cada ~componente-revisado~
+      y aplica nuestra función de simetría si el patrón de la regex coincide devolviendo el componente simétrico faltante
+   5. agregamos los componentes creando un ~set~ para evitar que los elementos que no coincidan con la regex estén repetidos
+     (/Ej. cabeza, naríz/)
+   #+END_QUOTE
+
   #+BEGIN_SRC clojure
-    (def androide-data-cuerpo-asimetrico [{:nombre "cabeza" :size 3}
-                                          {:nombre "ojo-izquierdo" :size 1}
-                                          {:nombre "pierna-izquierda" :size 4}
-                                          {:nombre "brazo-izquierdo" :size 4}
-                                          {:nombre "hombro-izquierdo" :size 1}
-                                          {:nombre "boca" :size 1}
-                                          {:nombre "nariz" :size 1}])
+    (def androide-cuerpo-asimetrico [{:nombre "cabeza" :size 3}
+                                     {:nombre "ojo-izquierdo" :size 1}
+                                     {:nombre "pierna-izquierda" :size 4}
+                                     {:nombre "brazo-izquierdo" :size 4}
+                                     {:nombre "hombro-izquierdo" :size 1}
+                                     {:nombre "boca" :size 1}
+                                     {:nombre "nariz" :size 1}])
 
     (defn componente-cibernetico-simetrico
       [componente]
       {:nombre (clojure.string/replace (:nombre componente) #"-izquierd(.)$" "-derech$1")
        :size (:size componente)})
 
-    (defn cuerpo-androide-simetrico
+    (defn androide-cuerpo-simetrico
       "Espera un vector de map con :nombre y :size"
       [componentes-cuerpo-asimetrico]
       (loop [componentes-pendientes componentes-cuerpo-asimetrico
@@ -26,7 +40,7 @@
                    (into cuerpo-simetrico
                          (set [componente-revisado (componente-cibernetico-simetrico componente-revisado)])))))))
 
-    (cuerpo-androide-simetrico androide-data-cuerpo-asimetrico)
+    (androide-cuerpo-simetrico androide-cuerpo-asimetrico)
   #+END_SRC
 ** Referencias
    1. https://memory-alpha.fandom.com/es/wiki/Data
