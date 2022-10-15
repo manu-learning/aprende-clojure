@@ -45,3 +45,55 @@
 
       (contar-recursivamente)
     #+END_SRC
+* Reducer
+** Ejemplos
+*** Ejemplo 1 - Implementando un reduce que obliga a pasarle la semilla
+    #+BEGIN_QUOTE
+    Simulamos un reduce pero obliga a pasarle un valor semilla,
+    por lo general un reduce toma el primer elemento de la colección como semilla
+
+    1. bindea/vincula la semilla a ~resultado~ y la colección a recorrer en ~elementos-pendientes~
+    2. si ya no quedan elementos por evaluar, devuelve el ~resultado~
+    3. si quedan elementos por evaluar hace el llamado recursivo a ~loop~ con ~recur~ pasandole dos parámetros
+       - el 1º parámetro es el resultado de aplicar la funcion a dos elementos (/la semilla y primer elemento de la colección/)
+       - el 2º parámetro los elementos restantes
+    4. se repetirá paso 3 hasta que no queden más elementos, siendo ~resultado~ la última expresión evaluada y devuelta
+    #+END_QUOTE
+
+    #+BEGIN_SRC clojure
+      (defn mi-reduce
+        ([funcion semilla coleccion]
+         (loop [resultado semilla
+                elementos-pendientes coleccion]
+           (if (empty? elementos-pendientes)
+             resultado
+             (recur (funcion resultado (first elementos-pendientes)) (rest elementos-pendientes))))))
+
+      (mi-reduce + 0 [1 2 3 4])
+    #+END_SRC
+*** Ejemplo 2 - Implementando un reduce que elige sólo la semilla
+    #+BEGIN_QUOTE
+    Aplicamos *sobrecarga de aridad* porque
+
+    1. podemos pasarle un valor semilla, será el primer valor que se aplicará con el primer elemento de la colección
+    2. si no le pasamos el valor la semilla, usará el concepto de *destructuring* y elegiremos como semilla la cabeza de la colección
+       y luego hará una *llamada recursiva* al reduce
+    #+END_QUOTE
+
+    #+BEGIN_SRC clojure
+      (defn mi-reduce
+        ([funcion semilla coleccion]
+         (loop [resultado semilla
+                elementos-pendientes coleccion]
+           (if (empty? elementos-pendientes)
+             resultado
+             (recur (funcion resultado (first elementos-pendientes)) (rest elementos-pendientes)))))
+        ([funcion [cabeza & cola]]
+         (mi-reduce funcion cabeza cola)))
+
+      (mi-reduce + [1 2 3 4])
+      (mi-reduce + 0 [1 2 3 4])
+    #+END_SRC
+** Referencias
+*** Referencias Extra-oficiales
+    1. [[https://ericnormand.me/article/a-reduce-example-explained][A reduce example explained (ericnormand.me)]]
