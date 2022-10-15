@@ -45,8 +45,82 @@
 
       (contar-recursivamente)
     #+END_SRC
-* Reducer
-** Ejemplos
+* Reduce
+** Conceptos
+   - ~reduce~ facilita iterar y aplicar funciones sobre una colección
+   - ~reduce~ evita tener que definir *funciones recursivas* que requieren implementar el *caso base* y *caso recursivo*
+   - ~reduce~ evita tener que definir funciones que usen ~loop~ y ~recur~ (/estas dos funciones son una mejor opción en vez definir una función recursiva/)
+   - Usa el concepto de *sobrecarga de aridad* porque
+     - Si le pasamos sólo dos parámetros ~función colección~ elegirá por defecto como *valor semilla* el *primer elemento de la colección*
+     - Si le pasamos tres parámetros ~función semilla colección~ aplicará la función con la *semilla* y el *primer elemento de la colección*
+** Ejemplos Básicos
+*** Ejemplo 1 - Reduce con funciones anónimas
+    #+BEGIN_SRC clojure
+      ;; imprimirá sólo la semilla, el 1 (como no la definimos, eligió por defecto el 1º elemento del vector)
+      (reduce
+       (fn [resultado elemento]
+         (println resultado))
+       [1 2 3 4])
+
+      ;; imprimirá la semilla (el 1) y devolverá 3 veces el string "BOO"
+      (reduce
+       (fn [resultado elemento]
+         (println resultado)
+         "BOOO!")
+       [1 2 3 4])
+
+      ;; imprimirá cada elemento excepto la semilla (2 3 4)
+      (reduce
+       (fn [resultado elemento] (println elemento))
+       [1 2 3 4])
+
+      ;; - definimos que la semilla será el 0, ya no será el 1
+      ;; - imprimirá cada elemento (1 2 3 4)
+      (reduce
+       (fn [resultado elemento] (println elemento))
+       0
+       [1 2 3 4])
+
+      ;; - imprime cada elemento
+      ;; - aplica la función suma en el siguiente orden
+      ;; 1. semilla (0) + primer elemento del vector (1)
+      ;; 2. resultado anterior + siguiente elemento del vector
+      ;; 3. la última expresión evaluada es el resultado de sumar todos los elementos
+      ;; por tanto devolverá sólo un valor
+      (reduce
+       (fn [resultado elemento]
+         (println (str "el elemento evaluado: " elemento))
+         (+ resultado elemento))
+       0
+       [1 2 3 4])
+    #+END_SRC
+*** Ejemplo 2 - Reduce con funciones comunes
+    #+BEGIN_SRC clojure
+      ;; devuelve sólo un valor, la suma de todos los elementos de la colección
+      ;; el resultado de (+ (+ (+ 1 2) 3) 4)
+      (reduce + [1 2 3 4])
+
+      ;; devuelve sólo un valor, pero al definir el 10 como semilla
+      ;; el resultado devuelto será de (+ (+ (+ 10 1) 2) 3)
+      (reduce + 10 [1 2 3])
+
+      ;; devuelve sólo un string luego de evaluar (str (str "hola " "que ") " tal")
+      ;; la cadena será "hola que tal"
+      (reduce str ["hola " "que " "tal"])
+    #+END_SRC
+*** Ejemplo 3 - Reduce con el & rest parameter
+    #+BEGIN_QUOTE
+    Recordemos que el *rest parameter* se usa en las *funciones variádicas*,
+    aquellas que reciben un número indefinido de argumentos y se usa de la forma ~& lista-argumentos~
+    #+END_QUOTE
+
+    #+BEGIN_SRC clojure
+      (reduce
+       (fn [& argumentos]
+         (println "argumentos = " argumentos))
+       [1 2 3 4 5])
+    #+END_SRC
+** Ejemplos - Implementando un Reducer
 *** Ejemplo 1 - Implementando un reduce que obliga a pasarle la semilla
     #+BEGIN_QUOTE
     Simulamos un reduce pero obliga a pasarle un valor semilla,
@@ -72,6 +146,9 @@
       (mi-reduce + 0 [1 2 3 4])
     #+END_SRC
 *** Ejemplo 2 - Implementando un reduce que elige sólo la semilla
+    :PROPERTIES:
+    :ID:       3be05d09-1ed9-4cda-8239-c54c6014d294
+    :END:
     #+BEGIN_QUOTE
     Aplicamos *sobrecarga de aridad* porque
 
@@ -96,4 +173,6 @@
     #+END_SRC
 ** Referencias
 *** Referencias Extra-oficiales
-    1. [[https://ericnormand.me/article/a-reduce-example-explained][A reduce example explained (ericnormand.me)]]
+    1. [[https://levelup.gitconnected.com/reducers-in-clojure-c088a5627412][Reducers in Clojure (By Functional Human)]]
+    2. [[https://ericnormand.me/article/a-reduce-example-explained][A reduce example explained (ericnormand.me)]]
+
