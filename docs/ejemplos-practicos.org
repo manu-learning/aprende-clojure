@@ -1,5 +1,5 @@
-* Androide Data
-** Ejemplo
+* Un Androide Simétrico
+** Ejemplo 1 - Aplicando recursividad con loop y recur
    #+BEGIN_QUOTE
    Una explicación muy general de la función ~cuerpo-androide-simetrico~ sería..
    1. bindeamos/vinculamos el vector de map en ~componentes-pendientes~
@@ -39,6 +39,40 @@
             (recur resto-componentes
                    (into cuerpo-simetrico
                          (set [componente-revisado (componente-cibernetico-simetrico componente-revisado)])))))))
+
+    (androide-cuerpo-simetrico androide-cuerpo-asimetrico)
+  #+END_SRC
+** Ejemplo 2 - Usando reduce
+  #+BEGIN_SRC clojure
+    (def androide-cuerpo-asimetrico [{:nombre "cabeza" :size 3}
+                                     {:nombre "ojo-izquierdo" :size 1}
+                                     {:nombre "pierna-izquierda" :size 4}
+                                     {:nombre "brazo-izquierdo" :size 4}
+                                     {:nombre "hombro-izquierdo" :size 1}
+                                     {:nombre "boca" :size 1}
+                                     {:nombre "nariz" :size 1}])
+
+    (defn componente-cibernetico-simetrico
+      [componente]
+      {:nombre (clojure.string/replace (:nombre componente) #"-izquierd(.)$" "-derech$1")
+       :size (:size componente)})
+
+    ;; - la función pasada como primer parámetro al reduce, se aplica primero sobre la semilla
+    ;; (ó sobre el primer elemento de la colección si no se la definimos) y luego en cada elemento de la colección
+    ;; - la función insert devuelve una colección (ó un vector, será de tipo donde insertamos elementos)
+
+    ;; lógica aplicada en el reduce
+    ;; 1. definimos una función anónima que usará la semilla del reduce como un vector
+    ;; (ya teniendo en mente que el reduce tendrá como semilla un vector vacío, que será pasado como segundo parámetro)
+    ;; 2. la función anónima agregará en el vector un Set con cada componente y su componente simétrico si lo tuviese
+    ;; (si no usaramos Set agregaría dos veces los componentes que no tienen un simétrico, Ej. cabeza, boca, nariz)
+    (defn androide-cuerpo-simetrico
+      "Espera un vector de map con :nombre y :size"
+      [componentes-cuerpo-asimetrico]
+      (reduce (fn [cuerpo-simetrico componente]
+                (into cuerpo-simetrico (set [componente (componente-cibernetico-simetrico componente)])))
+              []
+              componentes-cuerpo-asimetrico))
 
     (androide-cuerpo-simetrico androide-cuerpo-asimetrico)
   #+END_SRC
