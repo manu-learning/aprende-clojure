@@ -78,3 +78,127 @@
   #+END_SRC
 ** Referencias
    1. https://memory-alpha.fandom.com/es/wiki/Data
+* TODO Alienigenas con simetría radial
+  #+BEGIN_COMMENT
+  falta seguir...
+  #+END_COMMENT
+
+ #+BEGIN_SRC clojure
+   (def alien-imperfecto [{:nombre "cabeza" :size 3}
+                          {:nombre "ojo-izquierdo" :size 1}
+                          {:nombre "pie-izquierda" :size 4}
+                          {:nombre "tentaculo-izquierdo" :size 4}
+                          {:nombre "boca" :size 1}
+                          {:nombre "nariz" :size 1}])
+
+   ;; TODO: utilizar repeat ó similar, queremos evitar la típica iteración for que reutiliza la posición
+   ;; Simetría pentámera: Simetría radial basada en 5 o múltiplos de él (Ej. en los equinodermos)
+   (defn cuerpo-simetria-radial
+     [componente]
+     {:nombre (clojure.string/replace (:nombre componente) #"-izquierd(.)$" "-derech$1") :size (:size componente)})
+
+   (defn alien-completar-cuerpo
+     "Espera un vector de map con :nombre y :size"
+     [alien-cuerpo-imperfecto]
+     (reduce (fn [alien-cuerpo-perfecto parte]
+               (into alien-cuerpo-perfecto (set [parte (cuerpo-simetria-radial parte)])))
+             []
+             alien-cuerpo-imperfecto))
+
+   (alien-completar-cuerpo alien-imperfecto)
+ #+END_SRC
+* Ataque contra Androides Malvados
+** Ejemplo
+   #+BEGIN_SRC clojure
+     (def androide-malvado-asimetrico [{:nombre "cabeza" :size 3}
+                                      {:nombre "ojo-izquierdo" :size 1}
+                                      {:nombre "pierna-izquierda" :size 4}
+                                      {:nombre "brazo-izquierdo" :size 4}
+                                      {:nombre "hombro-izquierdo" :size 1}
+                                      {:nombre "boca" :size 1}
+                                      {:nombre "nariz" :size 1}])
+
+     (defn componente-cibernetico-simetrico
+       [componente]
+       {:nombre (clojure.string/replace (:nombre componente) #"-izquierd(.)$" "-derech$1")
+        :size (:size componente)})
+
+     (defn androide-cuerpo-simetrico
+       "Espera un vector de map con :nombre y :size"
+       [componentes-cuerpo-asimetrico]
+       (reduce (fn [cuerpo-simetrico componente]
+                 (into cuerpo-simetrico (set [componente (componente-cibernetico-simetrico componente)])))
+               []
+               componentes-cuerpo-asimetrico))
+
+     (androide-cuerpo-simetrico androide-malvado-asimetrico)
+
+     (defn atacar
+       [androide-cuerpo-asimetrico]
+       (let [cuerpo-simetrico (androide-cuerpo-simetrico androide-cuerpo-asimetrico)
+             size-total-cuerpo (reduce + (map :size cuerpo-simetrico))
+             componente-objetivo (rand size-total-cuerpo)]
+         (loop [[componente-analizado & componentes-pendientes] cuerpo-simetrico
+                size-componente-analizado (:size componente-analizado)]
+           (if (> size-componente-analizado componente-objetivo)
+             componente-analizado
+             (recur componentes-pendientes (+ size-componente-analizado (:size (first componentes-pendientes))))))))
+
+     (atacar androide-malvado-asimetrico)
+   #+END_SRC
+* Generador de Contadores
+** Generador de Contadores Incrementales
+  #+BEGIN_SRC clojure
+    ;; ésta función que devuelve una función anónima,
+    ;; que espera recibir un argumento
+    (defn generador-contador-incremental
+      "Crea un contador incremental personalizado"
+      [incrementar-en]
+      (fn [num] (+ num incrementar-en)))
+
+    ;; bindeamos/vinculamos al contador una función nombrada
+    ;; pero que devuelve una función anónima que espera recibir un argumento
+    (def incrementar-en-5 (generador-contador-incremental 5))
+
+    ;; le estamos pasando el valor 1 a la función anónima
+    (incrementar-en-5 1)
+  #+END_SRC
+
+** Generador de Contadores Decrecrementales
+  #+BEGIN_SRC clojure
+    (defn generador-contador-decremental
+      "Crea un contador incremental personalizado"
+      [decrementar-en]
+      (fn [num] (- num decrementar-en)))
+
+    (def decrementar-en-2 (generador-contador-decremental 2))
+
+    (decrementar-en-2 4)
+  #+END_SRC
+* Mapset
+  #+BEGIN_SRC clojure
+    ;; los primeros reduce son a modo de práctica
+    ;; para luego entender el mapset
+
+    ;; devuelve un valor
+    (reduce (fn [resultado elemento]
+              (+ resultado elemento))
+            0
+            [1 2 3 4])
+
+    ;; devuelve un set (colección con elementos sin repetir)
+    (reduce (fn [resultado elemento]
+              (into resultado [elemento]))
+            #{}
+            [1 1 3 1])
+
+    (defn mapset
+      [f coleccion]
+      (reduce (fn [resultado elemento]
+                (into resultado [(f elemento)]))
+              #{}
+              coleccion))
+
+    (mapset inc [1 1 2 2])
+  #+END_SRC
+
