@@ -201,4 +201,62 @@
 
     (mapset inc [1 1 2 2])
   #+END_SRC
+* TODO Listas Enlazadas base para Funciones usadas por Secuencias (con javascript)
+  #+BEGIN_COMMENT
+  Faltaría desarrollar un poco más...
+  #+END_COMMENT
+
+  #+BEGIN_SRC js :results value
+    var node1 = {
+        value: "first",
+        next: node2
+    };
+
+    var node2 = {
+        value: "middle",
+        next: node3
+    };
+
+    var node3 = {
+        value: "last",
+        next: null
+    };
+
+    var first = function(node){
+        return node.value;
+    }
+
+    var rest = function(node){
+        return node.next;
+    }
+
+    var cons = function(newValue, node){
+        return {
+            value: newValue,
+            next: node
+        };
+    }
+
+    //console.log(first(node1));
+    first(node1);
+
+    var map = function(list, transform){
+        if (list == null){
+            return null;
+        }
+        else{
+            return cons(transform(first(list)), map(rest(list), transform))
+        }
+    }
+
+    var valor = first(
+        map(node1, function(val){ return val + " mapeado!"})
+    );
+
+    console.log(valor);
+  #+END_SRC
+
+  #+RESULTS:
+  : first mapeado!
+  : undefined
 
