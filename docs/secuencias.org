@@ -1,0 +1,76 @@
+#+TITLE: Secuencias
+* TODO Conceptos
+  #+BEGIN_SRC clojure
+    ;; clojure trata las listas, vectores y set como secuencias
+    ;; por eso podemos usar las funciones la biblioteca de secuencias en las tres
+    (seq '(1 2 3))
+
+    (seq [1 2 3])
+
+    (seq #{1 2 3})
+  #+END_SRC
+* Map
+** Ejemplos
+*** Ejemplo 1 - Map con funciones básicas
+    #+BEGIN_SRC clojure
+      (map inc [1 2 3])
+
+      (map inc '(1 2 3))
+
+      (map str ["a" "b" "c"] ["A" "B" "C"])
+    #+END_SRC
+*** Ejemplo 2 - Map con varios vectores como argumentos
+    #+BEGIN_SRC clojure
+      (def humano-tiempo-semanal-dormido [0.6 0.6 0.5 0.6 0.8 1 1])
+      (def programador-tiempo-semanal-dormido [0.2 0.1 0.1 0.2 0.2 0 0])
+
+      (defn tiempo-semanal-dormido-data
+        [humano programador]
+        {:humano humano
+         :programador programador})
+
+      (map tiempo-semanal-dormido-data humano-tiempo-semanal-dormido programador-tiempo-semanal-dormido)
+    #+END_SRC
+*** Ejemplo 3 - Map con varias funciones como argumentos
+    #+BEGIN_SRC clojure
+      ;; usamos la forma abreviada de la función anónima
+      ;; que no requiere mencionar el nombre de los argumentos ni de la función anónima
+      (def sumatoria #(reduce + %))
+      (def promedio #(/ (sumatoria %) (count %)))
+
+      ;; comentamos las siguientes definiciones que usan función anónima para que se note la diferencia con las anteriores
+      (comment "
+        (def sumatoria
+            (fn [coleccion] (reduce + coleccion)))
+
+        (def promedio
+          (fn [numeros]
+            (/ (sumatoria numeros) (count numeros))))
+        ")
+
+      ;; (sumatoria [1 1 3])
+      ;; (promedio [1 1 3])
+
+      (defn estadisticas
+        "Recibe una secuencia de numeros y les aplica las funciones sumatoria, promedio y count"
+        [numeros]
+        (map #(% numeros) [sumatoria promedio count]))
+
+      (def equipo-newbee-partidas-jugadas [500 250 100])
+      (def equipo-fnatic-partidas-jugadas [100 50 40])
+
+      (estadisticas equipo-newbee-partidas-jugadas)
+      (estadisticas equipo-fnatic-partidas-jugadas)
+    #+END_SRC
+*** Ejemplo 4 - Map usando keywords como funciones
+    #+BEGIN_SRC clojure
+      (def reparto-serie-startrek
+        [{:personaje "William T. Riker" :actor "Jonathan Frakes"}
+         {:personaje "Jean-Luc Picard" :actor "Patrick Steward"}
+         {:personaje "Worf" :actor "Michael Dorn"}
+         {:personaje "Deanna Troi" :actor "Marina Sirtis"}
+         {:personaje "Beverly Crusher" :actor "Gates McFadden"}
+         {:personaje "Data" :actor "Brent Spiner"}])
+
+      (map :actor reparto-serie-startrek)
+    #+END_SRC
