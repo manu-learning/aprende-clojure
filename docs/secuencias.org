@@ -1,5 +1,5 @@
 #+TITLE: Secuencias
-* TODO Conceptos
+* Conceptos
   #+BEGIN_SRC clojure
     ;; clojure trata las listas, vectores y set como secuencias
     ;; por eso podemos usar las funciones la biblioteca de secuencias en las tres
@@ -74,3 +74,122 @@
 
       (map :actor reparto-serie-startrek)
     #+END_SRC
+* Reduce
+** Ejemplos
+*** Ejemplo Básico - Map y función Assoc
+    #+BEGIN_SRC clojure
+      ;; estructura map con dos elementos de la forma :key value
+      {:min 10 :max 20}
+
+      ;; creamos una nueva estructura map a partir de un map vacío
+      ;; y le asociamos un elemento de la forma :key value
+      (assoc {} :min 10)
+
+      ;; creamos un nuevo map a partir de un map con 1 elemento
+      ;; y le asociamos un segundo elemento
+      (assoc {:min 10} :max 20)
+
+      ;; devolvemos un nuevo map en base al map vacío
+      ;; y le agregamos un elemento con clave :dba y valor 200
+      (assoc {} :gerente 200)
+    #+END_SRC
+*** Ejemplo 1 - Reduce que devuelve una nueva estructura map
+    #+BEGIN_QUOTE
+    Explicación un poco más detallada, aunque el comentario del código lo resume
+    - El 1º parámetro del ~reduce~ es una *función anónima* ~fn~ que devuelve un nuevo ~map~
+      con las mismas keywords del map original pasado al ~reduce~, pero actualiza sus valores incrementados en 1
+    - El 2º parámetro del ~reduce~ será la *semilla*, un map vacío ~{}~
+      que será el 1º parámetro de la *función anónima* ~fn~
+    - El 3º parámetro del ~reduce~ es un map que será recorrerido por el reduce elemento por elemento
+      y a éste aplicará la *función anónima* ~fn~
+    #+END_QUOTE
+
+    #+BEGIN_SRC clojure
+      ;; devolvemos un nuevo map con las mismas keywords
+      ;; pero con los valores actualizados (incrementados en 1)
+      (reduce (fn [nuevo-map [clave valor]]
+                (assoc nuevo-map clave (inc valor)))
+              {}
+              {:min 10 :max 20})
+
+      ;; el reduce de arriba hace esto
+      (assoc (assoc {} :min 10)
+             :max 20)
+    #+END_SRC
+*** Ejemplo 2 - Reduce para filtrar una estructura map por valor
+    #+BEGIN_SRC clojure
+      (def empleados-salarios {:programador 250
+                               :analista 200
+                               :dba 200
+                               :gerente 10000})
+
+      ;; - comportamiento similar a un filter, recorremos cada elemento :clave valor y si se cumple el criterio
+      ;; lo agregamos en el map
+      ;; - si (< valor 500) es verdadero, con assoc agrega el elemento al nuevo map y lo devuelve
+      ;; - si (< valor 500) es falso, no agrega elementos y devuelve el map con los elementos agregados por el momento
+      ;; para que el siguiente elemento hace verdadero la condición entonces se agrega al map
+      (reduce (fn [nuevo-map [clave valor]]
+                (if (< valor 500)
+                  (assoc nuevo-map clave valor)
+                  nuevo-map))
+              {}
+              empleados-salarios)
+
+      ;; es necesario devolver en la rama-else el map porque si no se encadenaran de la siguiente manera
+      (assoc (assoc (assoc {} :programador 250)
+                    :analista 200)
+             :dba 200)
+    #+END_SRC
+* Take Take-while y Drop Drop-while
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; devuelve la secuencia con los primeros n elementos
+      (take 3 [1 2 3 4 5 6 7 8 9])
+
+      ;; devuelve la secuencia con los primeros n elementos removidos
+      (drop 3 [1 2 3 4 5 6 7 8 9])
+    #+END_SRC
+*** Ejemplo 1 - take-while
+    #+BEGIN_SRC clojure
+      ;; vector con estructuras map que tienen dos elementos de la forma :clave valor
+      (def peliculas-sugeridas
+        [{:mes-estreno 1 :titulo "Carter"}
+         {:mes-estreno 1 :titulo "Memory"}
+         {:mes-estreno 2 :titulo "Gold"}
+         {:mes-estreno 2 :titulo "El contratista"}
+         {:mes-estreno 3 :titulo "La ciudad perdida"}
+         {:mes-estreno 4 :titulo "Proyecto Adam"}
+         {:mes-estreno 4 :titulo "La bestia"}])
+
+      ;; - usamos la keyword :mes-estreno como función para obtener el valor de una estructura map
+      ;; - devolvemos las primeras 3 películas que hagan verdadera la función predicado
+      ;; que será la función anónima pasada como segundo parámetro
+      ;; - la función anónima abreviada el % es lo mismo que %1 que es el argumento sin nombre,
+      ;; el % obtiene el map {:clave1 valor1 :clave2 valor2} y la keyword usada como función obtendrá el valor asociado
+      ;; - luego que la keyword como función devuelva un valor se compará (< valor 3)
+      (take-while #(< (:mes-estreno %) 3) peliculas-sugeridas)
+
+      ;; ejemplo de usar una keyword como función, devolverá 4
+      (:mes-estreno {:mes-estreno 4 :titulo "Proyecto Adam"})
+
+      ;; otro ejemplo, devolverá el string
+      (:titulo {:mes-estreno 4 :titulo "Proyecto Adam"})
+    #+END_SRC
+*** Ejemplo 2 - drop-while
+    #+BEGIN_SRC clojure
+      (def peliculas-sugeridas
+        [{:mes-estreno 1 :titulo "Carter"}
+         {:mes-estreno 1 :titulo "Memory"}
+         {:mes-estreno 2 :titulo "Gold"}
+         {:mes-estreno 2 :titulo "El contratista"}
+         {:mes-estreno 3 :titulo "La ciudad perdida"}
+         {:mes-estreno 4 :titulo "Proyecto Adam"}
+         {:mes-estreno 4 :titulo "La bestia"}])
+
+      ;; - supongamos que estamos en marzo, no tiene sentido mostrar las primeras 3 de enero, febrero
+      ;; - usamos drop-while en vez de filter porque no queremos que analice todas las películas
+      ;; porque fueron cargadas en orden por fecha y queremos que se respete
+      (drop-while #(< (:mes-estreno %) 3) peliculas-sugeridas)
+    #+END_SRC
+
