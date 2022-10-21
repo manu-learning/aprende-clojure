@@ -141,6 +141,11 @@
              :dba 200)
     #+END_SRC
 * Take Take-while y Drop Drop-while
+** Conceptos
+   #+BEGIN_QUOTE
+   Si no queremos analizar todos los datos de una secuencia,
+   entonces usar ~take-while~ es más eficiente que ~filter~
+   #+END_QUOTE
 ** Ejemplos
 *** Ejemplo Básico
     #+BEGIN_SRC clojure
@@ -192,4 +197,68 @@
       ;; porque fueron cargadas en orden por fecha y queremos que se respete
       (drop-while #(< (:mes-estreno %) 3) peliculas-sugeridas)
     #+END_SRC
+* Filter y Some
+** Ejemplos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      (def libros-sugeridos [{:titulo "Dracula" :categoria "horror" :sugerencias 10}
+                  {:titulo "It" :categoria "horror" :sugerencias 3}
+                  {:titulo "The outsider" :categoria "horror" :sugerencias 15}
+                  {:titulo "Ring" :categoria "horror" :sugerencias 19}
+                  {:titulo "Jane Eyre" :categoria "literatura" :sugerencias 20}
+                  {:titulo "Lolita" :categoria "literatura" :sugerencias 0}
+                  {:titulo "Moby Dick" :categoria "literatura" :sugerencias 100}])
 
+      ;; analizará todas las estructuras map del vector y devolverá sólo las que tengan más de 10 sugerencias
+      (filter #(> (:sugerencias %) 10) libros-sugeridos)
+
+      ;; devolverá un valor booleano si se cumple ó no si existe al menos un libro con más de 150 sugerencias
+      (some #(> (:sugerencias %) 500) libros-sugeridos)
+    #+END_SRC
+*** Ejemplo 2 - Devolver el primer elemento que hace verdadero a Some
+    #+BEGIN_SRC clojure
+      ;; devolvemos el primer elemento que haga verdadera la condición que exista al menos un libro con más de 10 sugerencias
+      ;; el elemento se devuelve por el % de la función anónima que se evalúa luego que se cumple (> (:sugerencias %) 10)
+      (some #(and (> (:sugerencias %) 10) %) libros-sugeridos)
+    #+END_SRC
+* Sort y Sort-by
+** Ejemplos
+*** Ejemplo 1 - Ordenar Secuencias Numéricas y de Strings
+    #+BEGIN_SRC clojure
+      ;; devolverá una secuencia ordenada de forma descendente
+      (sort [3 2 1])
+
+      ;; devolverá una secuencia ordenada por longitud de las cadenas de forma descendente
+      (sort-by count ["x" "ccc" "a"])
+    #+END_SRC
+*** Ejemplo 2 - Ordenar Secuencias por keyword
+    #+BEGIN_SRC clojure
+      (def libros-sugeridos [{:titulo "Dracula" :categoria "horror" :sugerencias 10}
+                             {:titulo "It" :categoria "horror" :sugerencias 3}
+                             {:titulo "The outsider" :categoria "horror" :sugerencias 15}
+                             {:titulo "Ring" :categoria "horror" :sugerencias 19}
+                             {:titulo "Jane Eyre" :categoria "literatura" :sugerencias 20}
+                             {:titulo "Lolita" :categoria "literatura" :sugerencias 0}
+                             {:titulo "Moby Dick" :categoria "literatura" :sugerencias 100}])
+
+      ;; ordenará de forma descendente y númerica mediante la keyword :sugerencias
+      (sort-by :sugerencias libros-sugeridos)
+
+      ;; ordenará de forma descendente y alfabética mediante la keyword :titulo pero luego quedará en orden ascendente
+      (reverse (sort-by :titulo libros-sugeridos))
+    #+END_SRC
+* Concat
+** Conceptos
+   #+BEGIN_QUOTE
+   ~concat~ agrupa los elementos de las secuencias en uno sólo,
+   otra forma de pensarlo sería que agrega elementos de una secuencia al final de otra secuencia
+   #+END_QUOTE
+** Ejemplo
+   #+BEGIN_SRC clojure
+     ;; agregamos [3 4] al final de la secuencia [1 2]
+     (concat [1 2] [3 4])
+
+     ;; mismo comportamiento que con los números
+     (concat ["vaca" "perro"] ["tomate" "pera"])
+   #+END_SRC
+* TODO Lazy Seqs
