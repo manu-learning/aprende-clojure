@@ -1,12 +1,26 @@
 #+TITLE: Secuencias
-* Conceptos
+* Secuencias
+** Conceptos
+   #+BEGIN_QUOTE
+    Clojure trata las listas, vectores y set como secuencias
+    por ende en todas podemos utilizar funciones para secuencias
+    
+    Algunas de las operaciones incluidas en la biblioteca de secuencias son:
+    - map, reduce, take-while, drop-while, filter
+    - some
+    - sort, sort-by
+    - concat
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1 - Listas, Vectores y Sets como Secuencias
   #+BEGIN_SRC clojure
-    ;; clojure trata las listas, vectores y set como secuencias
-    ;; por eso podemos usar las funciones la biblioteca de secuencias en las tres
+    ;; el resultado de evaluar esta Lista será una secuencia, es lo que hace por defecto clojure
     (seq '(1 2 3))
 
+    ;; el resultado de evaluar este Vector será una secuencia, es lo que hace por defecto clojure
     (seq [1 2 3])
 
+    ;; el resultado de evaluar este Set será una secuencia, es lo que hace por defecto clojure
     (seq #{1 2 3})
   #+END_SRC
 * Map
@@ -261,4 +275,80 @@
      ;; mismo comportamiento que con los números
      (concat ["vaca" "perro"] ["tomate" "pera"])
    #+END_SRC
-* TODO Lazy Seqs
+* TODO Secuencia Perezosa (Lazy Seq)
+** Conceptos
+** Ejemplos
+*** Ejemplo 1 - Map devuelve una secuencia perezosa
+    #+BEGIN_SRC clojure
+      ;; map devuelve una lazy seq (secuencia perezosa), por tanto el println que debería aplicar a sus elementos no será evaluado
+      ;; (porque nadie consume lo que devuelve, Ej. take, take-while, ...)
+      (defn lazy-imprimir-numeros
+        [n]
+        (map println (range n))
+        (println "Numeros impresos " n))
+
+      ;; mapv y run!
+      ;; - no devuelven una secuencia perezosa, por tanto el println es evaluado y aplicado a cada elemento devuelto por range
+      (defn imprimir-numeros
+        [n]
+        (mapv println (range n))
+        (println "Numeros impresos " n))
+
+      (defn imprimir-numeros
+        [n]
+        (run! println (range n))
+        (println "Numeros impresos " n))
+
+      (lazy-imprimir-numeros 9)
+      (imprimir-numeros 9)
+    #+END_SRC
+*** Ejemplo 2 - Eficiencia de usar Secuencias Perezosas
+    #+BEGIN_SRC clojure
+      (def proyectos-militares-database
+        {0 {:titulo "Proyecto X" :tiene-clave false :publicado true}
+         1 {:titulo "Proyecto robot humanoide" :tiene-clave true :publicado false}
+         2 {:titulo "Proyecto ataque extraterrestre" :tiene-clave true :publicado false}
+         3 {:titulo "Proyecto demonios entre nostros" :tiene-clave true :publicado false}
+         4 {:titulo "Proyecto mutantes entre nosotros" :tiene-clave false :publicado true}})
+
+      (defn proyecto-militar-detalle
+        [codigo-seguridad]
+        (Thread/sleep 1000)
+        (get proyectos-militares-database codigo-seguridad))
+
+      ;; (proyecto-militar-detalle 1)
+
+      (defn vulnerable?
+        [registro]
+        (and (:publicado registro)
+             (not (:tiene-clave registro))
+             registro))
+
+      (defn detectar-vulnerabilidad-del-sistema
+        [codigos-de-seguridad]
+        (first (filter vulnerable?
+                       (map proyecto-militar-detalle codigos-de-seguridad))))
+
+      ;; cada vez que lo evaluemos tardará 5ms aprox.
+      (time (detectar-proyecto-vulnerable (range 0 5)))
+
+      ;; - map y range devuelven una secuencia perezosa,
+      ;; por tanto al evaluar esta definición tardará 0.2ms aprox. casi nada (a menos que otra función acceda/solicite sus elementos)
+      ;; - no se evaluará la función proyecto-militar-detalle que aplica el map,
+      ;; hasta que otra función consuma/utilice/acceda a los elementos que el map genera/devuelve
+      ;; (Ej. first, take, take-while, ...)
+      (time (def lazy-mapped-details (map proyecto-militar-detalle (range 0 50))))
+
+      ;; si accedemos a los elementos que genera map, será evaluado una única vez
+      ;; la 1º vez lo evaluemos se demorará 50ms aprox. (porque pusimos que itere entre 50 elementos del range)
+      ;; la 2º vez que lo evaluemos demorará 0.10ms porque ya se vinculó al nombre lazy-mapped-details
+      (time (first lazy-mapped-details))
+      (time (take 4 lazy-mapped-details))
+    #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure-doc.org/articles/language/laziness/][Clojure Guides, Laziness in Clojure (clojure-doc.org)]]
+    2. [[https://clojure.org/reference/lazy][Making Clojure Lazier (cojure.org)]]
+*** Referencias Extraoficiales
+    1. [[https://otee.dev/2022/01/17/lazy-clojure.html][Laziness in Clojure (otee.dev)]]
+    2. [[https://medium.com/@pwentz/laziness-in-clojure-3d83645bf7f3][Laziness in clojure (by Pat Wentz)]]
