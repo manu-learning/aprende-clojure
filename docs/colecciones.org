@@ -57,3 +57,18 @@
       (conj [0] 1 2 3)
       (into [0] [1 2 3])
     #+END_SRC
+*** Ejemplo 4 - Implementar la función conj
+    #+BEGIN_SRC clojure
+      (conj [0] 1 2 3)
+
+      (into [0] [1 2 3])
+
+      ;; como conj agrega en una estructura (1º parámetro), un conjunto de valores (2º,3º,..,nº parametros siguientes)
+      ;; 1. usamos el rest parameter que agrupa un conjunto indefinido de parámetros
+      ;; 2. usamos into que agrega en una estructura (1º parámetro) los elementos de otra estructura (2º parámetro)
+      (defn my-conj
+        [estructura & elementos]
+        (into estructura elementos))
+
+      (my-conj [0] 1 2 3)
+    #+END_SRC
