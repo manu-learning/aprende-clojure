@@ -260,3 +260,57 @@
   : first mapeado!
   : undefined
 
+* Simulación Hacker
+  #+BEGIN_SRC clojure
+    (def proyectos-militares-database
+      {0 {:titulo "Proyecto X" :tiene-clave false :publicado true}
+       1 {:titulo "Proyecto robot humanoide" :tiene-clave true :publicado false}
+       2 {:titulo "Proyecto ataque extraterrestre" :tiene-clave true :publicado false}
+       3 {:titulo "Proyecto demonios entre nostros" :tiene-clave true :publicado false}
+       4 {:titulo "Proyecto mutantes entre nosotros" :tiene-clave false :publicado true}})
+
+    (defn proyecto-militar-detalle
+      [codigo-seguridad]
+      (Thread/sleep 1000)
+      (do
+        (println (format "Analizando el proyecto con codigo=%d en la base de datos..." codigo-seguridad))
+        (get proyectos-militares-database codigo-seguridad)))
+
+    ;; (proyecto-militar-detalle 1)
+
+    (defn vulnerable?
+      [registro]
+      (and (:publicado registro)
+           (not (:tiene-clave registro))
+           registro))
+
+    ;; si vemos en detalle la función anónima sólo recibe el parameter rest (lista con un numero indefinido de parámetros)
+    ;; y luego apply le pasa la lista de parámetros (parameter rest) de forma individual
+    (defn complemento
+      "Recibe una función que devuelva un valor booleano y niega el valor"
+      [funcion]
+      (fn [& parametros]
+        (not (apply funcion parametros))))
+
+    (def no-vulnerable? (complemento vulnerable?))
+
+    (defn detectar-vulnerabilidad-del-sistema
+      [codigos-de-seguridad]
+      (first (filter vulnerable?
+                     (map proyecto-militar-detalle codigos-de-seguridad))))
+
+    (defn detectar-fortaleza-del-sistema
+      [codigos-de-seguridad]
+      (first (filter no-vulnerable?
+                     (map proyecto-militar-detalle codigos-de-seguridad))))
+
+    ;; cada vez que lo evaluemos tardará 5ms aprox.
+    (time (detectar-vulnerabilidad-del-sistema (range 0 5)))
+    (time (detectar-fortaleza-del-sistema (range 0 5)))
+
+    ;; - aprovechamos que map devuelve una secuencia perezosa
+    ;; (el map no evaluará la función que aplica a sus elementos hasta que una función lo solicite, Ej. take, take-while, ...)
+    ;; - los datos se vinculan a lazy-mapped-details luego de evaluar
+    (time (def lazy-mapped-details (map proyecto-militar-detalle (range 0 50))))
+    (time (take 4 lazy-mapped-details))
+  #+END_SRC
