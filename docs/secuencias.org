@@ -226,7 +226,7 @@
       ;; analizará todas las estructuras map del vector y devolverá sólo las que tengan más de 10 sugerencias
       (filter #(> (:sugerencias %) 10) libros-sugeridos)
 
-      ;; devolverá un valor booleano si se cumple ó no si existe al menos un libro con más de 150 sugerencias
+      ;; devolverá un valor booleano si se cumple ó no si existe al menos un libro con más de 500 sugerencias
       (some #(> (:sugerencias %) 500) libros-sugeridos)
     #+END_SRC
 *** Ejemplo 2 - Devolver el primer elemento que hace verdadero a Some
@@ -330,7 +330,7 @@
                        (map proyecto-militar-detalle codigos-de-seguridad))))
 
       ;; cada vez que lo evaluemos tardará 5ms aprox.
-      (time (detectar-proyecto-vulnerable (range 0 5)))
+      (time (detectar-vulnerabilidad-del-sistema (range 0 5)))
 
       ;; - map y range devuelven una secuencia perezosa,
       ;; por tanto al evaluar esta definición tardará 0.2ms aprox. casi nada (a menos que otra función acceda/solicite sus elementos)
@@ -352,3 +352,23 @@
 *** Referencias Extraoficiales
     1. [[https://otee.dev/2022/01/17/lazy-clojure.html][Laziness in Clojure (otee.dev)]]
     2. [[https://medium.com/@pwentz/laziness-in-clojure-3d83645bf7f3][Laziness in clojure (by Pat Wentz)]]
+* Secuencias Infinitas
+** TODO Ejemplos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      (cons 0 '(1 2 3))
+
+
+      (concat (take 10 (repeat  "x ")) [".!"])
+
+      (take 5 (repeatedly (fn [] (rand-int 10))))
+
+
+      (defn numeros-pares
+        ([] (numeros-pares 0))
+        ([n] (cons n (lazy-seq (numeros-pares (+ n 2))))))
+
+      (take 20 (numeros-pares))
+    #+END_SRC
+
+
