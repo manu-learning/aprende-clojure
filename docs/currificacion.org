@@ -5,6 +5,15 @@
   #+END_QUOTE
 * Apply
 ** Conceptos
+   - ~apply~ le pasa a una función (1º param) uno ó más parámetros de forma individual (suponiendo que esa función espera esos parámetros)
+
+   #+BEGIN_QUOTE
+   Supongamos que a una función le queremos pasar por parámetro los valores de una vector ó de una colección,
+   pero la función espera recibir parámetros de forma individual.. ~(funcion param1 param2)~
+   es decir no es de la forma ~(funcion lista-parametros)~
+
+   Entonces ~apply~ agarra cada uno de los elementos de un vector ó colección y se los pasa de forma individual
+   #+END_QUOTE
 ** Ejemplos
 *** Ejemplos Básicos
 **** Ejemplo 1 - Aplicar la función Max a un vector
@@ -17,7 +26,10 @@
        ;; esto no funcionaría como se espera..
        (max [1 2 10])
 
+       ;; - con apply, podemos aplicar el max en un vector
+       ;; - apply le pasa a la función los argumentos de forma individual
        (apply max [1 2 10])
+       (apply max (list 1 2 10))
      #+END_SRC
 **** Ejemplo 2 - Aplicar funciones básicas
      #+BEGIN_SRC clojure
@@ -40,7 +52,7 @@
 
        ;; - into inserta en una estructura (1º param) los elementos de otra estructura (2º param)
        ;; - conj inserta en una estructura (1º param) uno ó mas valores individuales (2º3º..nº parámetro, rest parameter)
-       ;; - apply aplica una función (1º param) a uno ó más parámetros (suponiendo que esa función espera esos parámetros)
+       ;; - apply le pasa a una función (1º param) uno ó más parámetros de forma individual (suponiendo que esa función espera esos parámetros)
        ;;
        ;; con apply aplicamos la función conj a los siguientes parámetros que conj esperaría
        (defn my-into
@@ -54,6 +66,12 @@
     1. [[https://clojuredocs.org/clojure.core/apply][apply - clojure.core (clojuredocs.org)]]
 * Partial
 ** Conceptos
+   - ~partial~ se suele utilizar cuando al definir funciones estas repiten código ó bien tienen lógica en común (polimorfismo)
+
+   #+BEGIN_QUOTE
+   Recibe una función seguido de uno ó más parámetros (parameter rest) y devuelve una *función anónima*,
+   la *función anónima* recibe uno o más paraḿetros (parameter rest) y se los pasa a la primera función
+   #+END_QUOTE
 ** Ejemplos
 *** Ejemplos Básicos
 **** Ejemplo 1 - Devolver una función que usa la función conj
@@ -108,6 +126,22 @@
        (apply max [1 2 3 4])
        ")
      #+END_SRC
+**** Ejemplo 2 - Logger, funciones con lógica repetida
+     #+BEGIN_SRC clojure
+       (defn now[] (new java.util.Date))
+
+       (defn logger
+         [log-level mensaje]
+           (condp = log-level
+             :warning (str (now) " warning: " mensaje)
+             :error (clojure.string/upper-case(str (now) " error: " mensaje "!!"))))
+
+       (def warning (partial logger :warning))
+       (def error (partial logger :error))
+
+       (warning "queda poco combustible en el avión")
+       (error "los motores del avión no responden")
+     #+END_SRC
 ** TODO Referencias
   #+BEGIN_COMMENT
   Seguir desarrollando usando como base estas referencias
@@ -115,3 +149,70 @@
 *** Referencias Extraoficiales
     1. [[http://xahlee.info/clojure/clojure_function_currying.html][Clojure Partial Function, Currying (xahlee.info)]]
     2. [[https://practical.li/clojure/thinking-functionally/partial-functions.html][Currying & Partial Functions (practical.li)]]
+* Complemento
+** Conceptos
+   #+BEGIN_QUOTE
+   Conceptualmente el complemento de algo es su negación,
+   si bien ya puede existir una función que lo haga podríamos implementarla
+
+   Ojo que el complemento no es solo usar aplicar la función ~(not)~ en una función booleana,
+   porque si la función dónde se aplica recibe varios parámetros..
+   1. primero debemos pasarle los parámetros
+   2. y luego ya podemos negar su valor booleano
+   #+END_QUOTE
+** Ejemplo
+   #+BEGIN_SRC clojure
+     (def proyectos-militares-database
+       {0 {:titulo "Proyecto X" :tiene-clave false :publicado true}
+        1 {:titulo "Proyecto robot humanoide" :tiene-clave true :publicado false}
+        2 {:titulo "Proyecto ataque extraterrestre" :tiene-clave true :publicado false}
+        3 {:titulo "Proyecto demonios entre nostros" :tiene-clave true :publicado false}
+        4 {:titulo "Proyecto mutantes entre nosotros" :tiene-clave false :publicado true}})
+
+     ;; si vemos en detalle la función anónima sólo recibe el parameter rest (lista con un numero indefinido de parámetros)
+     ;; y luego apply le pasa la lista de parámetros (parameter rest) de forma individual
+     (defn complemento
+       "Recibe una función que devuelva un valor booleano y niega el valor"
+       [funcion]
+       (fn [& parametros]
+         (not (apply funcion parametros))))
+
+     (comment "
+     como recordatorio de en que casos sirve apply
+     (max 1 2 3)
+     (apply max [1 2 3])
+     ")
+
+     (comment "
+     no podemos hacer algo como lo siguiente.. porque (vulnerable?) espera recibir un parámetro..
+     (def no-vulnerable? (not (vulnerable?)))
+     ")
+
+     (defn proyecto-detalle
+       [codigo-proyecto]
+       (get proyectos-militares-database codigo-proyecto))
+
+     ;; (proyecto-detalle 1)
+
+     (defn vulnerable?
+       [registro]
+       (and (:publicado registro)
+            (not (:tiene-clave registro))
+            registro))
+
+     (def no-vulnerable? (complemento vulnerable?))
+
+     (defn proyectos-vulnerables
+       [codigos-proyectos]
+       (filter vulnerable?
+               (map proyecto-detalle codigos-proyectos)))
+
+     (defn proyectos-no-vulnerables
+       [codigos-proyectos]
+       (filter no-vulnerable?
+               (map proyecto-detalle codigos-proyectos)))
+
+     (proyectos-vulnerables (range 0 5))
+     (proyectos-no-vulnerables (range 0 5))
+   #+END_SRC
+
