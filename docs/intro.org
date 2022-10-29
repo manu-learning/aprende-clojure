@@ -1,0 +1,24 @@
+#+TITLE: Intro
+* Hola Mundo
+  #+BEGIN_SRC shell :results output
+  # ejecutamos la siguiente linea de comando en algún emulador de terminal (TTY)
+  # para ejecutar el programa de clojure
+  #
+  # - assets: es un directorio del directorio actual es decir ./assets
+  # - hola: es el nombre del namespace que se indicó en el archivo hola.clj
+  # - run: es una función definida en el archivo hola.clj
+  cd assets && clj -X hola/run
+  #+END_SRC
+
+  #+BEGIN_COMMENT
+  ejecutar bloque de org con org-babel-tangle (C-c C-v t)
+  para crear el archivo hola.clj
+  #+END_COMMENT
+
+  #+BEGIN_SRC clojure :tangle assets/hola.clj :results output :exports both
+  ;; archivo hola.clj
+    (ns hola)
+
+    (defn run [opts]
+      (println "Hola Mundo!"))
+  #+END_SRC
