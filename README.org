@@ -1,7 +1,32 @@
 #+BEGIN_COMMENT
 Pendiente seguir...
 https://www.braveclojure.com/do-things/
-https://www.braveclojure.com/do-things/#Data_Structures
+https://www.braveclojure.com/core-functions-in-depth/
+
+seguir con..
+https://www.braveclojure.com/core-functions-in-depth/#Exercises
+(aún no hiciste ningún ejercicio de esto ultimo)
+#+END_COMMENT
+
+#+BEGIN_COMMENT
+Agregar conceptos de inmutabilidad
+https://dev.to/quoll/immutable-vars-and-clojure-3nh8
+https://dev.to/quoll/more-immutability-and-clojure-4cdk
+https://www.infoq.com/articles/in-depth-look-clojure-collections/
+https://clojureverse.org/t/when-do-we-really-need-efficient-immutable-data-structures/7536/6
+#+END_COMMENT
+
+#+BEGIN_COMMENT
+Reutilizar estos conceptos para javascript, basandote en clojure
+https://platzi.com/clases/1807-scope/25875-que-es-un-closure/
+https://es.javascript.info/closure
+https://www.variablenotfound.com/2012/10/closures-en-javascript-entiendelos-de.html
+#+END_COMMENT
+
+#+BEGIN_COMMENT
+Agregar referencias con más detalle
+https://clojure.org/guides/destructuring
+https://clojure.org/guides/learn/hashed_colls
 #+END_COMMENT
 * Atajos Spacemacs
 ** Desarrollo
@@ -66,14 +91,17 @@ https://www.braveclojure.com/do-things/#Data_Structures
    https://kimh.github.io/clojure-by-example/#hello-world parece copado (?)
    #+END_COMMENT
 ** Tutoriales
-   1. [[https://practical.li/clojure/reference/clojure-syntax/syntax.html][Syntax Clojure (practical.li)]]
-   2. https://yogthos.net/ClojureDistilled.html
-   3. https://exercism.org/tracks/clojure 
-   4. http://clojurekoans.com/
-   5. https://4clojure.oxal.org/ 
-   6. https://tryclojure.org/
+   1. [[https://markm208.github.io/cljbook/][An animated Introduction to Clojure (By markm208)]]
+   2. [[https://practical.li/clojure/reference/clojure-syntax/syntax.html][Syntax Clojure (practical.li)]]
+   3. https://yogthos.net/ClojureDistilled.html
+   4. https://exercism.org/tracks/clojure 
+   5. http://clojurekoans.com/
+   6. https://4clojure.oxal.org/ 
+   7. https://tryclojure.org/
 
    #+BEGIN_COMMENT
+   https://dev.to/jorgetovar/clojure-101-2i2b
+
    https://exercism.org/tracks/clojure/concepts/basics
 
    https://www.youtube.com/watch?v=P-OzjJ2Aumg&t=40s&ab_channel=OsmanCea
