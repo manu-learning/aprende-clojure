@@ -157,3 +157,57 @@
     1. [[https://www.tutorialspoint.com/clojure/clojure_atoms_swap.htm][Atom and swap! (tutorialspoint.com)]]
     2. [[https://emanuelpeg.blogspot.com/2022/01/concurrencia-en-clojure.html][Concurrencia en Clojure (by Emanuel Goette)]]
     3. [[https://ericnormand.me/mini-guide/atom-code-explanation][Atom code explanation (ericnormand.me)]]
+* Secuencia de Keys y Vals
+** Ejemplo
+  #+BEGIN_SRC clojure
+    ;; vals
+    ;; - devuelve una secuencia de valores de una estructura map (en el mismo orden)
+    (vals {:nombre "carlitos" :edad 19})
+
+
+    ;; keys
+    ;; - devuelve una secuencia de keywords de una estructura map (en el mismo orden)
+    (keys {:nombre "carlitos" :edad 19})
+  #+END_SRC
+* for
+** Ejemplo
+   #+BEGIN_SRC clojure
+     ;; operamos entre elementos de una lista
+     (for [x (list 1 2 3)
+           y (list 1 2 3)]
+       (* x y))
+
+     ;; operamos entre elementos de un vector
+     (for [x [1 2 3]
+           y [1 2 3]]
+       (* x y))
+
+     ;; devolvemos pares ordenados de la forma [letra numero]
+     (for [x ['a 'b 'c]
+           y [1 2 3]]
+       [x y])
+
+     ;; devolvemos pares ordenados de la forma [numero numero]
+     (for [x (range 3)
+           y (range 3)]
+       [x y])
+
+
+     ;; :when
+     ;; - si la condición se cumple, evalúa la expresión en el cuerpo de la función
+     (for [x (range 3)
+           y (range 3)
+           :when (not= x y)]
+       [x y])
+
+     ;; :while
+     ;; - si la condición se cumple, detiene la iteración del for
+     (for [x (range 3)
+           y (range 3)
+           :while (not= x y)]
+       [x y])
+   #+END_SRC
+** Referencias
+   1. [[https://clojuredocs.org/clojure.core/for][for - clojure.core (clojuredocs.org)]]
+*** Referencias
+
