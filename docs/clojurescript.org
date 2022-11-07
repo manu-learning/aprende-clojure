@@ -33,6 +33,9 @@
 
 
      (transform* {:name "Carlitos" :age 39})
+
+     (-> [{:z 10}]
+         (conj [{:x 1} {:y 10}]))
    #+END_SRC
 ** Referencias
    1. [[https://clojuredocs.org/clojure.core/-%3E][-> clojure.core (clojuredocs.org)]]
@@ -210,4 +213,166 @@
 ** Referencias
    1. [[https://clojuredocs.org/clojure.core/for][for - clojure.core (clojuredocs.org)]]
 *** Referencias
+* Operaciones sobre estructuras Map Anidadas (Nested Map)
+** Conceptos
+  - ~get-in~ y ~update-in~ acceden a una *estructura map* con 1 ó varios *niveles de anidamiento*
+  - acceden a los elementos del map con ~keywords~ dentro de un vector ~[:a]~
+    (Ej. ~get-in participante [:usuario]~)
+  - si la *estructura map tiene varios niveles de anidamiento*, se *encadenan las keywords* ~:a :b :c~
+    (Ej. ~get-in participante [:usuario :perfil :ciudad]~)
+  - si la *estructura map contiene un vector*, se debe indicar la posición del elemento en el vector ~:a 0~
+    (Ej. ~get-in participante [:usuario :amigos 0 :nombre]~)
+** get-in
+  - ~get-in~ devuelve un elemento de la estructura map
+** update-in
+  - ~update-in~ devuelve una nueva estructura anidada con el valor modificado asociado a la keyword
+** Ejemplos
+*** Ejemplo 1 - Obteniendo valores con get-in
+#+BEGIN_SRC clojure
+  (def cuenta {:usuario "carlitos"
+               :perfil {:nombre "carlitos"
+                        :direccion {:ciudad "Buenos Aires" :barrio "Belgrano"}}})
 
+  (get-in cuenta [:perfil :direccion :ciudad])
+
+  (def gary {:usuario "Gary"
+             :clase "Entrenador"
+             :pueblo "Paleta"
+             :rivales ["Ash"]
+             :pokemones [{:nombre "Pikachu" :tipo "electrico"}
+                         {:nombre "Charmander" :tipo "fuego"}
+                         {:nombre "Raichu" :tipo "electrico"}]})
+
+  ;; accedemos al string
+  (get-in gary [:pueblo])
+
+  ;; accedemos a un vector de estructuras map,
+  ;; luego al primer elemento del vector,
+  ;; el resultado será una estructura map
+  (get-in gary [:pokemones 0])
+
+  ;; accedemos a un vector de estructuras map,
+  ;; luego al primer elemento del vector,
+  ;; luego el valor de la keyword :nombre
+  ;; el resultado será valor asociado a la keyword
+  (get-in gary [:pokemones 0 :nombre])
+#+END_SRC
+*** Ejemplo 2 - Actualizando valores asociados a una keyword con update-in
+#+BEGIN_SRC clojure
+  (def cuenta {:usuario "carlitos"
+               :edad 18
+               :perfil {:nombre "carlitos"
+                        :direccion {:ciudad "Buenos Aires" :barrio "Belgrano"}}})
+
+  ;; modificamos el valor de la keyword :edad con la función incremento (inc)
+  ;; el parámetro que recibe (inc) será el valor asociado a la keyword :edad
+  (update-in cuenta [:edad] inc)
+
+  ;; modificamos el valor keyword :edad con la función resta (-)
+  ;; los parámetros a la función (-)
+  ;; 1º parámetro el 5
+  ;; 2º parámetro el valor asociado a la keyword
+  (update-in cuenta [:edad] - 5)
+
+  ;; verificamos que la estructura original no se modificó
+  (get-in cuenta [:edad])
+#+END_SRC
+* TODO constantly
+** Conceptos
+  - ~constantly~ devuelve una función que recibe 1 ó más parámetros y devuelve siempre el primero
+** Ejemplo
+#+BEGIN_SRC clojure
+  (def diez (constantly 10))
+
+  (diez 5)
+  (diez "hola")
+  (diez (+ 1 1))
+
+  ((constantly 10) 1)
+  ((constantly 10) 1 2 3 4)
+  ((constantly 10) (+ 1 1))
+#+END_SRC
+* TODO Ajax
+* Componentes de prueba
+#+BEGIN_SRC clojure :exports none
+  (def app-state (atom {:game "startrek"
+                        :escenario nil
+                        :bitacoras []}))
+
+    (swap! app-state :escenario 2)
+    ;; si hacemos esto se borra el estado original, desaparece :game
+    ;; (swap! app-state :escenario {:titulo "pantalla yep"} )
+
+    (swap! app-state assoc :escenario {:titulo "pantalla yep"} )
+
+  (defn bitacoras []
+    (get-in @app-state [:bitacoras]))
+
+  (defn agregar-bitacora [bitacora]
+    (swap! app-state
+           assoc :bitacoras
+           (conj (bitacoras) bitacora)))
+
+  (->
+   (bitacoras)
+   (conj {:z 1}))
+
+  (defn limpiar-bitacora []
+    (swap! app-state assoc :bitacoras []))
+
+  (limpiar-bitacora)
+
+  (agregar-bitacora {:dia 3})
+
+  (get-in @app-state [:bitacoras])
+
+  (swap! app-state
+         assoc :bitacoras
+         (identity [{:a :b} {:c :d}]))
+
+  (swap! app-state
+         assoc :bitacoras
+         (conj (get-in @app-state [:bitacoras]) {:x :y}))
+
+  (conj (get-in @app-state [:bitacoras]) {:e :f})
+
+  (swap! app-state
+         assoc :escenario 5)
+
+  (swap! app-state
+         assoc :bitacoras
+         )
+  ;;
+  ;; (conj (get-in @app-state [:bitacoras]) {:a})
+
+  (get-in @app-state [:bitacoras])
+
+  (def escenarios
+    [{:nombre :sugerencias
+      :titulo "Sugerencias del juego"
+      :dialogo "¿Sabías el control de navegación que aparece debajo te da acceso completo a la nave espacial?"}
+     {:nombre :explorar
+      :titulo "Explorando nuevos mundos"
+      :dialogo "Buscando posiblidad de nuevos mundos en las cercanías.."}
+     {:nombre :mision
+      :titulo "Misión infiltración"
+      :dialogo "Tu misión es encontrar a los enemigos de la US Enterprise lo más pronto posible"}
+     {:nombre :terminal
+      :titulo "Terminal de Comando"
+      :dialogo "> Terminal de comando de la USS Enterprise"}])
+
+  (map #(% :dialogo) (get-in @app-state [:bitacoras]))
+
+  (get-in @app-state [:bitacoras 0 :dialogo])
+
+  (get-in @app-state [:bitacoras])
+
+    (defn escenario-detalle [nombre]
+      (filter #(= (% :nombre) nombre) escenarios))
+
+    (escenario-detalle "inicio")
+
+    escenarios
+
+    (get-in escenarios [1 :titulo])
+#+END_SRC
