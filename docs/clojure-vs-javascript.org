@@ -1,0 +1,43 @@
+#+TITLE: Clojure Vs Javascript
+* for
+** Javascript
+#+BEGIN_SRC js :results ouput :exports both
+    // catetos (menor/mayor) de cada triángulo rectángulo
+    let catetos = [[1, 1.5], [2.5, 2], [3, 3], [4, 3]];
+
+    // hipótenusa de cada triángulo rectángulo
+    let hipotenusas = [];
+
+    for (let i=0; i < catetos.length; i++){
+        hipotenusas.push(
+            Math.sqrt(
+                Math.pow(catetos[i][0], 2) + Math.pow(catetos[i][0], 2)
+            )
+        );
+    }
+
+  console.log(hipotenusas);
+#+END_SRC
+
+#+RESULTS:
+: [1.4142135623730951 (\, 3.5355339059327378) (\, 4.242640687119285) (\, 5.656854249492381)]
+** Clojure
+#+BEGIN_SRC clojure :results ouput :exports both
+  ;; Podríamos bindear/vincular el resultado a un nombre de variable hipotenusas con def
+
+  ;; Concepto de Destructuring (descomponemos una secuencia)
+  (let [catetos-lista (list [1 1.5] [2.5 2] [3 3] [4 3])]
+    (for [[cateto-menor cateto-mayor] catetos-lista]
+      (Math/sqrt (+
+                  (Math/pow cateto-menor 2)
+                  (Math/pow cateto-mayor 2)))))
+
+  ;; Funciones first y second
+  (let [catetos-lista (list [1 1.5] [2.5 2] [3 3] [4 3])]
+    (for [catetos catetos-lista]
+      (Math/sqrt (+
+                  (Math/pow (first catetos) 2)
+                  (Math/pow (second catetos) 2)))))
+#+END_SRC
+
+#+RESULTS:
