@@ -277,8 +277,25 @@
    #+END_SRC
 * TODO Secuencia Perezosa (Lazy Seq)
 ** Conceptos
-** Ejemplos
-*** Ejemplo 1 - Map devuelve una secuencia perezosa
+   #+BEGIN_QUOTE
+   Funciones comunes que devuelven una *secuencia perezosa* y el cuerpo de la función no es evaluado
+   hasta que otra función solicite sus resultados
+   - map
+   - for
+
+   Funciones que devuelven NO devuelven una *secuencia perezosa* y son evaluadas
+   - doseq
+
+   Funciones que obligan evaluar el cuerpo de las funciones que devuelven una *secuencia perezosa*
+   - dorun
+   #+END_QUOTE
+** dorun y doseq
+    - ~dorun~ obliga a evaluar el cuerpo de una función que devuelve una *secuencia perezosa* (Ej. for, map, etc...)
+    - ~doseq~ tiene comportamiento similar a ~for~ pero no devuelve una *secuencia perezosa*
+    - ~doseq~ soporta los mismos modificadores que ~for~ (Ej. ~:while~ ~:when~ ~:let~)
+** TODO dorun Vs doall
+** Ejemplos Basicos
+*** Ejemplo 1 - map devuelve una secuencia perezosa
     #+BEGIN_SRC clojure
       ;; map devuelve una lazy seq (secuencia perezosa), por tanto el println que debería aplicar a sus elementos no será evaluado
       ;; (porque nadie consume lo que devuelve, Ej. take, take-while, ...)
@@ -302,7 +319,49 @@
       (lazy-imprimir-numeros 9)
       (imprimir-numeros 9)
     #+END_SRC
-*** Ejemplo 2 - Eficiencia de usar Secuencias Perezosas
+*** Ejemplo 2 - for devuelve una secuencia perezosa
+    #+BEGIN_SRC clojure
+      ;; devolverá 10 valores
+      (for [num (range 0 10)]
+        (println num))
+
+      ;; devolverá 10 valores
+      (do (for [num (range 0 10)]
+        (println num)))
+
+      ;; pero si queremos ejecutar varias expresiones con do..
+      ;;
+      ;; - en este caso, la última expresión evaluada es el println
+      ;; al evaluar éste do, sólo  devolvera "listo"
+      ;; - el for devolverá una secuencia perezosa,
+      ;; y como no hay una función que requiera su resultado
+      ;; no se ejecuta el cuerpo del for..
+      (do
+            (for [num (range 10)]
+              (println num))
+            (println "listo"))
+
+      ;; con dorun, se ejecuta el cuerpo del for
+      ;; (sólo debemos pasarle la secuencia perezosa que devuelve el for)
+      (do (dorun
+           (for [num (range 10)]
+             (println num)))
+           (println "listo"))
+    #+END_SRC
+*** Ejemplo 3 - doseq para simular interacción con una API Rest
+    #+BEGIN_SRC clojure
+      (defn send-to-api [usuario]
+        (println "Enviando a la API información del usuario.. " usuario))
+
+      (let [usuarios [{:nombre "Kevin" :edad 29}
+                      {:nombre "Samuel" :edad 30}
+                      {:nombre "Ramiro" :edad 18}]]
+            (doseq [usuario usuarios]
+              (send-to-api usuario))
+            (println "Listo"))
+    #+END_SRC
+** Ejemplos
+*** Ejemplo 1 - Eficiencia de usar Secuencias Perezosas
     #+BEGIN_SRC clojure
       (def proyectos-militares-database
         {0 {:titulo "Proyecto X" :tiene-clave false :publicado true}
