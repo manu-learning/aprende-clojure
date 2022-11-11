@@ -172,47 +172,6 @@
     ;; - devuelve una secuencia de keywords de una estructura map (en el mismo orden)
     (keys {:nombre "carlitos" :edad 19})
   #+END_SRC
-* for
-** Ejemplo
-   #+BEGIN_SRC clojure
-     ;; operamos entre elementos de una lista
-     (for [x (list 1 2 3)
-           y (list 1 2 3)]
-       (* x y))
-
-     ;; operamos entre elementos de un vector
-     (for [x [1 2 3]
-           y [1 2 3]]
-       (* x y))
-
-     ;; devolvemos pares ordenados de la forma [letra numero]
-     (for [x ['a 'b 'c]
-           y [1 2 3]]
-       [x y])
-
-     ;; devolvemos pares ordenados de la forma [numero numero]
-     (for [x (range 3)
-           y (range 3)]
-       [x y])
-
-
-     ;; :when
-     ;; - si la condición se cumple, evalúa la expresión en el cuerpo de la función
-     (for [x (range 3)
-           y (range 3)
-           :when (not= x y)]
-       [x y])
-
-     ;; :while
-     ;; - si la condición se cumple, detiene la iteración del for
-     (for [x (range 3)
-           y (range 3)
-           :while (not= x y)]
-       [x y])
-   #+END_SRC
-** Referencias
-   1. [[https://clojuredocs.org/clojure.core/for][for - clojure.core (clojuredocs.org)]]
-*** Referencias
 * Operaciones sobre estructuras Map Anidadas (Nested Map)
 ** Conceptos
   - ~get-in~ y ~update-in~ acceden a una *estructura map* con 1 ó varios *niveles de anidamiento*
