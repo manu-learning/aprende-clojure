@@ -1,10 +1,175 @@
 #+TITLE: Recursividad
+* for
+** Conceptos
+   - Generar todas las combinaciones posibles de múltiples secuencias recibidas sin varios niveles de anidamiento
+   - Acepta el modificador ~:let~ para bindear/vincular valores
+   - Acepta el modificador ~:when~ para filtrar que valores usará el cuerpo de for
+   - Acepta el modificador ~:while~ para detener un ciclo de combinación (no todos, sólo un ciclo de combinaciones)
+
+   #+BEGIN_QUOTE
+   Diferencias entre los modificadores ~:when~ y ~:while~
+   - ~:when~ filtrará los resultados que el ~for~ devuelve
+   - ~:while~ detiene un ciclo de combinaciones (/resuta más fácil entenderlo al verlo en práctica/)
+   #+END_QUOTE
+** Ejemplos Básicos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      ;; operamos entre elementos de una lista
+      (for [x (list 1 2 3)
+            y (list 1 2 3)]
+        (* x y))
+
+      ;; operamos entre elementos de un vector
+      (for [x [1 2 3]
+            y [1 2 3]]
+        (* x y))
+
+      ;; devolvemos pares ordenados de la forma [letra numero]
+      (for [x ['a 'b 'c]
+            y [1 2 3]]
+        [x y])
+
+      ;; devolvemos pares ordenados de la forma [numero numero]
+      (for [x (range 3)
+            y (range 3)]
+        [x y])
+
+
+      ;; :when
+      ;; - si la condición se cumple, evalúa la expresión en el cuerpo de la función
+      (for [x (range 3)
+            y (range 3)
+            :when (not= x y)]
+        [x y])
+
+      ;; :while
+      ;; - si la condición se cumple, detiene la iteración del for
+      (for [x (range 3)
+            y (range 3)
+            :while (not= x y)]
+        [x y])
+    #+END_SRC
+*** Ejemplo 2 - for con modificadores :let :when y :while
+    #+BEGIN_SRC clojure
+      (for [n (range 100)
+            :let [doble (* 2 n)]
+            :when (even? n) ;; es par ?
+            :while (< n 10)]
+        (str "el doble de " n " es " doble))
+    #+END_SRC
+** Ejemplos
+*** Ejemplo 1 - Multiples secuencias sin varios niveles de anidamiento
+    #+BEGIN_SRC clojure
+      ;; el for hará todas las posibles combinaciones entre los elementos
+      ;; de cada secuencia (colores, materiales, tipos)
+      (let [colores [:rojo :verde :amarillo]
+            materiales [:tela :algodon]
+            tipos [:remera :campera]]
+        (for [color colores
+              material materiales
+              tipo tipos]
+          [color material tipo]))
+    #+END_SRC
+*** Ejemplo 2 - for con modificador :while
+    #+BEGIN_SRC clojure
+      ;; el for recibe 3 secuencias de vectores
+      ;; y generará todas las combinaciones posibles [color material tipo]
+      ;;
+      ;; 1. como :rojo != :verde, entonces devolverá todas las combinaciones [:rojo material tipo]
+      ;; 2. como :verde = :verde el while detiene el flujo y no se evalúan mas combinaciones
+      ;; incluso [:amarillo material tipo] porque el while estaba después de colores
+      ;; y sólo evaluaba color
+      (let [colores [:rojo :verde :amarillo]
+            materiales [:tela :algodon]
+            tipos [:remera :campera]]
+        (for [color colores
+              :while (not= color :verde)
+              material materiales
+              tipo tipos]
+          [color material tipo]))
+    #+END_SRC
+*** Ejemplo 3 - for con modificador :while más en detalle
+    #+BEGIN_SRC clojure
+      ;; al pasarle tres secuencias x y z si no contemplamos el :while debería hacer [x y z]
+      ;; es decir todas las combinaciones de los tres vectores
+      ;;
+      ;; hasta donde pondramos el :while es hasta donde evaluará y decide si cortar el flujo
+      ;; hace combinaciones [x y] y si x!=y entonces hace [x y z] si no corta el flujo
+      ;;
+      ;;
+      ;; empieza con [1 1] como x(1)=y(1) el while corta el flujo, no evalúa ninguna combinación [1 y]
+      ;; por tanto no llega a evalúar [1 2 z] ni [1 3 z] porque ya salió del flujo con [1 1]
+      ;;
+      ;; contínua con las combinaciones [2 y]
+      ;; empezando con [2 1] como x(2)!=y(1) evalúa [2 1 z] que sería [2 1 :a] [2 1 :b]
+      ;; sigue [2 2] como x(2)=y(2) corta el flujo de combinaciones [2 2 z] filtrando [2 2 :a] [2 2 :b]
+      (for [x [1 2 3]
+            y [1 2 3]
+            :while (not= x y)
+            z [:a :b]]
+        [x y z])
+
+      ;; en dónde esté el :while indica cuantas posibles combinaciones antes de cortar el flujo
+      ;; Ej. antes era [x y] si se cumpla x=y cortaba el flujo y no llegaba a evaluar [x y z]
+      ;; Ej. ahora es [x y z] se llega a evaluar apesar de si se cumple x=y
+      ;; filtrando sólo los x=y en [x y z] en vez de sólo [x y], habiendo mas combinaciones
+      ;;
+      ;; cuando se cumple x(1)=y(1) se corta el flujo sólo para las combinaciones [1 1 z]
+      ;; pero permite el resto [1 2 z] y [1 3 z]
+      (for [x [1 2 3]
+            y [1 2 3]
+            z [:a :b]
+            :while (not= x y)]
+        [x y z])
+    #+END_SRC
+*** Ejemplo 4 - for con más de un modificador :when
+    #+BEGIN_SRC clojure
+      ;; el for hará todas las posibles combinaciones entre los elementos
+      ;; de cada secuencia (colores, materiales, tipos)
+      ;;
+      ;; pero filtrará las combinaciones q tengan la keyword :tela
+      (let [colores [:rojo :verde :amarillo]
+            materiales [:tela :algodon]
+            tipos [:remera :campera]]
+        (for [color colores
+              material materiales
+              tipo tipos
+              :when (not= material :tela)]
+          [color material tipo]))
+
+      ;; filtrará las combinaciones q tengan la keyword :rojo ó :tela
+      (let [colores [:rojo :verde :amarillo]
+            materiales [:tela :algodon]
+            tipos [:remera :campera]]
+        (for [color colores
+              material materiales
+              tipo tipos
+              :when (not= color :rojo)
+              :when (not= material :tela)]
+          [color material tipo]))
+    #+END_SRC
+** Referencias
+   1. [[https://clojuredocs.org/clojure.core/for][for - clojure.core (clojuredocs.org)]]
+*** Referencias
 * Loop y Recur
 ** Conceptos
-  - Permiten la recursividad, y es menos verboso que definir una *función recursiva*
   - ~loop~ actúa como una función que recibe un argumento y es llamada sólo por ~recur~
   - ~loop~ bindea/vincula un valor a una variable
   - ~recur~ hace el llamado recursivo a ~loop~ pasandole un parámetro
+  - Combinados ~loop~ y ~recur~
+    1) generamos *recursivad de cola* (tail recursion), de forma menos verbosa que definir una *función recursiva*
+    2) el compilador de clojure tiene optimizaciones para *recursividad de cola* ésta será más rápido y eficiente que una *función recursiva*
+
+  #+BEGIN_QUOTE
+  Every time a recursive function calls itself, it consumes a stack frame, and if it recurses too deeply,
+  the JavaScript runtime will stop execution with an error.
+
+  However, recursive processes written with ~loop~ and ~recur~ can recurse arbitrarily deeply because
+  *the ClojureScript compiler is able to optimize them into an imperative loop*.
+  For this reason, loop is also usually faster than functional recursion.
+
+  By Andrew Meredith, Learn ClojureScript
+  #+END_QUOTE
 ** Ejemplos
 *** Ejemplo 1 - Contador con loop y recur
     #+BEGIN_SRC clojure
@@ -14,10 +179,43 @@
         (if (> iteracion 3)
           (println "Fin de la iteración")
           (recur (inc iteracion))))
+
+      (loop [iteracion 0
+             numeros []]
+        (if (= iteracion 10)
+          numeros
+          (recur (inc iteracion) (conj numeros iteracion))))
+
+      ;; Can only recur from tail position
+      (loop [iteracion 0
+             numeros []]
+        (if (= iteracion 10)
+          numeros
+          (* iteracion (recur (inc iteracion) (conj numeros iteracion)))))
     #+END_SRC
+*** Ejemplo 2 - Algoritmo de Euclides
+   #+BEGIN_SRC clojure
+     ;; algoritmo de euclides con recursividad normal
+     (defn gcd [a b]
+       (if (= b 0)
+         a
+         (gcd b (mod a b))))
+
+     ;; algoritmo de euclides con loop y recur
+     (defn gcd-own [a b]
+       (loop [x a
+              y b]
+         (if (= y 0)
+           x
+           (recur y (mod x y)))))
+
+     (gcd-own 90 60)
+   #+END_SRC
 ** Referencias
 *** Referencias Oficiales
     1. [[https://clojure.org/guides/learn/flow#_recursion][Clojure, Flow Control, Recursion (clojure.org)]]
+*** Referencias Extra-Oficiales
+    1. [[https://www.campusmvp.es/recursos/post/Recursividad-de-cola-tail-recursion.aspx][Recursividad de cola (campusmvp.es)]]
 * Función Recursiva
 ** Conceptos
    - Con el concepto de *sobrecarga de aridad* podemos plantear un caso base y caso recursivo de una función
@@ -45,6 +243,22 @@
 
       (contar-recursivamente)
     #+END_SRC
+*** Ejemplo 2 - Algoritmo de Euclides
+    #+BEGIN_QUOTE
+    El algoritmo de euclides devuelve el mayor denominador entre dos números
+    Por ejemplo ~(gcd 90 60) = 30~ porque
+    1. ~(mod 90 60) = 30~ porque 90=60 * 1 + 30
+    2. ~(mod 60 30) = 0~  porque 60=60 * 1 + 0, como tenemos cero, el 30 era el mayor denominador común entre 90 y 60
+    #+END_QUOTE
+
+   #+BEGIN_SRC clojure
+     (defn gcd [a b]
+       (if (= b 0)
+         a
+         (gcd b (mod a b))))
+
+     (gcd 90 60)
+   #+END_SRC
 * Reduce
 ** Conceptos
    - ~reduce~ facilita iterar y aplicar funciones sobre una colección
