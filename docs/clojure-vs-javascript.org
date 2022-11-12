@@ -1,7 +1,7 @@
 #+TITLE: Clojure Vs Javascript
 * for
 ** Javascript
-#+BEGIN_SRC js :results ouput :exports both
+#+BEGIN_SRC js :results ouput :exports code
     // catetos (menor/mayor) de cada triángulo rectángulo
     let catetos = [[1, 1.5], [2.5, 2], [3, 3], [4, 3]];
 
@@ -18,11 +18,8 @@
 
   console.log(hipotenusas);
 #+END_SRC
-
-#+RESULTS:
-: [1.4142135623730951 (\, 3.5355339059327378) (\, 4.242640687119285) (\, 5.656854249492381)]
 ** Clojure
-#+BEGIN_SRC clojure :results ouput :exports both
+#+BEGIN_SRC clojure :results ouput :exports code
   ;; Podríamos bindear/vincular el resultado a un nombre de variable hipotenusas con def
 
   ;; Concepto de Destructuring (descomponemos una secuencia)
@@ -39,12 +36,10 @@
                   (Math/pow (first catetos) 2)
                   (Math/pow (second catetos) 2)))))
 #+END_SRC
-
-#+RESULTS:
 * reduce
 ** TODO Javascript
 *** Ejemplo a comparar
-    #+BEGIN_SRC js :results output
+    #+BEGIN_SRC js :results output :exports code
       const articulosDeInvierno = [{codigo: 101, prenda: "remera"},
                                    {codigo: 103, prenda: "pantalon"},
                                    {codigo: 109, prenda: "remera"},
@@ -65,12 +60,8 @@
 
       console.log(removerRemeras(articulosDeInvierno));
     #+END_SRC
-
-    #+RESULTS:
-    : [ { codigo: 103, prenda: 'pantalon' },
-    :   { codigo: 121, prenda: 'pantalon' } ]
 *** Ejemplos Básicos
-    #+BEGIN_SRC js :results output :exports both
+    #+BEGIN_SRC js :results output :exports code
       const preciosDeArticulosComprados = [10, 50, 50, 300];
 
       const valorInicial = 0; // se conoce por semilla
@@ -82,10 +73,6 @@
 
       console.log(precioTotal(preciosDeArticulosComprados));
     #+END_SRC
-
-    #+RESULTS:
-    : 410
-
 ** Clojure
 *** Ejemplo a comparar
     #+BEGIN_SRC clojure
