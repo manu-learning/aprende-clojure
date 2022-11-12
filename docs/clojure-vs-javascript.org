@@ -70,7 +70,7 @@
     : [ { codigo: 103, prenda: 'pantalon' },
     :   { codigo: 121, prenda: 'pantalon' } ]
 *** Ejemplos Básicos
-    #+BEGIN_SRC js
+    #+BEGIN_SRC js :results output :exports both
       const preciosDeArticulosComprados = [10, 50, 50, 300];
 
       const valorInicial = 0; // se conoce por semilla
@@ -85,7 +85,6 @@
 
     #+RESULTS:
     : 410
-    : undefined
 
 ** Clojure
 *** Ejemplo a comparar
