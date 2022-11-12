@@ -270,7 +270,11 @@
 ** Ejemplos Básicos
 *** Ejemplo 1 - Reduce con funciones anónimas
     #+BEGIN_SRC clojure
-      ;; imprimirá sólo la semilla, el 1 (como no la definimos, eligió por defecto el 1º elemento del vector)
+      ;; - imprimirá sólo la semilla (el 1) seguido de tres veces nil,
+      ;; que son los 3 elementos restantes pero no son pasados al println
+      ;;
+      ;; - al no definir nosotros cual será la semilla,
+      ;; el reduce eligió como semilla el 1º elemento del vector
       (reduce
        (fn [resultado elemento]
          (println resultado))
@@ -288,7 +292,8 @@
        (fn [resultado elemento] (println elemento))
        [1 2 3 4])
 
-      ;; - definimos que la semilla será el 0, ya no será el 1
+      ;; - definimos que la semilla será el 0,
+      ;; por tanto el reduce no podrá elegir como semilla al primer elemento (el 1) del vector
       ;; - imprimirá cada elemento (1 2 3 4)
       (reduce
        (fn [resultado elemento] (println elemento))
@@ -298,9 +303,10 @@
       ;; - imprime cada elemento
       ;; - aplica la función suma en el siguiente orden
       ;; 1. semilla (0) + primer elemento del vector (1)
-      ;; 2. resultado anterior + siguiente elemento del vector
-      ;; 3. la última expresión evaluada es el resultado de sumar todos los elementos
-      ;; por tanto devolverá sólo un valor
+      ;; 2. resultado anterior + siguiente elemento del vector (el 2 en este vector)
+      ;; 3. se repite el paso anterior hasta que la última expresión evaluada
+      ;; es el resultado de sumar todos los elementos, por tanto devolverá sólo un valor
+      ;; (aunque la semilla ya es un indicio de que tipo de dato devolverá el reduce)
       (reduce
        (fn [resultado elemento]
          (println (str "el elemento evaluado: " elemento))
@@ -384,6 +390,43 @@
 
       (mi-reduce + [1 2 3 4])
       (mi-reduce + 0 [1 2 3 4])
+    #+END_SRC
+** Otros Ejemplos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      ;; una explicación muy general sin tanto detalle, podría ser
+      ;; 1. definimos una variable X que le vinculamos una función anónima fn1 que espera un predicado como argumento
+      ;; 2. fn1 devuelve otra función anónima fn2 que espera una secuencia (colección ó vector) como argumento
+      ;; 3. fn2 aplica un reduce que devolverá un resultado (ya tenemos en mente que será un vector) e iterará sobre cada elemento artículo
+      ;; 4. si el artículo seleccionado cumple el predicado de fn1, devolvemos el resultado anterior (ignoramos el elemento, no lo usamos)
+      ;; 5. si el artículo no cumple el predicado de fn1 lo agregamos al resultado anterior (que es una secuencia a la que se le agrega un elemento, por eso usamos conj)
+      ;; 6. el reduce sólo le falta pasarle la semilla que será un vector vacío [] que será el resultado inicial (define el tipo de dato que devolverá el reduce)
+      ;; y la secuencia a recorrer que serán los artículos de fn2
+      (def remover-articulos-por
+        (fn [predicado]
+          (fn [articulos]
+            (reduce (fn [resultado articulo]
+                      (if (predicado articulo)
+                        resultado
+                        (conj resultado articulo)))
+                    []
+                    articulos))))
+
+      ;; pensamos en definir un predicado que se aplicará a un elemento,
+      ;; que será pasado a una función mas general que aplicará a una secuencia (colección o vector)
+      (def remover-remeras
+        (remover-articulos-por (fn [articulo] (= "remera" (:prenda articulo)))))
+
+      ;; ésta sería la estructura inicial de la que partiría la lógica,
+      ;; seguida de definir el predicado remover un articulo específico
+      ;; y luego definir el remover que reciba el criterio anterior
+      (def articulos-de-invierno [{:codigo 101 :prenda "remera" :color "rojo"}
+                                  {:codigo 102 :prenda "pantalon" :color "rojo"}
+                                  {:codigo 302 :prenda "pantalon" :color "rojo"}
+                                  {:codigo 401 :prenda "pantalon" :color "verde"}
+                                  {:codigo 900 :prenda "remera" :color "azul"}])
+
+      (remover-remeras articulos-de-invierno)
     #+END_SRC
 ** Referencias
 *** Referencias Extra-oficiales
