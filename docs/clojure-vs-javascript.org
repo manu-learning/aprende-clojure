@@ -41,3 +41,95 @@
 #+END_SRC
 
 #+RESULTS:
+* reduce
+** TODO Javascript
+*** Ejemplo a comparar
+    #+BEGIN_SRC js :results output
+      const articulosDeInvierno = [{codigo: 101, prenda: "remera"},
+                                   {codigo: 103, prenda: "pantalon"},
+                                   {codigo: 109, prenda: "remera"},
+                                   {codigo: 121, prenda: "pantalon"},
+                                   {codigo: 191, prenda: "remera"}];
+
+      const removerArticuloPor = (predicado) => {
+          return listado =>
+          listado.reduce((resultado, articulo) => {
+              if(predicado(articulo)) return resultado;
+              return resultado.concat(articulo);
+          }, []);
+      };
+
+      const removerRemeras = removerArticuloPor(
+          articulo => articulo.prenda == "remera"
+      );
+
+      console.log(removerRemeras(articulosDeInvierno));
+    #+END_SRC
+
+    #+RESULTS:
+    : [ { codigo: 103, prenda: 'pantalon' },
+    :   { codigo: 121, prenda: 'pantalon' } ]
+*** Ejemplos Básicos
+    #+BEGIN_SRC js
+      const preciosDeArticulosComprados = [10, 50, 50, 300];
+
+      const valorInicial = 0; // se conoce por semilla
+      const precioTotal = (listaDePrecios) => {
+          return listaDePrecios.reduce((resultado, precioDeArticulo) => {
+              return resultado + precioDeArticulo
+          }, valorInicial);
+      };
+
+      console.log(precioTotal(preciosDeArticulosComprados));
+    #+END_SRC
+
+    #+RESULTS:
+    : 410
+    : undefined
+
+** Clojure
+*** Ejemplo a comparar
+    #+BEGIN_SRC clojure
+      ;; una explicación muy general sin tanto detalle, podría ser
+      ;; 1. definimos una variable X que le vinculamos una función anónima fn1 que espera un predicado como argumento
+      ;; 2. fn1 devuelve otra función anónima fn2 que espera una secuencia (colección ó vector) como argumento
+      ;; 3. fn2 aplica un reduce que devolverá un resultado (ya tenemos en mente que será un vector) e iterará sobre cada elemento artículo
+      ;; 4. si el artículo seleccionado cumple el predicado de fn1, devolvemos el resultado anterior (ignoramos el elemento, no lo usamos)
+      ;; 5. si el artículo no cumple el predicado de fn1 lo agregamos al resultado anterior (que es una secuencia a la que se le agrega un elemento, por eso usamos conj)
+      ;; 6. el reduce sólo le falta pasarle la semilla que será un vector vacío [] que será el resultado inicial (define el tipo de dato que devolverá el reduce)
+      ;; y la secuencia a recorrer que serán los artículos de fn2
+      (def remover-articulos-por
+        (fn [predicado]
+          (fn [articulos]
+            (reduce (fn [resultado articulo]
+                      (if (predicado articulo)
+                        resultado
+                        (conj resultado articulo)))
+                    []
+                    articulos))))
+
+      ;; pensamos en definir un predicado que se aplicará a un elemento,
+      ;; que será pasado a una función mas general que aplicará a una secuencia (colección o vector)
+      (def remover-remeras
+        (remover-articulos-por (fn [articulo] (= "remera" (:prenda articulo)))))
+
+      ;; ésta sería la estructura inicial de la que partiría la lógica,
+      ;; seguida de definir el predicado remover un articulo específico
+      ;; y luego definir el remover que reciba el criterio anterior
+      (def articulos-de-invierno [{:codigo 101 :prenda "remera" :color "rojo"}
+                                  {:codigo 102 :prenda "pantalon" :color "rojo"}
+                                  {:codigo 302 :prenda "pantalon" :color "rojo"}
+                                  {:codigo 401 :prenda "pantalon" :color "verde"}
+                                  {:codigo 900 :prenda "remera" :color "azul"}])
+
+      (remover-remeras articulos-de-invierno)
+    #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce][Array.prototype.reduce, Reference (developer.mozilla.org)]]
+*** Referencias Extraoficiales
+    1. [[https://andepaulj.medium.com/javascript-reduce-79aab078da23][Javascript.reduce (By Paul Anderson, Medium)]]
+    2. [[https://www.codingem.com/javascript-reduce/][Javascript Reduce method (codingem.com)]]
+    3. [[https://ultimatecourses.com/blog/array-reduce-javascript][Exploring Array Reduce in Javascript (ultimatecourses.com)]]
+    4. [[https://code.tutsplus.com/articles/5-real-life-uses-for-the-javascript-reduce-method--cms-39096][Real life uses for javascript reduce method (code.tutsplus.com)]]
+    5. [[https://javascript.plainenglish.io/10-must-know-javascript-tricks-tips-about-reduce-1368766d99da][Tricks & Tricks about Reduce (By fatfish in Plain English)]]
