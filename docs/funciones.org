@@ -40,24 +40,64 @@
 * Aridad de una función
 ** Conceptos
    - La *aridad* es la cantidad de *argumentos* que toma una función
-** Ejemplo
-  #+BEGIN_SRC clojure
-    ;; función de aridad-0
-    (defn saludo-anonimo
-      []
-      "Hola..!")
+   - Una función podría tener *aridad=0* si no recibiera parámetros
+** Ejemplo Basicos
+*** Ejemplo 1
+   #+BEGIN_SRC clojure
+     ;; función de aridad-0
+     (defn saludo-anonimo
+       []
+       "Hola..!")
 
-    ;; función de aridad-1
-    (defn saludar-por-nombre
-      [nombre]
-      (str "Hola " nombre "!"))
+     ;; función de aridad-1
+     (defn saludar-por-nombre
+       [nombre]
+       (str "Hola " nombre "!"))
 
-    ;; función de aridad-2
-    (defn saludar-por-nombre-completo
-      [nombre apellido]
-      (str "Hola " nombre " " apellido "!"))
-  #+END_SRC
+     ;; función de aridad-2
+     (defn saludar-por-nombre-completo
+       [nombre apellido]
+       (str "Hola " nombre " " apellido "!"))
+   #+END_SRC
 * Sobrecarga de aridad (Overloading)
+** Conceptos
+** Ejemplos Basicos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      (defn funcion-aridad-0 []
+        (println "Esta función tiene aridad 0"))
+
+      (defn funcion-aridad-1 [a]
+        (println "Esta función tiene aridad 1"))
+
+      (defn funcion-multiples-aridades
+        ([a]
+         (println "se invocó a la función con aridad-1"))
+        ([a b]
+         (println "se invocó a la función con aridad-2"))
+        ([a b c]
+         (println "se invocó a la función con aridad-3")))
+    #+END_SRC
+*** Ejemplo 2 - Comportamiento por default con sobrecarga de aridad
+    #+BEGIN_SRC clojure
+      (def carrito-de-compras [])
+
+      ;; aridad-3: el comportamiento normal, agregar al carrito el codigo del producto y la cantidad comprada
+      ;; aridad-2: definimos comportamiento por defecto, una cantidad mínima a comprar (si no la agregan)
+      (defn agregar-producto-al-carrito
+        ([carrito codigo cantidad]
+         (conj carrito {:codigo codigo
+                        :cantidad cantidad}))
+        ([carrito codigo]
+         (agregar-producto-al-carrito carrito codigo 1)))
+
+
+      (agregar-producto-al-carrito
+       carrito-de-compras
+       101
+       5)
+    #+END_SRC
+*** Ejemplo 3
   #+BEGIN_SRC clojure
     ;; función con sobrecarga de aridad
     (defn atacar
@@ -94,6 +134,48 @@
       ([nombre]
        (str "Hola " nombre " tu eres mi enemigo!")))
   #+END_SRC
+** Ejemplos
+* Funciones con Pre-condición y Post-condición
+** Conceptos
+   - La pre-condición y post-condición se definen en una *estructura map* y reciben un vector de *predicados* (funciones lógicas, funciones booleanas)
+   - Si no se cumple la pre-condición ó la post-condición, entonces Clojure *lanza una excepción*
+
+   #+BEGIN_QUOTE
+   You should also be careful with pre/post conditions as *they throw AssertionError’s when triggered*.
+   This has two implications:
+
+   1. *Assertions can be disabled in Java* with a special JVM flag, making your pre/postconditions silently ignored.
+   2. *AssertionError is a sublcass of Error*
+      - So *it won’t be caught by generic (catch Exception) handlers* people usually use, you have to catch Throwable then.
+      - This might lead to errors leaking through catch-all cracks in your program.
+   #+END_QUOTE
+** Pre-Condición
+   - Se representa con la keyword ~:pre~ seguido de un vector de predicados
+** Post-Condición
+   - Se representa con la keyword ~:post~ seguido de un vector de predicados
+   - Con el símbolo ~%~ obtenemos el resultado que devolvería la función para condicionarlo
+** Ejemplos
+   #+BEGIN_SRC clojure
+     ;; pre-condición:
+     ;; - tiene sólo una, el denominador distinto de cero
+     ;;
+     ;; post-condición:
+     ;; - el resultado debe ser distinto de cero (con la función pos?)
+     ;; - el resultado debe ser menor ó igual a 1
+     (defn ratio [numerador denominador]
+       {:pre [(not= 0 denominador)]
+        :post [(pos? %) (<= % 1)]}
+       (/ numerador denominador))
+
+     (ratio 1 2)
+   #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure.org/reference/special_forms][Special forms (clojure.org)]]
+*** Referencias Extraoficiales
+    1. [[https://blog.fogus.me/2009/12/21/clojures-pre-and-post/][Clojure's :pre and :post (blog.fogus.me)]]
+*** Issues
+    1. [[https://clojureverse.org/t/why-are-pre-and-post-conditions-not-used-more-often/2238][Why are pre and post conditions not used more often? (clojureverse.org)]]
 * Funciones Variádicas (Rest parameter)
 ** Conceptos
   - Las *funciones variádicas* reciben un número indefinido de argumentos
@@ -212,7 +294,7 @@
 * Cuerpo de la función (function Body)
 ** Conceptos
    - El cuerpo de una función es también una función y devuelve la última expresión evaluada
-** Ejemplo
+** Ejemplos Basicos
 *** Ejemplo 1 - Operaciones al azar
     #+BEGIN_SRC clojure
      ;; clojure evaluará cada expresión de ésta función (barrido de izquierda a derecha)
@@ -248,10 +330,10 @@
 ** Conceptos
    - Se crean similar que con ~defn~ pero usamos ~fn~ y no las nombramos
    - La forma corta de usarlas es usando ~#~ como prefijo y ~%~ para los parámetros
-** Ejemplos
+** Ejemplos Basicos
 *** Ejemplo 1 - Básico
    #+BEGIN_SRC clojure
-     ;; una función anónima es similar a definir una con defn
+     ;; la estructura de una función anónima es similar que definir una función nombrada con defn
      (fn []
        "mi primer función anónima")
 
@@ -267,11 +349,22 @@
    #+END_SRC
 *** Ejemplo 2 - Nombrar a una función anónima
     #+BEGIN_SRC clojure
-     ;; - nombramos a la función anónima anterior
-     (def el-doble
-       (fn [x] (* x 2)))
+      ;; tres formas de explicar lo mismo acerca de la siguiente función anónima
+      ;; - bindeamos/vinculamos un nombre a la función anónima
+      ;; - definimos una variable y le bindeamos/vinculamos una función anónima que espera un argumento
+      ;; - la variable devuelve una función anónima que espera un argumento
+      ;; (lo común sería usar def para variables y defn para funciones)
+      (def el-doble
+        (fn [x] (* x 2)))
 
-     (el-doble 2)
+      (el-doble 2)
+
+      ;; defn
+      ;; - es más fácil de nombrar una función (comparado con def)
+      (defn el-triple [x]
+        (* x 3))
+
+      (el-triple 2)
     #+END_SRC
 *** Ejemplo 3 - Forma corta de una función anónima
     #+BEGIN_SRC clojure
