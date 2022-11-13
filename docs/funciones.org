@@ -1,4 +1,21 @@
 #+TITLE: Funciones
+* Parametros formales
+** Conceptos
+   - Se mencionan a los *parametros formales* cuando se trata de explicar el *modelo de evaluación* de expresiones cuando se invoca una función
+   - Son los parámetros de la definición de una función, que son sustituidos por los valores pasados en la invocación de la función previo a evaluarla
+
+   #+BEGIN_QUOTE
+   Una posible interpretación sería
+   1. definimos una función (/los parametros que recibe la función, se llaman parámetros formales/)
+   2. invocamos la función (/los parametros formales se sustituyen por los valores pasados en la invocación a la función/)
+   3. se evalúa el cuerpo de la función (/se evalúa el cuerpo de la función con los parámetros sustituidos/)
+   4. se obtiene el resultado de evaluar el cuerpo de la función
+   #+END_QUOTE
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://domingogallardo.github.io/apuntes-lpp/teoria/tema02-programacion-funcional/tema02-programacion-funcional.html][Programación funcional (domingogallardo.github.io)]]
+    2. [[https://www.geeksforgeeks.org/difference-between-actual-and-formal-parameters-in-pl-sql/][Difference between Actual and Formal Parameteres in PL/SQL (geeksforgeeks.org)]]
+    3. [[https://medium.com/@dpthegrey/explain-difference-between-formal-and-actual-parameter-with-example-26f63e7560bb][Explain difference between formal and actual parameter (by dpthegrey, Medium)]]
 * Llamadas a Funciones
   #+BEGIN_SRC clojure
     ;; inc
@@ -410,6 +427,8 @@
 
   #+BEGIN_COMMENT
   falta pulir con más ejemplos...
+  referenciar a los siguiente para hacer un Clojure Vs JavaScript
+  https://developer.mozilla.org/es/docs/Web/JavaScript/Closures
   #+END_COMMENT
 ** Ejemplo
    #+BEGIN_SRC clojure
