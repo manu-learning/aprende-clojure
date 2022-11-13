@@ -1,3 +1,44 @@
+#+TITLE: Variables
+* Variable Shadowing
+** Concepto
+   - se dice ~shadowing~ cuando definimos dos variables con igual nombre, pero una fue definida en un scope/ambito superior
+   - entre dos variables con igual nombre, la variable de un scope superior le hará sombra a la otra (/tendrá menos éxito de ser referenciada, evaluada/)
+
+   #+BEGIN_QUOTE
+   Lo siguiente puede estar en desorden, es sólo para organizar las ideas..
+   1. En una función ~f~ definimos una variable ~a~
+   2. Definimos otra variable ~a~ en un scope superior (/fuera de la definición de la función/)
+   3. Cuando usemos la variable ~a~ de la función ~f~, ésta tendrá prioridad de ser evaluada
+
+   Es decir usará el valor de la variable definida más cercana en el scope donde se esté,
+   en el caso de una función, ésta dará prioridad a las variables locales de su scope.
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1 - Parametros de una función Vs Variables Globales
+   #+BEGIN_SRC clojure
+     (def servidor "localhost")
+
+     (defn conectar-servidor [servidor]
+       (str "Conectando al servidor " servidor "..."))
+
+     (conectar-servidor "192.168.1.1")
+   #+END_SRC
+*** Ejemplo 2 - Variables definidas en Let Vs Variables Globales
+   #+BEGIN_SRC clojure
+     (def servidor "localhost")
+
+     (defn conectar-servidor []
+       (let [servidor "192.168.1.1"]
+         (str "Conectando al servidor " servidor "...")))
+
+     (conectar-servidor)
+   #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://ericnormand.me/mini-guide/clojure-let][5 features of Clojure let (ericnormand.me)]]
+    2. [[https://www.escuelafrontend.com/ambitos-de-javascript][Ambitos de JavaScript (escuelafrontend.com)]]
+    3. [[https://www.tutorialspoint.com/what-is-variable-shadowing-in-javascript][What is Variable Shadowing in JavaScript (tutorialspoint.com)]]
+    4. [[https://www.javatpoint.com/shadowing-in-java][Shadowing in java (javatpoint.com)]]
 * Let
 ** Conceptos
    - Crea un nuevo scope, y prioriza el vínculo de las variables definidas en su scope
