@@ -119,3 +119,31 @@
     3. [[https://ultimatecourses.com/blog/array-reduce-javascript][Exploring Array Reduce in Javascript (ultimatecourses.com)]]
     4. [[https://code.tutsplus.com/articles/5-real-life-uses-for-the-javascript-reduce-method--cms-39096][Real life uses for javascript reduce method (code.tutsplus.com)]]
     5. [[https://javascript.plainenglish.io/10-must-know-javascript-tricks-tips-about-reduce-1368766d99da][Tricks & Tricks about Reduce (By fatfish in Plain English)]]
+* recursividad
+** Ejemplo 1
+*** Javascript
+    #+BEGIN_SRC js :results output
+      function sumar(x, y){
+          if (y <= 0){ // caso base
+              return x;
+          }
+          else{ // caso recursivo
+              return sumar(x+1, y-1);
+          }
+      }
+
+      console.log("la suma es %d", sumar(17,23));
+    #+END_SRC
+*** Clojure
+    #+BEGIN_SRC clojure
+      (defn sumar [x y]
+        (if (<= y 0)
+          x
+          (sumar (inc x) (dec y))))
+
+
+      (sumar 17 23)
+    #+END_SRC
+*** TODO Clojure con recursividad de cola (tail recursive)
+    #+BEGIN_SRC clojure
+    #+END_SRC
