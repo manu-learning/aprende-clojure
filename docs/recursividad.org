@@ -1,4 +1,10 @@
 #+TITLE: Recursividad
+#+BEGIN_COMMENT
+Implementar algoritmos con modelos matemáticos simples usando recursividad
+https://www.geeksforgeeks.org/mathematical-algorithms/
+https://jeremykun.com/category/algorithms/
+https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
+#+END_COMMENT
 * for
 ** Conceptos
    - Generar todas las combinaciones posibles de múltiples secuencias recibidas sin varios niveles de anidamiento
@@ -153,12 +159,10 @@
 *** Referencias
 * Loop y Recur
 ** Conceptos
-  - ~loop~ actúa como una función que recibe un argumento y es llamada sólo por ~recur~
-  - ~loop~ bindea/vincula un valor a una variable
-  - ~recur~ hace el llamado recursivo a ~loop~ pasandole un parámetro
   - Combinados ~loop~ y ~recur~
-    1) generamos *recursivad de cola* (tail recursion), de forma menos verbosa que definir una *función recursiva*
-    2) el compilador de clojure tiene optimizaciones para *recursividad de cola* ésta será más rápido y eficiente que una *función recursiva*
+    1) generamos *recursivad de cola* (tail recursion), de una forma menos verbosa que definir una *función recursiva*
+    2) el *compilador de clojure* tiene optimizaciones para *recursividad de cola* ésta será más rápido y eficiente que una *función recursiva*
+       (/aclaramos compilador de clojure, porque NO todos los lenguajes tienen optimizaciones en una recursividad de cola/)
 
   #+BEGIN_QUOTE
   Every time a recursive function calls itself, it consumes a stack frame, and if it recurses too deeply,
@@ -170,7 +174,13 @@
 
   By Andrew Meredith, Learn ClojureScript
   #+END_QUOTE
-** Ejemplos
+** Loop
+  - Contiene a las llamadas recursivas de ~recur~ recibiendo uno ó más argumentos
+  - Bindea/vincula un valor a una variable
+** Recur
+  - Si combinamos ~loop~ y ~recur~, el llamado recursivo de ~recur~ se hará dentro del scope de ~loop~ (/pasandole recur a loop, uno ó más parámetros/)
+  - Si NO combinamos ~loop~ y ~recur~, entonces ~recur~ hará el *llamado recursivo* dentro de la función que lo contenga
+** Ejemplos Básicos
 *** Ejemplo 1 - Contador con loop y recur
     #+BEGIN_SRC clojure
       ;; la recursividad finaliza cuando se cumple (> iteracion 3)
@@ -179,29 +189,42 @@
         (if (> iteracion 3)
           (println "Fin de la iteración")
           (recur (inc iteracion))))
-
+    #+END_SRC
+*** Ejemplo 2 - Contador con loop y recur
+    #+BEGIN_SRC clojure
+      ;; la recursividad finaliza cuando se cumple (= iteracion 10)
+      ;;
+      ;; previo al llamado recursivo guardamos el resultado en el vector numeros
+      ;; usamos la variable iteración como un contador auxiliar
       (loop [iteracion 0
              numeros []]
         (if (= iteracion 10)
           numeros
           (recur (inc iteracion) (conj numeros iteracion))))
-
-      ;; Can only recur from tail position
+    #+END_SRC
+*** Ejemplo 3 - Error de compilación por no realizar recursividad de cola correctamente
+    #+BEGIN_SRC clojure
+      ;; el compilador lanzará una excepción "can only recur from tail position"
+      ;; porque no cumplimos con la "recursividad de cola"..
+      ;;
+      ;; el error ocurre porque en vez de devolver el resultado de la función recur,
+      ;; estamos devolviendo el resultado de un producto Ej. (* x f)
       (loop [iteracion 0
              numeros []]
         (if (= iteracion 10)
           numeros
           (* iteracion (recur (inc iteracion) (conj numeros iteracion)))))
     #+END_SRC
-*** Ejemplo 2 - Algoritmo de Euclides
+** Ejemplos
+*** Ejemplo 1 - Algoritmo de Euclides
    #+BEGIN_SRC clojure
-     ;; algoritmo de euclides con recursividad normal
+     ;; Usando una función nombrada para la recursividad
      (defn gcd [a b]
        (if (= b 0)
          a
          (gcd b (mod a b))))
 
-     ;; algoritmo de euclides con loop y recur
+     ;; Combinando las funciones loop y recur
      (defn gcd-own [a b]
        (loop [x a
               y b]
@@ -227,8 +250,8 @@
       1. si no se cumple ~(> iteracion 3)~, hacemos la llamada recursiva pasandose como parámetro la variable iteracion incrementada en 1
       2. si se cumple ~(> iteracion 3)~, cortamos el flujo devolviendo la última expresión que queremos evaluar ~Ej.(println "fin..")~
    #+END_QUOTE
-** Ejemplo
-*** Ejemplo 1 - Contador recursivo
+** Ejemplos Básicos
+*** Ejemplo 1 - Contador con recursión simple usando sobrecarga de aridad en una función nombrada
     #+BEGIN_SRC clojure
       ;; la recursividad finaliza cuando se cumple (> iteracion 3)
       (defn contar-recursivamente
@@ -259,6 +282,67 @@
 
      (gcd 90 60)
    #+END_SRC
+** Ejemplos
+*** Ejemplo 1 - Factorial con recursión simple usando función nombrada
+    #+BEGIN_SRC clojure
+      ;; caso base:
+      ;; - si se cumple (<= n 1), entonces devolvemos el resultado
+      ;;
+      ;; caso recursivo:
+      ;; - si no se cumple (<= n 1), al valor inicial (n) lo multiplicamos por su valor anterior (n-1)
+      ;;
+      ;; pensemos en que la expresión (factorial (dec n)) se expandirá por cada llamado recursivo así (* n (* n (* ...)))
+      ;; ó pensando en funcional estamos componiendo 1 función nueva por cada llamado recursivo (f1 n (f2 n-1 (f3 ..)))
+      (defn factorial [n]
+        (if (<= n 1)
+          n
+          (* n (factorial (dec n)))))
+
+      ;; 3! ó el factorial de 3 si usamos la notación infija (no es propio de clojure) 3*2*1 = 6
+      (factorial 3)
+
+      ;; si n=3 hará..
+      (* 3 (* 2 (* 1)))
+
+      ;; si n=4 hará..
+      (* 4 (* 3 (* 2 (* 1))))
+    #+END_SRC
+*** Ejemplo 2 - Factorial con recursividad de cola usando recur y sobrecarga de aridad en una función nombrada
+    #+BEGIN_QUOTE
+    En una variable guardamos el valor que usaremos en el siguiente llamado recursivo,
+    en otra variable guardamos el resultado acumulado resultante de multiplicar el valor actual con el resultado acumulado
+    #+END_QUOTE
+
+    #+BEGIN_SRC clojure
+      ;; función con aridad-1:
+      ;; - hará el llamado recursivo
+      ;;
+      ;; función con aridad-2:
+      ;; - es dónde ocurre los sucesivos llamados recursivos
+      (defn factorial
+        ([n] (factorial n 1))
+        ([n resultado]
+         (if (<= n 1)
+           resultado
+           (recur (dec n) (* resultado n)))))
+
+      (factorial 10)
+    #+END_SRC
+*** Ejemplo 2 - Factorial con recursividad de cola usando recur y loop
+    #+BEGIN_SRC clojure
+      (defn factorial [numero]
+        (loop [n numero resultado 1]
+          (if (<= n 1)
+            resultado
+            (recur (dec n) (* resultado n)))))
+
+      (factorial 10)
+    #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[http://noahlz.github.io/factorials/factorials.core.html][Exploring Clojure with Factorial Computation (noahlz.github.io)]]
+    2. [[https://nextjournal.com/avidrucker/clojure-koans-14-recursion-notebook][Clojure Koans, Recursion (nextjournal.com)]]
+    3. [[https://www.abhinavomprakash.com/posts/recursion/][Recursion (abhinavomprakash.com)]]
 * Reduce
 ** Conceptos
    - ~reduce~ facilita iterar y aplicar funciones sobre una colección
