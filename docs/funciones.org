@@ -16,6 +16,17 @@
     1. [[https://domingogallardo.github.io/apuntes-lpp/teoria/tema02-programacion-funcional/tema02-programacion-funcional.html][Programación funcional (domingogallardo.github.io)]]
     2. [[https://www.geeksforgeeks.org/difference-between-actual-and-formal-parameters-in-pl-sql/][Difference between Actual and Formal Parameteres in PL/SQL (geeksforgeeks.org)]]
     3. [[https://medium.com/@dpthegrey/explain-difference-between-formal-and-actual-parameter-with-example-26f63e7560bb][Explain difference between formal and actual parameter (by dpthegrey, Medium)]]
+* TODO Efecto de Lado (Side effect)
+** Concepto
+   - Cualquier función que devuelva el valor ~nil~ provoca *efecto de lado* (Ej. println en el STDOUT)
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://practical.li/clojure/thinking-functionally/side-effects.html][Side effects (practical.li)]]
+    2. [[http://makble.com/clojure-looping-and-side-effects-and-correct-way-to-use-for-loop][Clojure looping and side effects (makble.com)]]
+    3. [[https://danlebrero.com/2017/06/21/atoms-delays-and-side-effects-resource-managent-in-clojure/][Atoms, dealys and side effects (danlebrero.com)]]
+    4. [[https://wiki.uqbar.org/wiki/articles/transparencia-referencial--efecto-de-lado-y-asignacion-destructiva.html][Transparencia referencial, efecto de lado y asignación destructiva (wiki.uqbar.org)]]
+*** Referencias de Issues
+    1. [[https://stackoverflow.com/questions/47562045/how-is-the-function-println-not-pure-clojure][How is the function println not pure? (stackoverflow.com)]]
 * Llamadas a Funciones
   #+BEGIN_SRC clojure
     ;; inc
@@ -422,23 +433,84 @@
 
       (#(str %1 " corazoncito " %2) "Fiona" "Shrek")
     #+END_SRC
-* TODO Closures
-  - El retorno de funciones se denominan *closures*
+* Closures, Lexical Scope, Higher Order Functions
+** TODO Closures (Clausuras)
+  - Los *closures* están relacionados al concepto del *ámbito léxico* (alcance léxico, lexical scope)
+  - Se crean por defecto sobre una variable cuando existen al menos dos variables definidas en distintos scopes *con el mismo nombre*
+   (/Ej. una definida a nivel de namespace, otra como parámetro de una función anónima y otra como variable local de una función nombrada/)
+** TODO Ámbito Léxico (Lexical Scope)
+ - El *ámbito léxico* es dónde las funciones pueden referenciar símbolos (variables locales ó parámetros) que son visibles en la definición de la función
+ - Si una función referencia a un variable de su *lexical scope* y existe otra variable con el mismo nombre en un scope superior (/Ej. en el namespace/)
+   - se crea un *closure* encima de esa variable, siendo ésta la única *visible* dentro de la función
+   - las variables definidas más cerca de la definición de la función tienen más prioridad de ser referenciadas, por tanto evaluadas al invocar la función
+   - las variables de un scope superior que se llamen igual estarán en la sombra (/concepto de Variable Shadowing/) de las definidas dentro de la función
+
+ #+BEGIN_QUOTE
+ Si existen dos variables con el mismo nombre ~X~, una definida a nivel de namespace y otra como parámetro de una función ~f1~,
+ y luego ~f1~ referencia a la variable ~X~, entonces se creará un *closure* encima del parámetro ~X~ y será la que estará visible en la definición de la función
+ #+END_QUOTE
+** TODO Funciones de Orden superior (Higher Order Functions)
+   - Si una función ~A~ es retornada por otra función ~B~, ésta primera puede acceder a las variables de la función padre (/a su lexical scope/)
+** Ejemplos Básicos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      (defn incrementador
+        "crea un incrementador personalizado"
+        [incrementar-por]
+        #(+ % incrementar-por))
+
+      (def incrementar-en-1 (incrementador 1))
+
+      (incrementar-en-1 10)
+    #+END_SRC
+*** Ejemplo 2
+    #+BEGIN_SRC clojure
+      ;; variable global
+      (def servidor "localhost")
+
+      ;; la función conectar-servidor devuelve una función anónima fn,
+      ;; ésta función anónima puede acceder al léxical scope de su función padre conectar-servidor
+      ;; y por tanto referenciar sus variables (pero no tiene visibilidad a la variable global servidor, pero podría con otra global)
+      (defn conectar-servidor [servidor]
+        (fn [descripcion]
+          (str "Conectando a " servidor ", " descripcion)))
+
+      ((conectar-servidor "google")
+       "navegación oculta")
+    #+END_SRC
+** Referencias
+ #+BEGIN_COMMENT
+ pendiente revisar..
+ https://hmong.es/wiki/Scope_(programming)
+ https://code.tutsplus.com/es/tutorials/grokking-scope-in-javascript--cms-26259
+ #+END_COMMENT
 
   #+BEGIN_COMMENT
-  falta pulir con más ejemplos...
-  referenciar a los siguiente para hacer un Clojure Vs JavaScript
-  https://developer.mozilla.org/es/docs/Web/JavaScript/Closures
+  - El retorno de funciones se denominan *closures* <-- corregir...????
+
+ pendiente revisar..
+ falta pulir con más ejemplos...
+ referenciar a los siguiente para hacer un Clojure Vs JavaScript
+ https://developer.mozilla.org/es/docs/Web/JavaScript/Closures
+
+ https://emanuelpeg.blogspot.com/2021/01/primeros-pasos-con-clojure-parte-16.html
+ https://dmitripavlutin.com/simple-explanation-of-javascript-closures/
+ https://www.freecodecamp.org/news/javascript-closure-lexical-scope/
+ https://dev.to/stephencweiss/closure-lexical-scope-12f4
+ https://jscurious.com/closures-and-lexical-scoping-in-javascript/
+ https://muthuks.medium.com/closure-remembers-lexical-scope-f3700c0e6452
+
+ https://medium.com/@sergiodxa/definiendo-conceptos-closure-y-scope-en-javascript-9081f1e113e6
+ https://css-tricks.com/javascript-scope-closures/
+ https://javascript.info/closure#lexical-environment
+ https://wsvincent.com/javascript-scope-closures/
+ https://guias.makeitreal.camp/javascript-ii/scope-hoisting-closures
+ #+END_COMMENT
+** Referencias
+  #+BEGIN_COMMENT
+ pendiente revisar..
+  https://levelup.gitconnected.com/closures-first-class-and-higher-order-functions-2dc97dc89cd8
+  https://stackoverflow.com/questions/53899827/are-closures-higher-order-functions
+  https://opendsa-server.cs.vt.edu/ODSA/Books/PL/html/FP5.html
+  https://hashnode.com/post/closures-first-class-functions-and-higher-order-function-cl0tx8qmb0069jlnv5ea78rdq
   #+END_COMMENT
-** Ejemplo
-   #+BEGIN_SRC clojure
-     (defn incrementador
-       "crea un incrementador personalizado"
-       [incrementar-por]
-       #(+ % incrementar-por))
-
-     (def incrementar-en-1 (incrementador 1))
-
-     (incrementar-en-1 10)
-   #+END_SRC
-
