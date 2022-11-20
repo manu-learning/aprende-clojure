@@ -1,8 +1,10 @@
 #+TITLE: Variables
 * Variable Shadowing
 ** Concepto
-   - se dice ~shadowing~ cuando definimos dos variables con igual nombre, pero una fue definida en un scope/ambito superior
-   - entre dos variables con igual nombre, la variable de un scope superior le hará sombra a la otra (/tendrá menos éxito de ser referenciada, evaluada/)
+   - el concepto de ~shadowing~ ocurre cuando definimos al menos dos variables con igual nombre en distintos scopes (ámbitos)
+   - si dentro de una función referenciamos a una variable que existe en un scope superior (Ej. fuera de la función)
+     - la variable definida en un scope superior estará en la sombra de la variable local de la función
+     - la variable local ó parámetro de la función tendrá más prioridad de ser evaluada al invocar la función
 
    #+BEGIN_QUOTE
    Lo siguiente puede estar en desorden, es sólo para organizar las ideas..
