@@ -1,0 +1,334 @@
+#+TITLE: (TAD) Tipos de datos abstractos: Colecciones y Secuencias
+* Estructura Asociativa Map
+** Conceptos
+   - Estructura asociativa con pares ordenados comunmente usados con *keywords* de la forma ~{:clave valor}~
+   - El orden de los elementos no interesa, porque su acceso es mediante la *keyword*
+** Keywords
+   - Permiten el acceso directo/inmediato a un elemento de una estructura Map
+   - Usadas como funciones *getter* para obtener el valor asociado
+** Ejemplos Básicos
+*** Ejemplo 1
+   #+BEGIN_SRC clojure
+     ;; map vacío
+     {}
+
+     ;; :apodo :fuerza :velocidad se denominan "keywords"
+     {:apodo "neverkas" :fuerza 100 :velocidad 300}
+
+     ;; (nested maps) podemos anidar maps dentro de otro map
+     {:nombre "picard" :habilidades {:velocidad 100 :fuerza 100}}
+
+     ;; error
+     ;;{hash-map :a 1 :b 3}
+
+     ;; get
+     ;; - obtener el valor de una keyword
+     (get {:nombre "picard" :rango "capitan"} :rango)
+
+     (get {:nombre "picard" :habilidades {:velocidad 100 :fuerza 100}} :habilidades)
+
+     ;; acceder a maps anidados
+     (get-in {:nombre "picard" :habilidades {:velocidad 100 :fuerza 100}} [:habilidades :velocidad])
+   #+END_SRC
+*** Ejemplo 2 - Keywords como funciones
+   #+BEGIN_SRC clojure
+     ;; las keywords pueden utilizar como funciones
+     ;; en este caso actúa como si hubieramos usado la función (get :nombre)
+     (:nombre {:nombre "picard" :rango "capitan"})
+
+     ;; si usamos las keywords como funciones
+     ;; podemos asignarle un valor default
+     (:habilidades {:nombre "picard" :rango "capitan"} "no tiene habilidades")
+   #+END_SRC
+* Vectores
+** Conceptos
+   - Buena combinación con *estructuras asociativas Map*
+** Ejemplo Básico
+  #+BEGIN_SRC clojure
+    ;; vector con 3 elementos
+    [3 2 1]
+
+    ;; vector puede tener cualquier tipo de dato como elemento
+    ;; (Ej. numeros, strings, funciones, maps, ...)
+    [3 "zombie" 1 (+ 1 9) {:nombre "picard" :rango "capitan"}]
+
+    ;; get
+    ;; - funciona similar que con los maps
+    ;; - indicamos el índice/posición del elemento en el vector
+    (get [3 2 1] 0)
+
+    ;; conj
+    ;; - agrega un elemento al final del vector
+    (conj [3 2 1] 0)
+  #+END_SRC
+* Listas
+** Conceptos
+   - Una *Lista* es un tipo de colección con elementos ordenados que pueden repetirse
+
+   #+BEGIN_QUOTE
+   Una colección ordenada sólo indíca que se respeta el orden de los elementos al definir la lista,
+   útil si queremos respetar el orden en que ingresaron los usuarios al sistema y los indentificamos por código
+   1. ~(list 100 121 105)~
+
+   Una lista que puede tener elementos repetidos, podría ser útil si queremos observar cuantas veces
+   ingresó un usuario al sistema
+   1. ~(list 100 100 121 121 121 121)~
+   #+END_QUOTE
+** Ejemplo Básico
+  #+BEGIN_SRC clojure
+    ;; lista con 3 elementos
+    ;; pero no los evalúa, se entenderá ésta característica al comparar con (list)
+    (quote (3 2 1))
+
+    ;; manera abreviada a usar (quote)
+    '(3 2 1)
+
+    ;; lista con 3 elementos
+    (list 3 2 1)
+
+    ;; pueden contener cualquier tipo de dato
+    ;; al usar (quote) no se evaluará la función (+ 1 2)
+    '(1 "samu" (+ 1 2))
+
+    ;; list permite evaluar la función (+ 1 2)
+    (list 1 "samu" (+ 1 2))
+
+    ;; nth
+    ;; - para obtener un elemento de una lista (es menos eficiente comparado con el get en vectores)
+    ;; - no confundir con (get) ese sirve para vectores
+    (nth '(1 2 3) 0)
+
+    (nth '(:nombre :rango ) 1)
+
+    ;; conj
+    ;; - para agregar un elemento al principio de la lista
+    ;; - en los vectores los agrega al final
+    (conj '(3 2 1) 4)
+  #+END_SRC
+* Set - Colección sin elementos duplicados
+** Conceptos
+   - Un *Set* es un tipo de colección con elementos (no repetidos, únicos) que podrían no estar ordenados
+** Ejemplo Básico
+  #+BEGIN_SRC clojure
+    ;; set
+    ;; - crea una colección sin elementos duplicados
+    (set [3 3 3 3 1 1])
+
+    ;; otra forma de crear un set
+    #{"picard" 33 :velocidad}
+
+    ;; conj
+    ;; - agrega elementos al final del Set
+    (conj #{1 2} 9)
+
+    ;; pero si ya existe no lo agrega
+    (conj #{1 2} 2)
+
+    ;; contains?
+    ;; - para consultar la existencia ó no de un elemento por su valor,
+    ;; - las funciones con ? al final devuelven un valor booleano
+    (contains? #{3 2 1} 9)
+  #+END_SRC
+* Insertar Elementos en Colecciones
+** Funciones Into y Conj
+   - ~into~ inserta elementos en la 1º estructura los elementos de la 2º estructura
+   - ~conj~ inserta en una estructura (1º parámetro) un conjunto de valores (2º,3º,..., n parámetros)
+** Ejemplos con Into
+*** Ejemplo 1 - Insertar elementos de una estructura en otra del mismo tipo
+    #+BEGIN_SRC clojure
+      ;; inserciones más comunes
+
+      ;; agregamos en el 1º map <- los elementos del 2º map
+      (into {:nombre "picard"} {:edad 45 :rango "capitan"})
+
+      ;; agregamos en el 1º vector <- los elementos del 2º vector
+      (into ["carlos"] ["perez" "samuel"])
+
+      ;; agregamos en la 1º lista <- los elementos de la 2º lista
+      (into '("carlos") '("perez" "samuel"))
+    #+END_SRC
+*** Ejemplo 2 - Insertar elementos entre estructuras diferentes
+    #+BEGIN_SRC clojure
+      ;; inserciones que uno no esperaría que funcionen pero funcionan :)
+
+      ;; agregamos en el vector <- los elementos de la lista
+      (into ["carlos"] '("perez" "samuel"))
+
+      ;; agregamos en la lista <- los elementos del vector
+      (into '("carlos") ["perez" "samuel"])
+    #+END_SRC
+** Ejemplos con Conj
+*** Ejemplo 1 - Insertar un elemento en una estructura
+    #+BEGIN_SRC clojure
+      ;; agregamos en un vector vacío el valor 1
+      (conj [] 1)
+
+      ;; agregamos en una lista vacía el valor 1
+      (conj '() 1)
+    #+END_SRC
+*** Ejemplo 2 - Insertar varios elementos en una estructura
+    #+BEGIN_SRC clojure
+      ;; en estos ejemplos se ve mejor que luego del 1º parámetro (la estructura)
+      ;; los siguientes valores serían el rest parameter
+      (conj [0] 1 2 3 4)
+      (conj '(0) 1 2 3 4)
+      (conj #{0} 1 2 3 4)
+    #+END_SRC
+*** Ejemplo 3 - Diferenciar las funciones into y conj
+    #+BEGIN_SRC clojure
+      ;; el resultado de ambos es el mismo, la manera de hacerlo es diferente
+      (conj [] 1)
+      (into [] [1])
+
+      ;; el resultado de ambos es el mismo, la manera de hacerlo es diferente
+      (conj [0] 1 2 3)
+      (into [0] [1 2 3])
+    #+END_SRC
+*** Ejemplo 4 - Implementar la función conj
+    #+BEGIN_SRC clojure
+      (conj [0] 1 2 3)
+
+      (into [0] [1 2 3])
+
+      ;; como conj agrega en una estructura (1º parámetro), un conjunto de valores (2º,3º,..,nº parametros siguientes)
+      ;; 1. usamos el rest parameter que agrupa un conjunto indefinido de parámetros
+      ;; 2. usamos into que agrega en una estructura (1º parámetro) los elementos de otra estructura (2º parámetro)
+      (defn my-conj
+        [estructura & elementos]
+        (into estructura elementos))
+
+      (my-conj [0] 1 2 3)
+    #+END_SRC
+* Descomponer los elementos de una Secuencia (Destructuring)
+** Conceptos
+   - Bindea/vincula a un nombre un elemento por su *posición* si es un vector/lista ó por su *keyword* si es una estructura asociativa Map
+   - Para *estructuras asociativas Map* usamos las llaves ~{}~ quedando ~{nombre :nombre edad :edad} cliente~
+   - Para *listas y vectores** usamos los corchetes ~[]~ de la forma ~[nombre] cliente~ ó ~[primero segundo] lista~ ó ~[cabeza & cola] lista~
+** Destructuring en Listas/Vectores
+*** Conceptos
+    - Bindea/vincula a un nombre un elemento por su *posición* (/los trata por igual por ser una secuencia/)
+    - Diferenciamos los elementos *cabeza* y *cola* (/éste último utiliza el concepto del parameter rest/)
+    - Definimos el *parameter rest* usando el símbolo ~&~ para obtener *la cola de una lista* ó hasta de un vector
+
+    #+BEGIN_QUOTE
+    Sólo necesitamos usar los corchetes como si fueran una función y pensar que la posición/indice del elemento le asignamos un nombre en vez de un número
+    1. ~[primer-elemento] coleccion~
+    2. ~[primer-elemento segundo-elemento] coleccion~
+
+    También lo podemos pensar como una cabeza/cola y funciona para vectores y listas
+    1. ~[cabeza & cola] coleccion~
+    1. ~[primero segundo & cola] coleccion~
+    #+END_QUOTE
+*** Ejemplo Básico
+     #+BEGIN_SRC clojure
+       ;; devolverá el 1
+       (let [[primero] (list 1 2 3)]
+         primero)
+
+       ;; devolverá el 2
+       (let [[primero segundo] (list 1 2 3)]
+         segundo)
+
+       ;; resto es la cola de la lista, devolverá una lista (2 3)
+       (let [[primero & resto] (list 1 2 3)]
+         resto)
+     #+END_SRC
+*** Ejemplos
+**** Ejemplo 1 - Obtener el primer elemento de un vector ó de una colección
+    #+BEGIN_SRC clojure
+      ;; 1. para no confundir, recordemos que las funciones reciben los argumentos entre corchetes
+      ;; 2. el argumento que recibe es un vector ó bien una colección
+      ;; 3. obtiene el primer elemento del vector/colección
+      (defn primer-anime [[primer-anime]]
+        primer-anime)
+
+      ;; estamos repitiendo el comportamiento de la función first
+      ;; pero en ejemplos más avanzados será necesario definirle un nombre a ese primer elemento
+      (first ["the legend of hei" "digimon" "pokemon"])
+
+      ;; probamos con un vector (ó arreglo)
+      (primer-anime ["the legend of hei" "digimon" "pokemon"])
+
+      ;; probamos con una lista (tipo de colección ordenada que permite elementos repetidos)
+      (primer-anime (list "the legend of hei" "digimon" "pokemon"))
+
+      ;; probamos con otra lista (en este tipo de lista los elementos no se evalúan Ej. el elemento (+ 1 1))
+      (primer-anime '("the legend of hei" "digimon" "pokemon"))
+    #+END_SRC
+**** Ejemplo 2 - Obtener el primer y segundo elemento de un vector ó de una colección
+    #+BEGIN_SRC clojure
+      ;; 1. bindeamos/asociamos el valor del primer y segundo elemento de un vector ó una lista
+      ;; 2. usamos el "parameter rest" que se define con el símbolo & para asociar a menos-favorito una lista indefinida de argumentos
+      (defn anime-favoritos
+        "Imprime por separado el primer y segundo anime favorito de un vector ó lista
+        y el resto los imprime agrupados"
+        [[primer-favorito segundo-favorito & menos-favoritos]]
+        (println (str "El primer anime favorito es " primer-favorito))
+        (println (str "El segundo anime favorito es " segundo-favorito))
+        (println (str "Otros animes que no son como los dos primeros, pero están son..: "
+                      (clojure.string/join ", " menos-favoritos))))
+
+      (anime-favoritos ["the legend of hei" "saint seiya" "spirited away" "digimon" "pokemon"])
+    #+END_SRC
+** Destructuring en estructura asociativa Map
+*** Conceptos
+    - Bindea/vincula a un nombre un elemento por su *keyword*
+    - La keyword especial ~:keys~ evita generar redundancia del tipo ~:nombre nombre :edad edad ..~ por cada elemento de la estructura map
+    - La keyword especial ~:as~ bindeas/vincula a un nombre la estructura map original
+      (/por si queremos reutilizarla y no usar sólo sus elementos por separado/)
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (def cliente {:nombre "Carlitos" :edad 19 :sexo "masculino"})
+
+      ;; usando destructuring para una estructura map
+      (let [{nombre :nombre edad :edad} cliente]
+        (println "Hola" nombre "tu edad es" edad))
+
+      ;; usando la keyword especial :keys
+      (let [{:keys [nombre edad]} cliente]
+        (println "Hola" nombre "y tu edad es" edad))
+    #+END_SRC
+*** Ejemplos
+**** Ejemplo 1 - Obtener el valor de una keyword de una estructura asociativa map
+     #+BEGIN_SRC clojure
+       ;; - recibe una estructura map y bindea/vincula un nombre a los keywords de la estructura asociativa
+       ;; - vincular nombre :nombre con cada elemento de la estructura map es redundante y se puede evitar usando la keyword especial :keys
+       (defn notificar-estado-del-clima
+         [{ciudad :ciudad temperatura :temperatura}]
+         (println (str "En la ciudad de " ciudad))
+         (println (str "hay una temperatura de " temperatura " grados")))
+
+       (notificar-estado-del-clima {:ciudad "buenos aires" :fecha "10/12/2050" :trafico "terrible" :temperatura 30})
+     #+END_SRC
+**** Ejemplo 2 - La keyword especial :keys
+     #+BEGIN_SRC clojure
+       ;; con :keys asocia las keyword 
+       (defn notificar-estado-del-clima
+         [{:keys [ciudad temperatura]}]
+         (println (str "En la ciudad de " ciudad))
+         (println (str "hay una temperatura de " temperatura " grados")))
+
+       (notificar-estado-del-clima {:ciudad "buenos aires" :fecha "10/12/2050" :trafico "terrible" :temperatura 30})
+     #+END_SRC
+**** Ejemplo 3 - La keyword especial :as
+     #+BEGIN_SRC clojure
+       (defn dia-hora-actual []
+         (new java.util.Date))
+
+       (defn registrar-notificacion
+         [{:keys [ciudad temperatura trafico]}]
+         (println (str (dia-hora-actual) ": "
+                       "Se registró una notificación del estado de clima"
+                       "de la ciudad " ciudad trafico " que tiene " temperatura " grados")))
+
+       (defn notificar-estado-del-clima
+         [{:keys [ciudad temperatura] :as estado-del-clima}]
+         (println (str "En la ciudad de " ciudad))
+         (println (str "hay una temperatura de " temperatura " grados"))
+         (registrar-notificacion estado-del-clima))
+
+       (notificar-estado-del-clima {:ciudad "buenos aires" :fecha "10/12/2050" :trafico "terrible" :temperatura 30})
+     #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure.org/guides/destructuring][Destructuring in Clojure (clojure.org)]]
