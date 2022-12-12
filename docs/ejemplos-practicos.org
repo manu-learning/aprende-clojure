@@ -401,3 +401,68 @@
 
     ;; (personajes-humanos 60 (personajes-map (lista-de-filas (slurp personajes))))
   #+END_SRC
+* Carrito de Compras
+  #+BEGIN_SRC clojure
+    (def tasa-descuento-jubilado 0.10)
+    (def tasa-descuento-premium 0.20)
+
+    (def galletas-chocolate {:nombre "galletas de chocolate"
+                             :categoria "galletas"
+                             :precio 50})
+
+    (def canasta-de-navidad [{:nombre "pan dulce" :categoria "panaderia" :precio 300 :precio-cuidado? true}
+                             {:nombre "turrón" :categoria "dulces" :precio 200 :precio-cuidado? true}
+                             {:nombre "sidra" :categoria "bebidas" :precio 500 :precio-cuidado? false}])
+
+    (def productos-precios-cuidados
+      (filter :precio-cuidado? canasta-de-navidad))
+
+    (defn detalle-producto [producto]
+      (let [{:keys [nombre precio descuento]} producto]
+        (str nombre " $" precio ", valor del descuento $" descuento)))
+
+    (defn nombre-productos []
+      (map :nombre canasta-de-navidad))
+
+    (defn aplicar-descuento [producto descuento]
+      (let [{:keys [precio]} producto]
+        (assoc producto :descuento (* precio descuento))))
+
+    (aplicar-descuento galletas-chocolate tasa-descuento-premium)
+
+    (def canasta-navidad-jubilados
+      (map (fn [producto] (aplicar-descuento producto tasa-descuento-jubilado))
+           canasta-de-navidad))
+  #+END_SRC
+* Contador de muletillas
+  #+BEGIN_SRC clojure
+    ;; usamos la estrategia bottom-up comenzamos desde lo específico hacia lo general
+    ;; 1. comenzamos desde lo específico el contar las palabras
+    ;; 2. luego con el contador de muletillas
+
+    ;; en la función anónima #() ocurre lo más importante
+    ;; 1. con el % (que es propia de la función anónima abreviada) obtenemos el valor asociado a la palabra
+    ;;
+    ;; 2. si no está entre las palabras repetidas la agregará a una estructura {} map vacía asociandole el valor nil,
+    ;; el % evaluará la palabra como una keyword que actúa como una función getter :hola :chaval según la palabra que analice
+    ;; por tanto el % devolverá nil por consiguiente el OR devolverá el 0 (en ese contexto el 0 es la única expresión que no es nil ni false)
+    ;; y luego inc lo incrementará evaluando 0+1
+    ;;
+    ;; 3. si está entre las palabras repetidas al evaluar % devolverá el número de veces que se repita y lo incrementará en 1,
+    ;; porque % se reemplaza por la keyword :hola :chaval que actúan como función getter
+    ;; y el OR devuelve el primer valor que sea distinto a nil ó falso
+    (defn contar-palabra [palabras-repetidas palabra]
+      (update-in palabras-repetidas [palabra] #(inc (or % 0))))
+
+    ;; 1. al reduce le pasamos la función que analizará cada palabra
+    ;;
+    ;; 2. el valor semilla será una estructura map vacía
+    ;; que sirve como acumulador (se agregan nuevas palabras)
+    ;; y sirve como un estado (contiene a cada palabra del texto, actualizar el estado sería aumentar las veces que se repiten las palabras)
+    ;;
+    ;; 3. por último pasamos una secuencia de palabras (no importa si es vector ó lista, porque las trata como una secuencia)
+    (defn contador-muletillas [texto]
+      (reduce contar-palabra {} (clojure.string/split texto #" ")))
+
+    (contador-muletillas "hola chaval como estas che che bien y vos?")
+  #+END_SRC
