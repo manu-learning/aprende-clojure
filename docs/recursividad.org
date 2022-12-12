@@ -157,6 +157,25 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
 ** Referencias
    1. [[https://clojuredocs.org/clojure.core/for][for - clojure.core (clojuredocs.org)]]
 *** Referencias
+* Diferencias for Vs doseq
+** Conceptos
+   - ~for~ devuelve una *secuencia perezosa*
+   - ~doseq~ ejecuta una operación que genere side-effect (Ej. println) y luego devuelve nil
+** Ejemplo
+   #+BEGIN_SRC clojure
+     ;; devuelve una secuencia perezosa, previamente cada valor del vector es incrementado en 1
+     (for [x [1 2 3 4 5]] (+ x 1))
+
+     ;; - en éste caso sólo devolverá nil porque no hay una operación side-effects
+     (doseq [x [1 2 3 4 5]] (+ x 1))
+
+     ;; - devuelve por stdout cada valor del vector y luego nil
+     ;; (el efecto de lado está en que escribe en el stdout para imprimir por el repl)
+     (doseq [x [1 2 3 4 5]] (println x))
+   #+END_SRC
+** Referencias
+*** Referencias Issues
+    1. [[https://stackoverflow.com/questions/4725417/difference-between-doseq-and-for-in-clojure][Difference between doseq and for in Clojure (stackoverflow.com)]]
 * Loop y Recur
 ** Conceptos
   - Combinados ~loop~ y ~recur~
@@ -239,7 +258,7 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
     1. [[https://clojure.org/guides/learn/flow#_recursion][Clojure, Flow Control, Recursion (clojure.org)]]
 *** Referencias Extra-Oficiales
     1. [[https://www.campusmvp.es/recursos/post/Recursividad-de-cola-tail-recursion.aspx][Recursividad de cola (campusmvp.es)]]
-* Función Recursiva
+* TODO Función Recursiva
 ** Conceptos
    - Con el concepto de *sobrecarga de aridad* podemos plantear un caso base y caso recursivo de una función
 
