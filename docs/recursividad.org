@@ -469,9 +469,6 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
       (mi-reduce + 0 [1 2 3 4])
     #+END_SRC
 *** Ejemplo 2 - Implementando un reduce que elige sólo la semilla
-    :PROPERTIES:
-    :ID:       3be05d09-1ed9-4cda-8239-c54c6014d294
-    :END:
     #+BEGIN_QUOTE
     Aplicamos *sobrecarga de aridad* porque
 
@@ -494,8 +491,8 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
       (mi-reduce + [1 2 3 4])
       (mi-reduce + 0 [1 2 3 4])
     #+END_SRC
-** Otros Ejemplos
-*** Ejemplo 1
+** Ejemplos Interesantes
+*** Ejemplo 1 - Remover artículos
     #+BEGIN_SRC clojure
       ;; una explicación muy general sin tanto detalle, podría ser
       ;; 1. definimos una variable X que le vinculamos una función anónima fn1 que espera un predicado como argumento
@@ -530,6 +527,130 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
                                   {:codigo 900 :prenda "remera" :color "azul"}])
 
       (remover-remeras articulos-de-invierno)
+    #+END_SRC
+*** Ejemplo 2 - Contador de Muletillas
+  #+BEGIN_SRC clojure
+    ;; usamos la estrategia bottom-up comenzamos desde lo específico hacia lo general
+    ;; 1. comenzamos desde lo específico el contar las palabras
+    ;; 2. luego con el contador de muletillas
+
+    ;; en la función anónima #() ocurre lo más importante
+    ;; 1. con el % (que es propia de la función anónima abreviada) obtenemos el valor asociado a la palabra
+    ;;
+    ;; 2. si no está entre las palabras repetidas la agregará a una estructura {} map vacía asociandole el valor nil,
+    ;; el % evaluará la palabra como una keyword que actúa como una función getter :hola :chaval según la palabra que analice
+    ;; por tanto el % devolverá nil por consiguiente el OR devolverá el 0 (en ese contexto el 0 es la única expresión que no es nil ni false)
+    ;; y luego inc lo incrementará evaluando 0+1
+    ;;
+    ;; 3. si está entre las palabras repetidas al evaluar % devolverá el número de veces que se repita y lo incrementará en 1,
+    ;; porque % se reemplaza por la keyword :hola :chaval que actúan como función getter
+    ;; y el OR devuelve el primer valor que sea distinto a nil ó falso
+    (defn contar-palabra [palabras-repetidas palabra]
+      (update-in palabras-repetidas [palabra] #(inc (or % 0))))
+
+    ;; 1. al reduce le pasamos la función que analizará cada palabra
+    ;;
+    ;; 2. el valor semilla será una estructura map vacía
+    ;; que sirve como acumulador (se agregan nuevas palabras)
+    ;; y sirve como un estado (contiene a cada palabra del texto, actualizar el estado sería aumentar las veces que se repiten las palabras)
+    ;;
+    ;; 3. por último pasamos una secuencia de palabras (no importa si es vector ó lista, porque las trata como una secuencia)
+    (defn contador-muletillas [texto]
+      (reduce contar-palabra {} (clojure.string/split texto #" ")))
+
+    (contador-muletillas "hola chaval como estas che che bien y vos?")
+  #+END_SRC
+*** Ejemplo 4 - Estadísticas de un Diario Digital
+    #+BEGIN_SRC clojure
+      (def historico-secciones-visitadas [{:nombre "noticias" :evento "click" :tiempo-de-lectura 200 :timestamp 140}
+                                          {:nombre "humor" :evento "click" :tiempo-de-lectura 100 :timestamp 141}
+                                          {:nombre "politica" :evento "click" :tiempo-de-lectura 900 :timestamp 143}
+                                          {:nombre "tecnología" :evento "hover" :tiempo-de-lectura 600 :timestamp 148}])
+
+      ;; secciones que llevan menos tiempo de lectura
+      (defn tiempo-de-lectura-rapida? [seccion]
+        (< (:tiempo-de-lectura seccion) 500))
+
+      (reduce (fn [secciones seccion]
+                (if (tiempo-de-lectura-rapida? seccion)
+                  (conj secciones seccion)
+                  secciones))
+              []
+              historico-secciones-visitadas)
+
+      ;; versión anterior simplificada usando filter y función anónima #()
+      (filter #(tiempo-de-lectura-rapida? %) historico-secciones-visitadas)
+
+      ;; tiempo total requerido para leer todas las secciones
+      (reduce (fn [tiempo-total-lectura seccion]
+                (+ tiempo-total-lectura
+                   (:tiempo-de-lectura seccion)))
+              0
+              historico-secciones-visitadas)
+
+      ;; versión anterior simplificada usando map
+      (reduce +
+              (map :tiempo-de-lectura
+                   historico-secciones-visitadas))
+
+      ;; estadistica tiempo total requerido para todas las secciones + cantidad de clicks
+      (defn seccion-clickeada? [seccion]
+        (= (:evento seccion) "click"))
+
+      (defn contador-de-clicks [cantidad seccion]
+        (+ cantidad
+           (if (seccion-clickeada? seccion) 1 0)))
+
+      (defn tiempo-lectura-acumulado [tiempo-total seccion]
+        (+ tiempo-total
+           (:tiempo-de-lectura seccion)))
+
+      (reduce (fn [{:keys [tiempo-lectura-total cantidad-clicks]} seccion]
+                (let [sumatoria-tiempo-lectura (tiempo-lectura-acumulado tiempo-lectura-total seccion)
+                      sumatoria-clicks (contador-de-clicks cantidad-clicks seccion)]
+                  {:tiempo-lectura-total sumatoria-tiempo-lectura
+                   :cantidad-clicks sumatoria-clicks}))
+              {:tiempo-lectura-total 0
+               :cantidad-clicks 0}
+              historico-secciones-visitadas)
+
+      ;; estadistica tiempo total requerido para todas las secciones + cantidad de clicks + sección de lectura más rápida
+      (defn seccion-de-lectura-mas-rapida [seccion otra-seccion]
+        (if (< (:tiempo-de-lectura seccion) (:tiempo-de-lectura otra-seccion))
+          seccion
+          otra-seccion))
+
+      (reduce (fn [{:keys [tiempo-lectura-total cantidad-clicks seccion-lectura-rapida]} seccion]
+                (let [sumatoria-tiempo-lectura (tiempo-lectura-acumulado tiempo-lectura-total seccion)
+                      sumatoria-clicks (contador-de-clicks cantidad-clicks seccion)
+                      seccion-rapida (seccion-de-lectura-mas-rapida seccion seccion-lectura-rapida)]
+                  {:tiempo-lectura-total sumatoria-tiempo-lectura
+                   :cantidad-clicks sumatoria-clicks
+                   :seccion-lectura-rapida seccion-rapida}))
+              {:tiempo-lectura-total 0 :cantidad-clicks 0
+               :seccion-lectura-rapida (first historico-secciones-visitadas)}
+              historico-secciones-visitadas)
+    #+END_SRC
+*** TODO Ejemplo 3 - Aplicación instalada más utilizada
+    #+BEGIN_SRC clojure
+      (def aplicaciones-instaladas [{:nombre "whatsapp" :memoria-requerida 10 :tiempo-semanal-utilizado [10 10 10 10 10 50 50]}
+                                 {:nombre "instagram" :memoria-requerida 30 :tiempo-semanal-utilizado [50 50 50 30 30 100 100]}
+                                 {:nombre "youtube" :memoria-requerida 2 :tiempo-semanal-utilizado [10 10 10 10 10 1 1]}
+                                 {:nombre "gmail" :memoria-requerida 2 :tiempo-semanal-utilizado [1 1 1 1 1 1 1]}])
+
+      (defn tiempo-semanal-total [aplicacion]
+        (reduce + (:tiempo-semanal-utilizado aplicacion)))
+
+      ;; TODO: posible refactor utilizando función (filter)
+      (defn aplicacion-mas-utilizada [lista-aplicaciones]
+        (:nombre (reduce (fn [aplicacion siguiente-aplicacion]
+                           (if (> (tiempo-semanal-total aplicacion) (tiempo-semanal-total siguiente-aplicacion))
+                             aplicacion
+                             siguiente-aplicacion))
+                         (first lista-aplicaciones)
+                         lista-aplicaciones)))
+
+      (aplicacion-mas-utilizada aplicaciones-instaladas)
     #+END_SRC
 ** Referencias
 *** Referencias Extra-oficiales
