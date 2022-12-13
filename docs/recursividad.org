@@ -491,6 +491,55 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
       (mi-reduce + [1 2 3 4])
       (mi-reduce + 0 [1 2 3 4])
     #+END_SRC
+** Ejemplos - Implementando funciones Map y Filter
+*** Ejemplo 1 - Implementando la función Filter
+    #+BEGIN_SRC clojure
+      (def productos [{:nombre "leche" :precio 200 :tiene-precio-cuidado? true}
+                      {:nombre "pan" :precio 300 :tiene-precio-cuidado? true}
+                      {:nombre "galletas" :precio 150 :tiene-precio-cuidado? true}
+                      {:nombre "cerveza" :precio 400 :tiene-precio-cuidado? false}])
+
+      ;; usando una función anónima acortada #()
+      (filter #(:tiene-precio-cuidado? %) productos)
+
+      ;; usando una función anónima
+      (filter (fn [producto]
+                (if (:tiene-precio-cuidado? producto) producto))
+              productos)
+
+      (defn my-filter [predicado coleccion]
+        (reduce (fn [coleccion-filtrada elemento]
+                  (if (predicado elemento)
+                    (conj coleccion-filtrada elemento)
+                    coleccion-filtrada))
+                []
+                coleccion))
+
+      (my-filter #(:tiene-precio-cuidado? %) productos)
+    #+END_SRC
+*** Ejemplo 2 - Implementando la función Map
+    #+BEGIN_SRC clojure
+      (def productos [{:nombre "leche" :precio 200 :tiene-precio-cuidado? true}
+                      {:nombre "pan" :precio 300 :tiene-precio-cuidado? true}
+                      {:nombre "galletas" :precio 150 :tiene-precio-cuidado? true}
+                      {:nombre "cerveza" :precio 400 :tiene-precio-cuidado? false}])
+
+      ;; usando una función anónima acortada #()
+      (map #(:nombre %) productos)
+
+      ;; usando una función anónima
+      (map (fn [producto]
+             (:nombre producto)) productos)
+
+      (defn my-map [predicado coleccion]
+        (reduce (fn [coleccion-transformada elemento]
+                  (let [elemento-transformado (predicado elemento)]
+                    (conj coleccion-transformada elemento-transformado)))
+                []
+                coleccion))
+
+      (my-map #(:nombre %) productos)
+    #+END_SRC
 ** Ejemplos Interesantes
 *** Ejemplo 1 - Remover artículos
     #+BEGIN_SRC clojure
