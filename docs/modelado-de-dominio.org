@@ -1,0 +1,359 @@
+#+TITLE: Modelado de Dominio
+* Modelado de Dominio
+** Referencias
+*** Referencias Oficiales
+    1. [[https://martinfowler.com/eaaCatalog/domainModel.html][Domain model (martinfowler.com)]]
+    2. [[https://www.ibm.com/docs/es/ida/9.1.2?topic=types-domain-models][Modelos de Dominio (ibm.com)]]
+    3. [[https://domaindrivendesign.org/the-main-goal-of-domain-driven-design/][The main goal of (DDD) Domain Driven Design (domaindrivendesign.org)]]
+    4. [[https://martinfowler.com/books/dsl.html][(DSLs) Domain Specific Languages (martinfowler.com)]]
+    5. [[https://repositorio.grial.eu/bitstream/grial/1153/1/8.%20Modelo%20de%20dominio.pdf][Modelo de Dominio (Universidad de Salamanca, Ingeniería de Software)]]
+*** Referencias Extraoficiales
+    1. [[https://www.scaledagileframework.com/domain-modeling/][Domain modeling (scaledagileframework.com)]]
+    2. [[https://www.geeksforgeeks.org/software-engineering-domain-modeling/][Domain modeling (geeksforgeeks.com)]]
+    3. [[https://jeronimopalacios.com/software/domain-driven-development/][(DDD) Diseño Guiado por el Dominio, Domain Driven Design (jeronimopalacios.com)]]
+* OOP Vs Paradigma Funcional
+** OOP - Programación Orientada a Objetos
+   - Los *objetos* encapsulan
+     1) estructuras de datos
+     2) y las funciones que las modifican
+** Programación Funcional
+   - Este paradigma es aplicado por Clojure y separa dos conceptos
+     1) las *estructuras de datos*
+     2) las *funciones puras* (/transforman los datos, tienen un comportamiento determinístico y no generan side-effect/)
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://www.vasinov.com/blog/16-months-of-functional-programming/][16 months of functional programming (vasinov.com)]]
+    2. [[https://thecocktail.engineering/qu%C3%A9-es-la-programaci%C3%B3n-funcional-c91b611b0258][Qué es la programación funcional (thecocktail.engineering)]]
+    3. [[https://aprenderbigdata.com/programacion-funcional/][Aprende que es la programación funcional (aprenderbigdata.com)]]
+* assoc - Agregar/Modificar entradas clave-valor en una estructura asociativa Map
+** Conceptos
+   - ~assoc~ agrega una ó varias entradas de la forma clave-valor a una estructura map
+   - ~assoc~ modifica/sobreescribe el valor de una entrada clave-valor si ya existía en la estructura map
+
+   #+BEGIN_QUOTE
+   Si usamos ~assoc~ con estructuras map asociativas, se diferencia de las funciones ~conj~ y ~merge~ porque agregamos entradas
+   de la forma clave-valor individualmente, es decir las entradas no están contenidas dentro de un
+   (TAD, tipo abstracto de dato) como lo es una *Colección*
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (def tripulante-riker {:nombre "William" :edad 50})
+
+      ;; devuelve una nueva estructura map con una entrada adicional
+      (assoc tripulante-riker :rango "Comandante")
+
+      ;; devuelve una nueva estructura map con una entrada modificada
+      (assoc tripulante-riker :edad 51)
+
+      ;; generamos algunas abstracciones con más sentido
+      (defn tripulante-cumple-años [tripulante]
+        (assoc tripulante :edad (inc (:edad tripulante))))
+
+      ;; (tripulante-cumple-años tripulante-riker)
+
+      (defn tripulante-asignacion-de-rango [tripulante nuevo-rango]
+        (assoc tripulante :rango nuevo-rango))
+
+      ;;(tripulante-asignacion-de-rango tripulante-riker "capitan")
+    #+END_SRC
+*** Ejemplo - Agregar una ó varias entradas a una estructura Map con assoc
+    #+BEGIN_SRC clojure
+      (def star-trek-generations {:id 589
+                                  :titulo "Star Trek: Generations"
+                                  :pais "Estados Unidos"
+                                  :año 1994})
+
+      ;; agregamos sólo una entrada
+      ;; (devuelve una nueva estructura map, la original se mantiene inmutable)
+      (assoc star-trek-generations :idioma "Inglés")
+
+      ;; agregamos varias entradas
+      ;; (devuelve una nueva estructura map, la original se mantiene inmutable)
+      (assoc star-trek-generations
+             :idioma "Inglés"
+             :genero "Ciencia ficción"
+             :duracion-minutos 118)
+    #+END_SRC
+*** Ejemplo - Modificar una o varias entradas de una estructura Map con assoc
+    #+BEGIN_SRC clojure
+      (def star-trek-generations {:id 589
+                                  :titulo "Star Trek: Generations"
+                                  :pais "Estados Unidos"
+                                  :año 1994})
+
+      ;; modificamos el valor asociado a una keyword usando de base la estructura original
+      ;; (devuelve una nueva estructura map, la original se mantiene inmutable)
+      (assoc star-trek-generations :pais "Australia")
+
+      ;; modificar varias entradas de la estructura original
+      ;; (devuelve una nueva estructura map, la original se mantiene inmutable)
+      (assoc star-trek-generations
+             :pais "Australia"
+             :año 1995)
+    #+END_SRC
+* conj - Agregar una ó varias estructuras asociativas map a otra estructura asociativa Map
+** Conceptos
+   - ~conj~ se comporta similar que ~merge~
+
+   #+BEGIN_QUOTE
+   Si usamos ~conj~ con listas ó vectores, podemos agregar elementos en ellos
+
+   Si usamos ~conj~ con estructuras map asociativas, podemos agregar estructuras map dentro de otra estructura map
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo - Agregar una estructura Map a otra estructura Map
+    #+BEGIN_SRC clojure
+      (def star-trek-generations {:id 589
+                                  :titulo "Star Trek: Generations"
+                                  :pais "Estados Unidos"
+                                  :año 1994})
+
+      (def star-trek-elenco [{:personaje "Jean Luc Picard" :rango "Capitán"}
+                             {:personaje "William Riker" :rango "Comandante"}
+                             {:personaje "Data" :rango "Teniente"}])
+
+      (def star-trek-presupuesto {:presupuesto-dolares 35000000
+                                  :recaudacion-dolares 128000000})
+
+      ;; agregamos una estructura map
+      ;; (devuelve una nueva estructura map, la original se mantiene inmutable)
+      (conj star-trek-generations star-trek-presupuesto)
+
+      ;; repetimos lo anterior pero suponiendo que no sabriamos como nombrar la abstracción
+      (conj star-trek-generations {:presupuesto-dolares 35000000
+                                   :recaudacion-dolares 128000000})
+
+      ;; agregamos otra estructura map
+      ;; (devuelve una nueva estructura map, la original se mantiene inmutable)
+      (def star-trek-generations-con-elenco
+        (conj star-trek-generations {:elenco star-trek-elenco}))
+    #+END_SRC
+*** Ejemplo - Modificar varias entradas de una estructura Map
+    #+BEGIN_SRC clojure
+      (def star-trek-generations {:id 589
+                                  :titulo "Star Trek: Generations"
+                                  :pais "Estados Unidos"
+                                  :año 1994})
+
+      ;; cambiamos varias entradas de la estructura original
+      ;; (devuelve una nueva estructura map, las originales se mantienen inmutables)
+      (conj star-trek-generations {:pais "Australia"
+                                   :año 1995})
+    #+END_SRC
+* merge - Unir/Mergear varias estructuras asociativas map
+** Conceptos
+   - ~merge~ une/mergea dos ó más estructuras map
+** Ejemplos
+*** Ejemplo - Mergear tres estructuras map
+    #+BEGIN_SRC clojure
+      (def star-trek-generations {:id 589
+                                  :titulo "Star Trek: Generations"
+                                  :pais "Estados Unidos"
+                                  :año 1994})
+
+      (def star-trek-elenco [{:personaje "Jean Luc Picard" :rango "Capitán"}
+                             {:personaje "William Riker" :rango "Comandante"}
+                             {:personaje "Data" :rango "Teniente"}])
+
+      (def star-trek-presupuesto {:presupuesto-dolares 35000000
+                                  :recaudacion-dolares 128000000})
+
+      ;; agrupamos/mergeamos varias estructuras map
+      ;; (devuelve una nueva estructura map, las originales se mantienen inmutables)
+      (merge star-trek-generations
+             star-trek-presupuesto
+             {:elenco star-trek-elenco})
+    #+END_SRC
+* dissoc - Remover entradas clave-valor de una estructura asociativa Map
+** Conceptos
+   - ~dissoc~ remueve una ó varias entradas de una estructura map, pasandole por parámetro las keywords de las entradas
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (def posicion {:x 100
+                     :y 150
+                     :z 0})
+
+      ;; removemos la entrada que tiene la keyword :z
+      (dissoc posicion :z)
+
+      ;; removemos las entradas que tienen la keyword :x :y
+      (dissoc posicion :x :y)
+    #+END_SRC
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      (def star-trek-generations {:id 589
+                                  :titulo "Star Trek: Generations"
+                                  :pais "Estados Unidos"
+                                  :presupuesto-dolares 35000000
+                                  :recaudacion-dolares 128000000
+                                  :año 1994})
+
+      ;; removemos una o varias entradas de la estructura map, indicando las keywords
+      (defn pelicula-sin-presupuesto [pelicula]
+        (dissoc pelicula :presupuesto-dolares :recaudacion-dolares))
+
+      (pelicula-sin-presupuesto star-trek-generations)
+    #+END_SRC
+* select-keys - Seleccionar entradas específicas de una estructura asociativa Map
+** Conceptos
+   - la sintáxis es de la forma ~(select-keys estructura-asociativa-map secuencia-de-keywords)~
+   - ~select-keys~ selecciona una ó más entradas de una *estructura asociativa map*
+   - ~select-keys~ espera como 2º parámetro una *secuencia de keywords* (Ej. ~[:nombre :pais :edad]~)
+** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (def usuario-inversor {:usuario "pepe" :clave "pepe123"
+                             :nombre "Carlos"
+                             :apellido "Ramirez"
+                             :edad 19
+                             :pais "Polonia"})
+
+      ;; select-keys espera recibir una secuencia de keywords
+      ;; y seleccionamos sólo dos entradas de la estructura asociativa map
+      (select-keys usuario-inversor [:usuario :clave])
+
+      ;; creamos una abstracción de los datos personales de un usuario
+      ;; y seleccionamos sólo cuatro entradas de la estructura asociativa map
+      (defn datos-personales [usuario]
+        (select-keys usuario [:nombre :apellido :edad :pais]))
+
+      (datos-personales usuario-inversor)
+    #+END_SRC
+* get-in - Obtener el valor de una entrada de estructuras asociativas Map anidadas
+** Conceptos
+   - la sintáxis es de la forma ~(get-in estructura-map secuencia-de-keywords)~
+   - ~get-in~ accede a una *estructura asociativa Map* con uno ó varios *niveles de anidamiento*
+   - ~get-in~ espera como 2º parámetro una *secuencia de keywords* en el orden en el que accede a las estructuras map anidadas
+
+   #+BEGIN_QUOTE
+   Si alguna entrada tiene asociada un vector como valor,
+   podemos acceder a un elemento del vector agregando la posicion luego de la keyword de la entrada
+
+   Por ejemplo para acceder a la primera materia de un alumno podría ser ~(get-in alumno [:materia 0])~
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; 1. accedemos a entrada con keyword :posicion
+      ;; 2. accedemos a entrada con keyword :x
+      (get-in {:posicion {:x 100 :y 500 :z 200}}
+              [:posicion :x])
+
+      ;; misma idea que el anterior pero con direccion y código postal
+      (get-in {:nombre "Google"
+               :direccion {:pais "Estados Unidos"
+                           :codigo-postal 1401}}
+              [:direccion :codigo-postal])
+
+      ;; 1. accedemos a entrada con keyword :historial
+      ;; 2. accedemos al elemento con posicion cero del vector asociado a :historial
+      ;; 3. accedemos a entrada con keyword :usuario
+      (get-in {:historial [{:timestamp 1000 :usuario "pepe"}
+                           {:timestamp 1001 :usuario "pedro"}
+                           {:timestamp 1002 :usuario "samu"}]}
+              [:historial 0 :usuario])
+    #+END_SRC
+*** Ejemplo
+  #+BEGIN_SRC clojure
+    (def pelicula-star-trek {:id 589
+                             :titulo "Star Trek: Generations"
+                             :pais "Estados Unidos"
+                             :año 1994
+                             :estado-financiero { :inversion 35000000
+                                                 :recaudacion 128000000}})
+
+    (def star-trek-personajes [{:personaje "Jean Luc Picard"
+                                :rango "Capitán"
+                                :hobbies ["leer" "arqueología"]}
+                               {:personaje "William Riker"
+                                :rango "Comandante"
+                                :hobbies ["seducir"]}
+                               {:personaje "Data"
+                                :rango "Teniente"
+                                :hobbies ["violin" "investigar"]}])
+
+    (defn inversion-inicial [pelicula]
+      (get-in pelicula-star-trek [:estado-financiero :inversion]))
+
+    (inversion-inicial pelicula-star-trek)
+
+    ;; accedemos al primer elemento del vector
+    (get-in star-trek-personajes [0])
+
+    ;; lo anterior funciona pero sería más práctico utilizar la función (nth nombre-vector posicion),
+    ;; porque get-in se utiliza más para estructuras anidadas
+    (nth star-trek-personajes 0)
+
+    ;; accedemos al primer elemento y luego a la entrada con la keyword :personaje ó :hobbies
+    (get-in star-trek-personajes [0 :personaje])
+
+    (get-in star-trek-personajes [0 :hobbies])
+
+    ;; accedemos al tercer elemento (el primero tiene indice cero)
+    ;; luego a la entrada con la keyword :hobbies
+    ;; luego accedemos al primer elemento del vector asociado a :hobbies
+    (get-in star-trek-personajes [2 :hobbies 1])
+  #+END_SRC
+* assoc-in
+** Conceptos
+   - ~assoc-in~ es una combinación entre ~get-in~ y ~assoc~
+     1) similar a ~get-in~ porque accede a *estructuras asociativas map anidadas*
+     2) similar a ~assoc~ porque modifica el valor de una entrada asociada a una keyword de una estructura map asociativa
+** Ejemplo Básico
+   #+BEGIN_SRC clojure
+     (def mouse {:posicion {:x 100 :y 200}})
+
+     (def empresa {:nombre "Google"
+                   :direccion {:pais "Estados Unidos"
+                               :codigo-postal 1401}})
+
+     (def browser {:historial [{:timestamp 1000 :usuario "pepe"}
+                               {:timestamp 1001 :usuario "pedro"}
+                               {:timestamp 1002 :usuario "samu"}]})
+
+     ;; 1. accedemos a entrada con keyword :posicion
+     ;; 2. accedemos a entrada con keyword :x
+     (get-in mouse [:posicion :x])
+
+     ;; 1. accedemos a entrada con keyword :posicion
+     ;; 2. modificamos a 5 el valor de la entrada con keyword :x
+     (assoc-in mouse [:posicion :x] 5)
+
+     ;; misma idea que el anterior pero con direccion y código postal
+     (assoc-in empresa [:direccion :codigo-postal] 5009)
+
+     ;; 1. accedemos a entrada con keyword :historial
+     ;; 2. accedemos al elemento con posicion cero del vector asociado a :historial
+     ;; 3. modificamos el valor de la entrada con keyword :usuario a "pedrito"
+     (assoc-in browser [:historial 0 :usuario] "pedrito")
+   #+END_SRC
+* update-in
+** Conceptos
+** Ejemplo Básico
+   #+BEGIN_SRC clojure
+     (def mouse {:posicion {:x 100 :y 200}})
+
+     ;; 1. accedemos a entrada con keyword :posicion
+     ;; 2. accedemos a entrada con keyword :x
+     (get-in mouse [:posicion :x])
+
+     ;; 1. accedemos a entrada con keyword :posicion
+     ;; 2. incrementamos en 1 el valor de la entrada con keyword :x
+     (update-in mouse [:posicion :x] inc)
+
+     ;; misma idea que usar la función (inc)
+     (update-in mouse [:posicion :x] + 1)
+
+     ;; misma idea que usar la función (inc)
+     ;; pero usamos la función anónima abreviada #()
+     (update-in mouse [:posicion :x] #(+ 1 %))
+
+     ;; 1. accedemos a entrada con keyword :posicion
+     ;; 2. modificamos el valor de la entrada con keyword :x
+     ;; y le agregamos el doble del valor que tenga asociado
+     (update-in mouse [:posicion :x] #(* 2 %))
+
+     ;; misma idea que usar la función anónima #(* 2 %)
+     (update-in mouse [:posicion :x] * 2)
+   #+END_SRC

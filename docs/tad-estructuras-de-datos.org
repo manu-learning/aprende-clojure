@@ -1,4 +1,4 @@
-#+TITLE: (TAD) Tipos de datos abstractos: Colecciones y Secuencias
+#+TITLE: (TAD) Tipo abstracto de datos: Colecciones y Secuencias
 * Estructura Asociativa Map
 ** Conceptos
    - Estructura asociativa con pares ordenados comunmente usados con *keywords* de la forma ~{:clave valor}~
