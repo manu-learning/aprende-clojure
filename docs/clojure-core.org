@@ -1,0 +1,217 @@
+#+TITLE: Clojure Core
+* Intro
+  #+BEGIN_QUOTE
+  Implementación de las funciones más utilizadas para analizar y entender como funcionan
+  #+END_QUOTE
+* (->) Thread-First
+  #+BEGIN_SRC clojure
+    (defmacro ->
+      "Threads the expr through the forms. Inserts x as the
+      second item in the first form, making a list of it if it is not a
+      list already. If there are more forms, inserts the first form as the
+      second item in second form, etc."
+      {:added "1.0"}
+      [x & forms]
+      (loop [x x, forms forms]
+        (if forms
+          (let [form (first forms)
+                threaded (if (seq? form)
+                           (with-meta `(~(first form) ~x ~@(next form)) (meta form))
+                           (list form x))]
+            (recur threaded (next forms)))
+          x)))
+  #+END_SRC
+* (->>) Thread-Last
+  #+BEGIN_SRC clojure
+    (defmacro ->>
+      "Threads the expr through the forms. Inserts x as the
+      last item in the first form, making a list of it if it is not a
+      list already. If there are more forms, inserts the first form as the
+      last item in second form, etc."
+      {:added "1.1"}
+      [x & forms]
+      (loop [x x, forms forms]
+        (if forms
+          (let [form (first forms)
+                threaded (if (seq? form)
+                           (with-meta `(~(first form) ~@(next form)  ~x) (meta form))
+                           (list form x))]
+            (recur threaded (next forms)))
+          x)))
+  #+END_SRC
+* take
+  #+BEGIN_SRC clojure
+    (defn take
+      "Returns a lazy sequence of the first n items in coll, or all items if
+      there are fewer than n.  Returns a stateful transducer when
+      no collection is provided."
+      {:added "1.0"
+       :static true}
+      ([n]
+       (fn [rf]
+         (let [nv (volatile! n)]
+           (fn
+             ([] (rf))
+             ([result] (rf result))
+             ([result input]
+              (let [n @nv
+                    nn (vswap! nv dec)
+                    result (if (pos? n)
+                             (rf result input)
+                             result)]
+                (if (not (pos? nn))
+                  (ensure-reduced result)
+                  result)))))))
+      ([n coll]
+       (lazy-seq
+        (when (pos? n)
+          (when-let [s (seq coll)]
+            (cons (first s) (take (dec n) (rest s))))))))
+  #+END_SRC
+* zipmap
+  #+BEGIN_SRC clojure
+    (defn zipmap
+      "Returns a map with the keys mapped to the corresponding vals."
+      {:added "1.0"
+       :static true}
+      [keys vals]
+      (loop [map {}
+             ks (seq keys)
+             vs (seq vals)]
+        (if (and ks vs)
+          (recur (assoc map (first ks) (first vs))
+                 (next ks)
+                 (next vs))
+          map)))
+  #+END_SRC
+* group-by
+  #+BEGIN_SRC clojure
+    (defn group-by
+      "Returns a map of the elements of coll keyed by the result of
+      f on each element. The value at each key will be a vector of the
+      corresponding elements, in the order they appeared in coll."
+      {:added "1.2"
+       :static true}
+      [f coll]
+      (persistent!
+       (reduce
+        (fn [ret x]
+          (let [k (f x)]
+            (assoc! ret k (conj (get ret k []) x))))
+        (transient {}) coll)))
+  #+END_SRC
+* not
+  #+BEGIN_SRC clojure
+    (defn not
+      "Returns true if x is logical false, false otherwise."
+      {:tag Boolean
+       :added "1.0"
+       :static true}
+      [x] (if x false true))
+  #+END_SRC
+* not=
+  #+BEGIN_SRC clojure
+    (defn not=
+      "Same as (not (= obj1 obj2))"
+      {:tag Boolean
+       :added "1.0"
+       :static true}
+      ([x] false)
+      ([x y] (not (= x y)))
+      ([x y & more]
+       (not (apply = x y more))))
+  #+END_SRC
+* some? any?
+  #+BEGIN_SRC clojure
+    (defn some?
+      "Returns true if x is not nil, false otherwise."
+      {:tag Boolean
+       :added "1.6"
+       :static true}
+      [x] (not (nil? x)))
+
+    (defn any?
+      "Returns true given any argument."
+      {:tag Boolean
+       :added "1.9"}
+      [x] true)
+  #+END_SRC
+* concat
+  #+BEGIN_SRC clojure
+    (defn concat
+      "Returns a lazy seq representing the concatenation of the elements in the supplied colls."
+      {:added "1.0"
+       :static true}
+      ([] (lazy-seq nil))
+      ([x] (lazy-seq x))
+      ([x y]
+       (lazy-seq
+        (let [s (seq x)]
+          (if s
+            (if (chunked-seq? s)
+              (chunk-cons (chunk-first s) (concat (chunk-rest s) y))
+              (cons (first s) (concat (rest s) y)))
+            y))))
+      ([x y & zs]
+       (let [cat (fn cat [xys zs]
+                   (lazy-seq
+                    (let [xys (seq xys)]
+                      (if xys
+                        (if (chunked-seq? xys)
+                          (chunk-cons (chunk-first xys)
+                                      (cat (chunk-rest xys) zs))
+                          (cons (first xys) (cat (rest xys) zs)))
+                        (when zs
+                          (cat (first zs) (next zs)))))))]
+         (cat (concat x y) zs))))
+  #+END_SRC
+* Operaciones Ariméticas
+  #+BEGIN_SRC clojure
+    (defn +
+      "Returns the sum of nums. (+) returns 0. Does not auto-promote
+      longs, will throw on overflow. See also: +'"
+      {:inline (nary-inline 'add 'unchecked_add)
+       :inline-arities >1?
+       :added "1.2"}
+      ([] 0)
+      ([x] (cast Number x))
+      ([x y] (. clojure.lang.Numbers (add x y)))
+      ([x y & more]
+       (reduce1 + (+ x y) more)))
+
+    (defn *
+      "Returns the product of nums. (*) returns 1. Does not auto-promote
+      longs, will throw on overflow. See also: *'"
+      {:inline (nary-inline 'multiply 'unchecked_multiply)
+       :inline-arities >1?
+       :added "1.2"}
+      ([] 1)
+      ([x] (cast Number x))
+      ([x y] (. clojure.lang.Numbers (multiply x y)))
+      ([x y & more]
+       (reduce1 * (* x y) more)))
+
+    (defn /
+      "If no denominators are supplied, returns 1/numerator,
+      else returns numerator divided by all of the denominators."
+      {:inline (nary-inline 'divide)
+       :inline-arities >1?
+       :added "1.0"}
+      ([x] (/ 1 x))
+      ([x y] (. clojure.lang.Numbers (divide x y)))
+      ([x y & more]
+       (reduce1 / (/ x y) more)))
+
+    (defn -
+      "If no ys are supplied, returns the negation of x, else subtracts
+      the ys from x and returns the result. Does not auto-promote
+      longs, will throw on overflow. See also: -'"
+      {:inline (nary-inline 'minus 'unchecked_minus)
+       :inline-arities >0?
+       :added "1.2"}
+      ([x] (. clojure.lang.Numbers (minus x)))
+      ([x y] (. clojure.lang.Numbers (minus x y)))
+      ([x y & more]
+       (reduce1 - (- x y) more)))
+  #+END_SRC
+

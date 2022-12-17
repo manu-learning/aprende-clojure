@@ -1,0 +1,174 @@
+#+TITLE: Macros
+* (->) Thread-First Vs (->>) Thread-Last
+** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use 'clojure.walk)
+
+      ;; devuelve "hola mundo"
+      (-> "hola"
+          (str " mundo"))
+
+      ;; devuelve "mundohola"
+      (->> "hola"
+           (str " mundo"))
+
+      ;; la macro (->) Thread-First,
+      ;; al expandirse la expresión resultante es (- (* x 2) 1)
+      ;;
+      ;; podriamos pensar que "x" será el 1º parámetro de la primer función,
+      ;; y su resultado será también el 1º parámetro de la siguiente función y así..
+      (-> 5
+          (* 2)
+          (- 1))
+
+      ;; la macro (->) Thread-Last
+      ;; al expandirse la expresión resultante es (- 1 (* 2 x))
+      ;;
+      ;; podriamos pensar que "x" será el último parámetro de la primer función,
+      ;; y su resultado será también el último parámetro de la siguiente función y así..
+      (->> 5
+           (* 2)
+           (- 1))
+
+      (macroexpand-all '(->> 5 (* 2) (- 1)))
+      (macroexpand-all '(->> 5 (* 2 6) (- 4 3)))
+
+      (macroexpand-all '(-> 5 (* 2) (- 1)))
+
+      (macroexpand-all '(-> 5 (* 2 6) (- 4 3)))
+    #+END_SRC
+* (->) Thread-First
+** Conceptos
+   - Es una macro y se representa con el símbolo ~->~
+   - la sintáxis es de la forma ~(-> valor & funciones)~
+   - El 1º parámetro es el ~valor~ que se pasará como *primer parámetro* a la 1º función y *cada resultado como primer parámetro* de la siguiente
+
+   #+BEGIN_COMMENT
+   1. encadena el resultado de pasarle ~x~ como 1º parámetro a ~f1~
+   2. el resultado anterior se lo pasa como 1º parámetro a ~f2~
+   3. cada resultado se pasa como 1º parámetro a cada función siguiente
+   #+END_COMMENT
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use clojure.walk)
+
+      ;; devuelve "hola mundo"
+      (-> "hola"
+          (str " mundo"))
+
+      ;; la macro (->) Thread-First,
+      ;; al expandirse la expresión resultante es (- (* x 2) 1)
+      ;;
+      ;; podriamos pensar que "x" será el 1º parámetro de la primer función,
+      ;; y su resultado será también el 1º parámetro de la siguiente función y así..
+      (-> 5
+          (* 2)
+          (- 1))
+
+      (macroexpand-all '(-> 5 (* 2) (- 1)))
+      (macroexpand-all '(-> 5 (* 2 6) (- 4 3)))
+    #+END_SRC
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; update, actualiza un valor de una estructura map
+      ;; assoc, agrega a una estructura map elementos de la forma :clave valor
+      ;; :keyword, la propia keyword actúa como una función getter y devuelve el valor asociado
+      (defn transform [person]
+        (update (assoc person :hair-color :gray) :age inc))
+
+      (transform {:name "Carlitos" :age 39})
+
+      (defn transform* [person]
+        (-> person
+            (assoc :hair-color :gray)
+            (update :age inc)))
+
+
+      (transform* {:name "Carlitos" :age 39})
+
+      (-> [{:z 10}]
+          (conj [{:x 1} {:y 10}]))
+    #+END_SRC
+** Referencias
+   1. [[https://clojuredocs.org/clojure.core/-%3E][-> clojure.core (clojuredocs.org)]]
+   2. [[https://clojure.org/guides/threading_macros][Threading Macros Guide (clojure.org)]]
+* (->>) Thread-Last
+** Conceptos
+   - Es una macro y se representa con el símbolo ~->>~
+   - la sintáxis es de la forma ~(->> valor & funciones)~
+   - El 1º parámetro es el ~valor~ que se pasará como *último parámetro* a la 1º función y *cada resultado como último parámetro* de la siguiente
+
+   #+BEGIN_QUOTE
+   1. encadena el resultado de pasarle ~x~ como último parámetro a ~f1~
+   2. el resultado anterior se lo pasa como último parámetro a ~f2~
+   3. cada resultado se pasa como último parámetro a cada función siguiente
+   #+END_QUOTE
+** (->>) y Funciones Anónimas
+*** Conceptos
+    #+BEGIN_QUOTE
+    las *funciones anónimas* que son pasadas por parámetro a ~->>~
+    deben *paréntesis* adicionales quedando ~((funcion anónima))~
+    para que el *primer parámetro* ~valor~ pasado a ~->>~ sea pasado por parámetro a esa *función anónima*
+
+    por ejemplo luego de expandirse la macro ~->>~ quedaría algo asi ~( (fn [num] (map inc num) ) lista-numeros)~
+    #+END_QUOTE
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use clojure.walk)
+
+      ;; 1. primero se expande la macro (->>) quedando (apply + ((fn* ([num] (map inc num))) [1 2 3 4]))
+      ;; 2. luego aplica + en '(2 3 4 5) por tanto evalúa (+ 2 3 4 5)
+      (->> [1 2 3 4]
+           ((fn [num] (map inc num)))
+           (apply +))
+
+      (->> [1 2 3 4]
+           (fn [num] (map inc num))
+           (apply +))
+
+      (->> [1 2 3 4]
+           (#(map inc %))
+           (apply +))
+
+      (macroexpand-all '(->> [1 2 3 4]
+                             ((fn [num] (map inc num)))
+                             (apply +)))
+    #+END_SRC
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use 'clojure.walk)
+
+      ;; devuelve "mundohola"
+      (->> "hola"
+           (str " mundo"))
+
+      ;; la macro (->) Thread-Last
+      ;; al expandirse la expresión resultante es (- 1 (* 2 x))
+      ;;
+      ;; podriamos pensar que "x" será el último parámetro de la primer función,
+      ;; y su resultado será también el último parámetro de la siguiente función y así..
+      (->> 5
+           (* 2)
+           (- 1))
+
+      (macroexpand-all '(->> 5 (* 2) (- 1)))
+      (macroexpand-all '(->> 5 (* 2 6) (- 4 3)))
+    #+END_SRC
+*** Ejemplo 1 - Macro ->> con funciones range + filter + take + reduce
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use 'clojure.walk)
+
+      (->> (range)
+           (filter even?)
+           (take 5)
+           (reduce +))
+
+      (macroexpand-all '(->> (range) (filter even?) (take 5) (reduce +)))
+    #+END_SRC
