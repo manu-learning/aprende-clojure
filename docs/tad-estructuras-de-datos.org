@@ -42,7 +42,7 @@
    #+END_SRC
 * Vectores
 ** Conceptos
-   - Buena combinación con *estructuras asociativas Map*
+   - los *vectores* hacen una buena combinación con *estructuras asociativas Map*
 ** Ejemplo Básico
   #+BEGIN_SRC clojure
     ;; vector con 3 elementos
@@ -61,6 +61,86 @@
     ;; - agrega un elemento al final del vector
     (conj [3 2 1] 0)
   #+END_SRC
+** subvec - Extraer elementos de un vector
+*** Conceptos
+    - la sintáxis es de la forma ~(subvec vector inicio fin)~
+    - tiene el mismo comportamiento que la función ~slice~ de JavaScript
+    - ~subvec~ extrae elementos de un *vector* indicando con dos parámetros
+      1) la posición del primer elemento (2º parámetro) lo incluye
+      2) la posición del último elemento (3º parámetro) no lo incluye (lo excluye)
+         - si no se define, por default será hasta el último
+*** Ejemplos
+**** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; devuelve [0 1 2]
+      (subvec [0 1 2 3 4] 0 3)
+
+      ;; devuelve [0]
+      (subvec [0 1 2 3 4] 0 1)
+
+      ;; devuelve [0 1 2 3 4]
+      (subvec [0 1 2 3 4] 0)
+
+      ;; devuelve [1 2 3 4]
+      (subvec [0 1 2 3 4] 1)
+    #+END_SRC
+**** Ejemplo - Remover elemento por posición
+     #+BEGIN_SRC clojure
+       (defn remover-elemento-por-posicion [coleccion posicion-eliminar]
+         (concat (subvec coleccion 0 posicion-eliminar)
+                 (subvec coleccion (inc posicion-eliminar))))
+
+       ;; devolverá [0 2 3 4]
+       (remover-elemento-por-posicion [0 1 2 3 4] 2)
+
+       ;; devolverá [1 2 3 4]
+       (remover-elemento-por-posicion [0 1 2 3 4] 0)
+     #+END_SRC
+** vec - Transformar una colección en un vector
+*** Conceptos
+    #+BEGIN_QUOTE
+    Útil si previamente habíamos usado ~concat~ para agrupar varios *vectores*,
+    ya que ~concat~ devuelve una *secuencia perezosa*
+    #+END_QUOTE
+*** Ejemplos
+**** Ejemplo Básico
+     #+BEGIN_SRC clojure
+       ;; crea un vector vacío []
+       (vec nil)
+
+       ;; transforma la lista vacía en un vector vacío []
+       (vec '())
+
+       ;; transforma la lista en el vector [1 2 3 4]
+       (vec (list 1 2 3 4))
+
+       ;; transforma la lista en el vector [1 2 3 4]
+       (vec '(1 2 3 4))
+     #+END_SRC
+**** Ejemplo - Remover un elemento de un vector de map por su posición
+     #+BEGIN_SRC clojure
+       (def contactos [{:nombre "riker" :edad 50}
+                       {:nombre "diana" :edad 50}
+                       {:nombre "giorgi" :edad 30}
+                       {:nombre "data" :edad 500}])
+
+       (def cantidad-contactos
+         (dec (count contactos)))
+
+       (defn remover-contacto [lista-contactos posicion-remover]
+         (vec (concat
+               (subvec lista-contactos 0 posicion-remover)
+               (subvec lista-contactos (inc posicion-remover)))))
+
+       ;; eliminamos el primer contacto
+       (remover-contacto contactos 0)
+
+       ;; eliminamos el segundo contacto
+       (remover-contacto contactos 1)
+
+       ;; eliminamos el último contacto
+       (remover-contacto contactos cantidad-contactos)
+     #+END_SRC
 * Listas
 ** Conceptos
    - Una *Lista* es un tipo de colección con elementos ordenados que pueden repetirse
