@@ -4,7 +4,7 @@
    #+BEGIN_QUOTE
     Clojure trata las listas, vectores y set como secuencias
     por ende en todas podemos utilizar funciones para secuencias
-    
+
     Algunas de las operaciones incluidas en la biblioteca de secuencias son:
     - map, reduce, take-while, drop-while, filter
     - some
@@ -261,20 +261,39 @@
       ;; ordenará de forma descendente y alfabética mediante la keyword :titulo pero luego quedará en orden ascendente
       (reverse (sort-by :titulo libros-sugeridos))
     #+END_SRC
-* Concat
+* TODO Concat - Agrupar Colecciones
 ** Conceptos
-   #+BEGIN_QUOTE
-   ~concat~ agrupa los elementos de las secuencias en uno sólo,
-   otra forma de pensarlo sería que agrega elementos de una secuencia al final de otra secuencia
-   #+END_QUOTE
-** Ejemplo
-   #+BEGIN_SRC clojure
-     ;; agregamos [3 4] al final de la secuencia [1 2]
-     (concat [1 2] [3 4])
+   - ~concat~ agrupa *elementos de colecciones* y devuelve una *secuencia perezosa* (~lazy-seq~)
 
-     ;; mismo comportamiento que con los números
-     (concat ["vaca" "perro"] ["tomate" "pera"])
-   #+END_SRC
+   #+BEGIN_QUOTE
+   Otra forma de pensarlo sería que agrega elementos de una secuencia al final de otra secuencia
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; agregamos [3 4] al final de la secuencia [1 2]
+      (concat [1 2] [3 4])
+
+      ;; mismo comportamiento que con los números
+      (concat ["vaca" "perro"] ["tomate" "pera"])
+
+      (concat [1 2] [3 4] [5 6])
+
+      (concat (list 1 2) (list 3 4))
+
+      (concat '(1 2) '(3 4))
+    #+END_SRC
+*** Ejemplo - Concat devuelve una secuencia perezosa
+    #+BEGIN_SRC clojure
+      ;; devolverá (9 1 2 3 4) en vez de (1 2 3 4 9)
+      (conj (concat [1 2] [3 4]) 9)
+
+      ;; éste si devolverá (1 2 3 4 9)
+      (conj [1 2 3 4] 9)
+    #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://stuartsierra.com/2015/04/26/clojure-donts-concat][Concat, the lazily-ticking time bomb (stuartsierra.com)]]
 * TODO Secuencia Perezosa (Lazy Seq)
 ** Conceptos
    #+BEGIN_QUOTE
