@@ -8,6 +8,11 @@ https://www.braveclojure.com/core-functions-in-depth/#Exercises
 (aún no hiciste ningún ejercicio de esto ultimo)
 #+END_COMMENT
 
+
+#+BEGIN_COMMENT
+https://clojure.tgenedavis.com/ (tiene tutoriales de redis+clj, react+clj)
+#+END_COMMENT
+
 #+BEGIN_COMMENT
 Agregar conceptos de inmutabilidad
 https://dev.to/quoll/immutable-vars-and-clojure-3nh8
@@ -90,6 +95,14 @@ https://clojure.org/guides/learn/hashed_colls
    #+BEGIN_COMMENT
    https://kimh.github.io/clojure-by-example/#hello-world parece copado (?)
    #+END_COMMENT
+** Issues
+   1. https://stackoverflow.com/questions/12518320/counting-only-truthy-values-in-a-collection
+   2. https://stackoverflow.com/questions/38759125/how-to-sum-all-values-in-a-vector-or-maps
+   3. https://stackoverflow.com/questions/3249334/test-whether-a-list-contains-a-specific-value-in-clojure
+** Referencias Youtube
+   1. [[https://www.youtube.com/watch?v=tzj1y4hNwrA&ab_channel=CommunityDeveloper][Spacemacs basics for Clojure development (By Community Developer)]]
+   2. [[https://www.youtube.com/watch?v=NDrpclY54E0&ab_channel=Practicalli][REPL driven development with Clojure+Spacemacs+CIDER (By Practicalli)]]
+   2. [[https://www.youtube.com/watch?v=cadXnbAEfUo&ab_channel=CommunityDeveloper][Spacemacs Helm transient state (By Community Developer]]
 ** Tutoriales
    1. [[https://markm208.github.io/cljbook/][An animated Introduction to Clojure (By markm208)]]
    2. [[https://practical.li/clojure/reference/clojure-syntax/syntax.html][Syntax Clojure (practical.li)]]
@@ -108,15 +121,13 @@ https://clojure.org/guides/learn/hashed_colls
    https://www.youtube.com/watch?v=ro7SFEufBmo&t=16s&ab_channel=OsmanCea
    https://www.youtube.com/watch?v=iPLsuw9U9Ek&ab_channel=OsmanCea
    #+END_COMMENT
-** Issues
-   1. https://stackoverflow.com/questions/12518320/counting-only-truthy-values-in-a-collection
-   2. https://stackoverflow.com/questions/38759125/how-to-sum-all-values-in-a-vector-or-maps
-   3. https://stackoverflow.com/questions/3249334/test-whether-a-list-contains-a-specific-value-in-clojure
-** Referencias Youtube
-   1. [[https://www.youtube.com/watch?v=tzj1y4hNwrA&ab_channel=CommunityDeveloper][Spacemacs basics for Clojure development (By Community Developer)]]
-   2. [[https://www.youtube.com/watch?v=NDrpclY54E0&ab_channel=Practicalli][REPL driven development with Clojure+Spacemacs+CIDER (By Practicalli)]]
-   2. [[https://www.youtube.com/watch?v=cadXnbAEfUo&ab_channel=CommunityDeveloper][Spacemacs Helm transient state (By Community Developer]]
-* Libros
+* Libros Referentes
   1. [[https://livebook.manning.com/book/clojure-the-essential-reference/chapter-12/v-30/8][Clojure The Essential Reference, Vectors (livebook.manning.com)]]
   2. [[https://doc.lagout.org/programmation/Lisp/Clojure/The%20Joy%20of%20Clojure.pdf][They Joy of Clojure (doc.lagout.org)]]
   3. [[https://www.braveclojure.com/do-things/][A clojure Crash Course (braveclojure.com)]]
+  4. [[https://livebook.manning.com/book/get-programming-with-clojure/welcome/v-2/8][Get Programming with Clojure MEAP (livebook.manning.com)]]
+
+  #+BEGIN_COMMENT
+  https://realtoughcandy.com/best-clojure-books/
+  https://www.linuxlinks.com/excellent-free-books-learn-clojurescript/
+  #+END_COMMENT
