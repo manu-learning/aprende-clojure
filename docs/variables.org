@@ -1,4 +1,14 @@
 #+TITLE: Variables
+* def - Vincular/Bindear un valor a un nombre de variable
+** Conceptos
+    - ~def~ vincula/bindea un valor a un nombre de variable
+    - NO confundir con una *asignación*, ese concepto permite *multiples asignaciones*
+    - similar al concepto de definir una *variable constante* ó *inmutable* (no se puede alterar, cambiar su valor)
+** Ejemplo Básico
+  #+BEGIN_SRC clojure
+    (def startrek-personajes-nombres
+      ["Jean Luc Picard" "William Riker" "Deanna Troi"])
+  #+END_SRC
 * Variable Shadowing
 ** Concepto
    - el concepto de ~shadowing~ ocurre cuando definimos al menos dos variables con igual nombre en distintos scopes (ámbitos)

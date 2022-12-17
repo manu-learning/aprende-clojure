@@ -297,6 +297,7 @@
   #+END_SRC
 * assoc-in - Modificar estructuras asociativas Map anidadas
 ** Conceptos
+   - la sintáxis es de la forma ~(update-in estructura-map secuencia-de-keywords nuevo-valor)~
    - ~assoc-in~ es una combinación entre ~get-in~ y ~assoc~
      1) similar a ~get-in~ porque accede a *estructuras asociativas map anidadas*
      2) similar a ~assoc~ porque modifica el valor de una entrada asociada a una keyword de una estructura map asociativa

@@ -2,44 +2,6 @@
   #+BEGIN_QUOTE
   Algunas de las funciones más utilizo en ClojureScript (/por el momento/)
   #+END_QUOTE
-* Arrow Macro
-** Conceptos
-   - Es una macro y se representa con el símbolo ~->~
-   - Recibe como parámetro algo de la forma ~[x [f1 & funciones-siguientes]]~
-
-   #+BEGIN_QUOTE
-   Encadena el resultado de pasarle x a f1, el resultado se lo pasa a f2, y asi..
-   (el resultado se pasa como 2º parámetro a cada función que le siga)
-
-   Por ejemplo
-   1. el 1º param x de (->) lo agrega como 2º param en f1 (2º param de ->)
-   2. el resultado de f1 (2º param de ->) lo agrega como 2º param de f2
-   3. se repite con cada función que siga..
-   #+END_QUOTE
-** Ejemplos
-   #+BEGIN_SRC clojure
-     ;; update, actualiza un valor de una estructura map
-     ;; assoc, agrega a una estructura map elementos de la forma :clave valor
-     ;; :keyword, la propia keyword actúa como una función getter y devuelve el valor asociado
-     (defn transform [person]
-       (update (assoc person :hair-color :gray) :age inc))
-
-     (transform {:name "Carlitos" :age 39})
-
-     (defn transform* [person]
-       (-> person
-           (assoc :hair-color :gray)
-           (update :age inc)))
-
-
-     (transform* {:name "Carlitos" :age 39})
-
-     (-> [{:z 10}]
-         (conj [{:x 1} {:y 10}]))
-   #+END_SRC
-** Referencias
-   1. [[https://clojuredocs.org/clojure.core/-%3E][-> clojure.core (clojuredocs.org)]]
-   2. [[https://clojure.org/guides/threading_macros][Threading Macros Guide (clojure.org)]]
 * Atomos (Atom)
 ** Conceptos
    - la función ~atom~ crea y devuelve un tipo de dato *Atom* al que se lo puede bindear/vincular a una variable
