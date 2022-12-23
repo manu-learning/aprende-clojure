@@ -1,25 +1,78 @@
 #+TITLE: Condicionales + Operadores lógicos/relacionales
-* TODO Control de Flujo
+* Control de Flujo
 ** Condicional Simple - if
 *** Conceptos
-*** Ejemplo
-    #+BEGIN_SRC clojure
-    ;; if
-    ;; - el segundo parámetro es la rama if, se evalúa si se cumple la condición
-    ;; - el tercer parámetro es al rama else, se evalúa si NO se cumple la condición
-    (if true
-      "se cumplió la condición!"
-      "algo no salió bien :(")
+    - la sintáxis es de la forma ~(if predicado rama-if rama-else)~
+    - la ~rama-else~ es opcional y no es necesario definir con una palabra clave
+      (/en otros lenguajes es necesario usar la palabra clave else/)
 
-    (if false
-      "nil? pucha que hicimos mal?")
+    #+BEGIN_QUOTE
+    El primer parámetro del ~if~ es un *predicado* (/una función booleana/)
+    según si se cumple ó no, evaluará la expresión que tenga la ~rama-if~ ó ~rama-else~
+
+    El *predicado* se considera que se cumple si devuelve un valor diferente a ~false~ ó ~nil~
+    por tanto no necesariamente debe devolver ~true~ para que se evalúe la ~rama-if~
+    #+END_QUOTE
+*** Ejemplos Básico
+**** Ejemplo 1 - Escenarios donde se cumple el predicado (función booleana)
+    #+BEGIN_SRC clojure
+      ;; en éste caso podriamos como no hay una rama-else
+      ;; podríamos haber usado la macro when
+      (if true
+        "Se cumplió la condición!")
+
+      (when true
+        "Se cumplió la condición!")
+
+      ;; devolverá la primera cadena
+      (if true
+        "Se cumplió la condición!"
+        "algo no salió bien :(")
+
+      ;; devolverá la primera cadena
+      ;; porque 1 no es nil ni tampoco false
+      (if 1
+        "Se cumplió la condición!"
+        "algo no salió bien :(")
+
+      ;; éste puede parecer raro pero para que se entienda
+      ;; que con devolver un valor diferente a nil ó false
+      ;; es suficiente para evaluar la rama-if
+      (if {:nombre "carlos"}
+        "Se cumplió la condición!"
+        "algo no salió bien :(")
+    #+END_SRC
+**** Ejemplo 2 - Escenarios donde no se cumple el predicado (función booleana)
+    #+BEGIN_SRC clojure
+      ;; devolverá la segunda cadena
+      (if false
+        "Se cumplió la condición!"
+        "algo no salió bien :(")
+
+      ;; devolverá la segunda cadena
+      (if nil
+        "Se cumplió la condición!"
+        "algo no salió bien :(")
+
+      ;; devolverá nil, porque falta la rama-else
+      (if false
+        "nil? pucha que hicimos mal?")
+
+      ;; devolverá nil, porque falta la rama-else
+      (if nil
+        "nil? pucha que hicimos mal?")
     #+END_SRC
 ** Condicional Simple if + do
-*** Ejemplo
+*** Conceptos
+    - ~do~ evalúa una serie de expresiones
+    - ~do~ extiende la funcionalidad del condicional ~if~ que sólo evaluaba una expresión en cada rama
+
+    #+BEGIN_QUOTE
+    Podemos pensar la cantidad de expresiones evaluadas por ~if~ ó ~do~ como *elementos de una lista*
+    dónde cada rama del ~if~ sólo permite 1 elemento y ~do~ lo extiende para que admita más elementos
+    #+END_QUOTE
+*** Ejemplo Básico
     #+BEGIN_SRC clojure
-    ;; do
-    ;; - encapsula lógica de varias acciones
-    ;; - útil para el condicional if, que por defecto sólo ejecuta 1 acción en caso de éxito/fracaso
     (if true
       (do (println "Bien..!")
           "se cumplió la condición :o")
@@ -28,15 +81,103 @@
     #+END_SRC
 ** Condicional when
 *** Conceptos
+    - ~when~ NO tiene una rama ~else~, evalúa las expresiones contenidas en el cuerpo de la función sólo si se cumple el *predicado*
+    - ~when~ es una combinación entre
+      1) ~if~ valida si cumple o no el *predicado* pasado como primer parámetro
+      2) ~do~ extiende la cantidad de expresiones que se puede evaluar
 *** Ejemplo
     #+BEGIN_SRC clojure
-    ;; when
-    ;; - actúa como el if + do
-    ;; - no contiene la rama else
-    (when true
-      (println "Se cumplió la condición! :)")
-      "vamos por buen camino")
+      ;; when
+      ;; - actúa como el if + do
+      ;; - no contiene la rama else
+      (when (= 1 1)
+        (println "Se cumplió la condición! :)")
+        (println "Vamos por buen camino (?)")
+        "sip")
     #+END_SRC
+** when-let
+*** Conceptos
+    - la sintáxis es de la forma ~(when-let predicado-binding & cuerpo)~
+    - el primer parámetro ~predicado-binding~
+      1) primero se evalúa un *predicado* (/función booleana/)
+      2) si se cumple el *predicado* entonces *se vincula/bindea el resultado a un nombre* de variable
+    - el segundo parámetro ~& cuerpo~
+      1) es el mismo concepto que el *parameter rest* porque al usar el símbolo ~&~ acepta un número indefinido de parámetros
+      2) el *conjunto de parámetros* representa el *cuerpo de la función* ~when-let~
+*** Ejemplos
+**** Ejemplo 1 - Obtener primer mensaje no leido
+    #+BEGIN_SRC clojure
+      (def correo-juan {:mensajes [{:id 100 :leido? true}
+                                   {:id 101 :leido? true}
+                                   {:id 102 :leido? false}
+                                   {:id 103 :leido? false}
+                                   {:id 105 :leido? true}]})
+
+      (defn primer-mensaje-no-leido [correo]
+        (->> (:mensajes correo)
+             (filter (comp not :leido?))
+             (first)))
+
+      (defn leer-primer-mensaje-no-leido [correo]
+        (when-let [mensaje (primer-mensaje-no-leido correo)]
+          (dissoc mensaje :leido?)))
+
+      ;; alternativa, si que queremos mantener toda la lógica junta
+      (defn leer-primer-mensaje-no-leido* [correo]
+        (when-let [mensaje (->> (:mensajes correo)
+                                (filter (comp not :leido?))
+                                (first))]
+          (dissoc mensaje :leido?)))
+
+      (primer-mensaje-no-leido correo-juan)
+      (leer-primer-mensaje-no-leido correo-juan)
+
+      (leer-primer-mensaje-no-leido* correo-juan)
+    #+END_SRC
+**** Ejemplo 2
+     #+BEGIN_SRC clojure
+       (def correo-mati {:mensajes []
+                         :proximo-id 1})
+
+       (def correo-juan {:mensajes [{:id 100 :leido? false :texto "Saludos a familia"}
+                                    {:id 101 :leido? false :texto "Pedido de tarea"}
+                                    {:id 102 :leido? false :texto "Saludos a un amigo"}]
+                         :proximo-id 103})
+
+       (defn siguiente-mensaje-no-leido [correo]
+         (when-let [mensaje (->> (:mensajes correo)
+                                 (filter (comp not :leido?))
+                                 first)]
+           (dissoc mensaje :leido?)))
+
+       ;; test
+       (= 100 (:id (siguiente-mensaje-no-leido correo-juan)))
+
+       (siguiente-mensaje-no-leido correo-juan)
+       (siguiente-mensaje-no-leido correo-mati)
+
+       ;; por convención.. las funciones que terminan con el símbolo ! de exclamación
+       ;; son las que modifican el estado del objeto y devuelven un objeto nuevo
+       (defn marcar-mensaje-como-leido! [correo id]
+         (update correo :mensajes (fn [mensajes]
+                                    (map #(if (= id (:id %)) (assoc % :leido? true) %)
+                                         mensajes))))
+
+       ;; TODO: test
+       (marcar-mensaje-como-leido! correo-juan 101)
+
+       ;; por convención.. las funciones que terminan con el símbolo ! de exclamación
+       ;; son las que modifican el estado del objeto y devuelven un objeto nuevo
+       (defn leer-todos-los-mensajes! [correo]
+         (loop [mensajes-pendientes correo]
+           (when-let [mensaje-leido (siguiente-mensaje-no-leido mensajes-pendientes)]
+             (println (:texto mensaje-leido))
+             (recur
+              (marcar-mensaje-como-leido mensajes-pendientes (:id mensaje-leido))))))
+
+       ;; test
+       (nil? (leer-todos-los-mensajes correo-juan))
+     #+END_SRC
 ** Condicional if-let
 *** Conceptos
     - vincula a un nombre de variable un valor si se cumple un predicado
@@ -69,12 +210,12 @@
       (confirmar-registro {:nombre "Riker"})
     #+END_SRC
 ** nil?
-*** Ejemplo
+*** Conceptos
+    - ~nil?~ es un *predicado* que evalúa si una expresión representa el valor ~nil~
+    - ~nil~ en otros lenguajes se conoce por ~NULL~ ó *valor nulo*
+    - ~nil~ es el resultado de que una *expresión-s* no tiene un valor vinculado ó que una función genera *side-effect*
+*** Ejemplo Básico
   #+BEGIN_SRC clojure
-    ;; nil
-    ;; - en otros lenguajes se conoce por NULL
-    ;; - es el resultado de que una expresión-s no tiene un valor asignado
-    ;; - una buena práctica sería usar la función (nil? sexp) en vez del if
     (nil? 1)
     (nil? nil)
 
