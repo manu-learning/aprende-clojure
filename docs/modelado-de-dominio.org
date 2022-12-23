@@ -25,6 +25,49 @@
     1. [[https://www.vasinov.com/blog/16-months-of-functional-programming/][16 months of functional programming (vasinov.com)]]
     2. [[https://thecocktail.engineering/qu%C3%A9-es-la-programaci%C3%B3n-funcional-c91b611b0258][Qué es la programación funcional (thecocktail.engineering)]]
     3. [[https://aprenderbigdata.com/programacion-funcional/][Aprende que es la programación funcional (aprenderbigdata.com)]]
+* Convención de nombre para funciones que modifican el Estado de Objetos
+** Conceptos
+  #+BEGIN_QUOTE
+  Por convención las funciones que terminan con el símbolo ~!~ de exclamación
+  son aquellas que *modifican el estado del objeto* y *devuelven un objeto nuevo*
+
+  Por lo general cuando en la definición de una función utilizamos las funciones ~assoc~ ó ~update~
+  ambas *modifican el estado del objeto y devuelven uno nuevo*
+
+  Algunos ejemplos podrían ser
+  - ~borrar-mensaje!~
+  - ~marcar-mensaje-como-leido!~
+  - ~marcar-todos-los-mensajes-como-leidos!~
+  #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1
+  #+BEGIN_SRC clojure
+    (def saludos {:id 101 :leido? false :texto "saludos amigo"})
+
+    (defn marcar-mensaje-como-leido! [mensaje]
+      (assoc mensaje :leido? true))
+
+    (true? (:leido? (marcar-mensaje-como-leido! saludos)))
+  #+END_SRC
+*** Ejemplo 2
+    #+BEGIN_SRC clojure
+      (def correo-juan {:mensajes [{:id 100 :leido? true}
+                                   {:id 101 :leido? false}
+                                   {:id 102 :leido? false}]})
+
+      ;; - update, actualiza el estado de un objeto pasandole una función que lo modifica y devuelve un nuevo objeto
+      ;; - al map le pasamos una función anónima con la macro #() que transforma los elementos,
+      ;; si cumplen el predicado del IF entonces los transforma con la función assoc modificando la keyword :leido?
+      ;; si NO cumplen el predicado del IF entonces devuelve % es decir el mismo elemento sin transformar, dónde el % es propio de la macro #()
+      (defn marcar-mensaje-como-leido! [id correo]
+        (update correo :mensajes (fn [mensajes]
+                                   (map #(if (= id (:id %))
+                                           (assoc % :leido? true)
+                                           %)
+                                        mensajes))))
+
+      (marcar-mensaje-como-leido! 101 correo-juan)
+    #+END_SRC
 * assoc - Agregar/Modificar entradas en una estructura asociativa Map
 ** Conceptos
    - ~assoc~ agrega una ó varias entradas de la forma clave-valor a una estructura map
@@ -382,3 +425,104 @@
      ;; misma idea que usar la función anónima #(* 2 %)
      (update-in mouse [:posicion :x] * 2)
    #+END_SRC
+* Update Vs Assoc - Modificar entradas entradas de una estructura asociativa Map
+** Conceptos
+   - ~update~ es similar a ~assoc~ porque modifican una *entrada de una estructura map*
+   - ~update~ se diferencia de ~assoc~ porque pasamos por parámetro *una función* en vez del *valor específico*
+** Ejemplos Básicos
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      (def persona {:nombre "Gerardo" :edad 35})
+
+      ;; le cambiamos la edad con assoc
+      (assoc persona :edad 11)
+
+      ;; hacemos lo mismo con update,
+      ;; aunque no tiene mucho sentido porque assoc lo hacemos más fácil y entendible
+      (update persona :edad (fn [_] 11))
+    #+END_SRC
+*** Ejemplo - Usando la función update
+    #+BEGIN_SRC clojure
+      (def persona {:nombre "Gerardo" :edad 35 :hobbies ["correr" "cocinar"]})
+
+      ;; a update le pasamos por parámetro una función para modificar una entrada de una estructura map
+      ;; cada modificación devuelve una estructura map nueva..
+
+      ;; a. incrementamos en 1 la edad
+      (update persona :edad inc)
+      ;; b. seguido del nombre le agregamos otra cadena
+      (update persona :nombre #(str % " Fisher"))
+      ;; c. agregamos un hobbie a los hobbies representados por un vector
+      (update persona :hobbies #(conj % "leer"))
+    #+END_SRC
+*** Ejemplo - Usando la función assoc
+    #+BEGIN_SRC clojure
+      (def persona {:nombre "Gerardo" :edad 35 :hobbies ["correr" "cocinar"]})
+
+      ;; cada modificación devuelve una estructura map nueva..
+
+      ;; a) le cambiamos la edad
+      (assoc persona :edad 38)
+
+      ;; b) le agregamos una entrada nueva (si existiera, la modificaría)
+      (assoc persona :apellido "Samuel")
+
+      ;; c) le sacamos los hobbies
+      (assoc persona :hobbies [])
+    #+END_SRC
+* Update - Modificar una entrada de una estructura asociativa Map
+** Conceptos
+   - la sintáxis es de la forma ~(update estructura-map keyword-elegida funcion)~
+   - ~update~ es similar a ~update-in~ pero se diferencia en que
+     1) modifica una *entrada de una estructura map* pasando sólo su *keyword*
+     2) no necesita de una *secuencia de keywords* porque NO accede a una entrada de *estructuras asociativas map anidadas*
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (def libro-los-amuletos {:autores [{:nombre "Carlos Pedrito" :edad 50}
+                                         {:nombre "Johan Samuel" :edad 65}]
+                               :titulo "El señor de los amuletos"})
+
+      (update libro-los-amuletos :autores conj {:nombre "Gerdado Fisher" :edad 35})
+
+      (def persona {:nombre "Gerardo" :edad 35})
+      (update persona :edad inc)
+      (update persona :nombre #(str % " Fisher"))
+
+      (def cantidad-visitas-semanales [0 0 0 0 0 0 0])
+
+      ;; 0 representa la posición del primer elemento del vector
+      (update cantidad-visitas-semanales 0 inc)
+
+      ;; 1 representa la posición del segundo elemento del vector
+      (update cantidad-visitas-semanales 1 inc)
+
+      ;; usamos la macro # para definir una función anónima
+      ;; para incrementar en 1 el valor del segundo elemento del vector
+      (update cantidad-visitas-semanales 1 #(+ % 1))
+
+      ;; en el ejemplo anterior definimos una función anónima
+      ;; para incrementar en 1 el valor del segundo elemento del vector
+    #+END_SRC
+*** Ejemplo 1 - Encontrar un elemento por id en un vector de estructuras map asociativas y actualizarlo
+    #+BEGIN_SRC clojure
+      (def correo-juan {:mensajes [{:id 100 :leido? false}
+                                   {:id 101 :leido? false}
+                                   {:id 102 :leido? false}
+                                   {:id 103 :leido? false}
+                                   {:id 105 :leido? false}]})
+
+      ;; - update, actualiza el estado de un objeto pasandole una función que lo modifica y devuelve un nuevo objeto
+      ;; - al map le pasamos una función anónima con la macro #() que transforma los elementos,
+      ;; si cumplen el predicado del IF entonces los transforma con la función assoc modificando la keyword :leido?
+      ;; si NO cumplen el predicado del IF entonces devuelve % es decir el mismo elemento sin transformar, dónde el % es propio de la macro #()
+      (defn marcar-mensaje-como-leido [id]
+        (fn [correo]
+          (update correo :mensajes
+                  (fn [mensajes]
+                    (map #(if (= id (:id %)) (assoc % :leido? true) %) mensajes)))))
+
+      ;; marcar-mensaje-como-leido espera un parámetro (le pasamos 102)
+      ;; y devuelve una función que espera un parámetro (le pasamos correo-juan)
+      ((marcar-mensaje-como-leido 102) correo-juan)
+    #+END_SRC
