@@ -3,57 +3,6 @@
   #+BEGIN_QUOTE
   Funciones que no clasificaban en una categoría en particular (/por el momento/)
   #+END_QUOTE
-* juxt - Aplicar multiples funciones a varios argumentos
-** Conceptos
-   - la sintáxis es de la forma ~((juxt fn1 fn2 ..) x y z ..)~
-
-   #+BEGIN_QUOTE
-   1) ~juxt~ espera por parámetro una serie de funciones
-   2) ~juxt~ devuelve una función ~fn~ que espera una serie de argumentos
-      (/a los que le aplicará las funciones, pueden ser tipos primitivos, estructuras de datos, ../)
-   3) el resultado devuelto por ~fn~ es un vector
-      (/los elementos del vector son el resultado de aplicar la serie de funciones/)
-   #+END_QUOTE
-** Ejemplos
-*** Ejemplo Básico
-    #+BEGIN_SRC clojure
-      ;; devolverá [10 24 1 4]
-      ;;
-      ;; - el 10 es resultado de (+ 1 2 3 4)
-      ;; - el 24 es resultado de (* 1 2 3 4)
-      ;; - el 1 es el resultado de (min 1 2 3 4)
-      ;; - el 4 es el resultado de (max 1 2 3 4)
-      ((juxt + * min max) 1 2 3 4)
-
-      ;; devolverá [(1 2 3) (4 5 6)]
-      ;;
-      ;; - el (1 2 3) es el resultado de (take 3 [1 2 3 4 5 6])
-      ;; - el (4 5 6) es el resultado de (drop 3 [1 2 3 4 5 6])
-      ((juxt take drop) 3 [1 2 3 4 5 6])
-
-
-      ;; devolverá [1 10]
-      ;;
-      ;; - el 1 es resultado de la keyword :a como función getter
-      ;; - el 10 es resultado de la keyword :b como función getter
-      ((juxt :a :b) {:a 1 :c 5 :b 10 :d 2})
-
-
-      ;; devolverá [1 2 9 5]
-      ((juxt first second last count) [1 2 3 4 9])
-
-      ;; devolverá [\H \o \! 11]
-      ((juxt first second last count) "Hola Mundo!")
-    #+END_SRC
-** Referencias
-*** Referencias Extraoficiales
-    1. [[https://andersmurphy.com/2018/11/18/clojure-juxt-and-separate.html][Clojure, Juxt and Separate (andersmurphy.com)]]
-    2. [[https://michaelwhatcott.com/comp-and-juxt/][Clojure's comp and juxt functions (michaelwhatcott.com)]]
-    3. [[https://blog.mrhaki.com/2020/04/clojure-goodness-getting-results-from.html][Getting results from multiple functions with juxt function (blog.mrhaki.com)]]
-    4. [[https://blog.klipse.tech/clojure/2017/04/22/clojure-juxt-some-reduced.html][juxt, some and reduced (blog.klipse.tech)]]
-    5. [[https://livebook.manning.com/concept/clojure/juxt][juxt in clojure (Clojure, The Essential Reference MEAP)]]
-*** Referencias Youtube
-    1. [[https://www.youtube.com/watch?v=n0BTsKVs1Lw][Learn Reduce, Group-by and Juxt by creating a look up map (By on the code again)]]
 * map-indexed - Obtener posición de los elementos de una colección + Transformar sus elementos
 ** Conceptos
    - la sintáxis es de la forma ~(map-indexed funcion-anonima coleccion)~

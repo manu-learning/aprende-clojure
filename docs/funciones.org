@@ -18,7 +18,8 @@
     3. [[https://medium.com/@dpthegrey/explain-difference-between-formal-and-actual-parameter-with-example-26f63e7560bb][Explain difference between formal and actual parameter (by dpthegrey, Medium)]]
 * TODO Efecto de Lado (Side effect)
 ** Concepto
-   - Cualquier función que devuelva el valor ~nil~ provoca *efecto de lado* (Ej. println en el STDOUT)
+   - Cualquier función que devuelva el valor ~nil~ provoca *efecto de lado*
+     (Ej. la función ~println~ genera efecto de lado en el STDOUT)
 ** Referencias
 *** Referencias Extraoficiales
     1. [[https://practical.li/clojure/thinking-functionally/side-effects.html][Side effects (practical.li)]]

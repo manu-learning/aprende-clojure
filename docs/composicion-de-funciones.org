@@ -1,0 +1,438 @@
+#+TITLE: Composición de Funciones
+* comp - Composición de funciones
+** Conceptos
+   - la sintáxis es de la forma ~(comp fn1 fn2 & otras-funciones)~
+   - ~comp~ devuelve una función ~fn~ que *compone funciones* evaluandolas de derecha a izquierda
+** Ejemplos Básicos
+*** Ejemplo 1
+    #+BEGIN_SRC clojure
+      (defn triple [x] (* 3 x))
+      (defn decrementar-en-10 [x] (- x 10))
+
+      ;; la función de abajo se evaluará como la siguente composición de funciones (decrementar-en-10 (triple 10))
+      ((comp decrementar-en-10 triple) 10)
+    #+END_SRC
+** Ejemplos
+*** Ejemplo 1 - Contar la cantidad de elementos que cumplen una condición
+    #+BEGIN_SRC clojure
+      (def count-if (comp count filter))
+
+      (count-if even? [1 2 3 4])
+
+      (count-if #(< 2 %) [1 2 3 4])
+
+      (count-if (fn [x] (< 2 x))
+                [1 2 3 4])
+    #+END_SRC
+*** Ejemplo 2 - Transformar un vector de números en un vector de keywords
+    #+BEGIN_SRC clojure
+      ;; transformamos los números del vector [1 2] en [:1 :2]
+      ;; comp evalúa y compone de derecha a izquierda por tanto
+      ;; 1. aplicará (str numero) en cada elemento
+      ;; 2. aplicará (keyword numero-string)
+      (map (comp keyword str) [1 2])
+
+      ;; lo mismo usando una función anónima con la macro #()
+      (map #(keyword (str %)) [1 2])
+
+      ;; lo mismo usando una función anónima fn y la macro (->)
+      (map (fn [x]( -> x
+                   str
+                   keyword))
+           [1 2])
+    #+END_SRC
+*** Ejemplo 3 - Componer keywords como función getter
+    #+BEGIN_SRC clojure
+      ;; anidamos varias estructuras map
+      (def naruto {:nombre "Naruto"
+                   :cuerpo {:cabeza {:size 5
+                                     :pelo {:color "amarillo" :largo 20}
+                                     :cantidad 1}
+                            :piernas {:size 20 :cantidad 2}
+                            :brazos {:size 25 :cantidad 2}}
+                   :posicion {:x 10 :y 5}})
+
+      ;; - mismo resultado que con la macro (->) pero usando la función comp
+      ;; - comp compone funciones y las evalúa de derecha a izquierda
+      ;; por tanto partimos por la keyword de la última estructura map anidada
+      ;;
+      ;; Nota: estamos definiendo una variable que devuelve una función fn, por eso no recibe parámetros
+      (def color-de-pelo (comp :color :pelo :cabeza :cuerpo))
+      (color-de-pelo naruto)
+
+      ;; - mismo resultado que con la función (comp) pero usando la macro (->)
+      ;; como las keywords también funcionan como una función getter
+      ;; usamos (->) para componerlas
+      (defn color-de-pelo* [personaje]
+        (-> personaje :cuerpo :cabeza :pelo :color))
+
+      (color-de-pelo* naruto)
+    #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://blog.mrhaki.com/2020/05/in-clojure-we-can-use-comp-function-to.html][Composing functions with comp (blog.mrhaki.com)]]
+    2. [[https://dzone.com/articles/clojure-partial-and-comp][Clojure Partial and Comp functions (dzone.com)]]
+* (->) Thread-First Vs (->>) Thread-Last
+** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use 'clojure.walk)
+
+      ;; devuelve "hola mundo"
+      (-> "hola"
+          (str " mundo"))
+
+      ;; devuelve "mundohola"
+      (->> "hola"
+           (str " mundo"))
+
+      ;; la macro (->) Thread-First,
+      ;; al expandirse la expresión resultante es (- (* x 2) 1)
+      ;;
+      ;; podriamos pensar que "x" será el 1º parámetro de la primer función,
+      ;; y su resultado será también el 1º parámetro de la siguiente función y así..
+      (-> 5
+          (* 2)
+          (- 1))
+
+      ;; la macro (->) Thread-Last
+      ;; al expandirse la expresión resultante es (- 1 (* 2 x))
+      ;;
+      ;; podriamos pensar que "x" será el último parámetro de la primer función,
+      ;; y su resultado será también el último parámetro de la siguiente función y así..
+      (->> 5
+           (* 2)
+           (- 1))
+
+      (macroexpand-all '(->> 5 (* 2) (- 1)))
+      (macroexpand-all '(->> 5 (* 2 6) (- 4 3)))
+
+      (macroexpand-all '(-> 5 (* 2) (- 1)))
+
+      (macroexpand-all '(-> 5 (* 2 6) (- 4 3)))
+    #+END_SRC
+* (->) Thread-First
+** Conceptos
+   - Es una macro y se representa con el símbolo ~->~
+   - la sintáxis es de la forma ~(-> valor & funciones)~
+   - El 1º parámetro es el ~valor~ que se pasará como *primer parámetro* a la 1º función y *cada resultado como primer parámetro* de la siguiente
+
+   #+BEGIN_COMMENT
+   1. encadena el resultado de pasarle ~x~ como 1º parámetro a ~f1~
+   2. el resultado anterior se lo pasa como 1º parámetro a ~f2~
+   3. cada resultado se pasa como 1º parámetro a cada función siguiente
+   #+END_COMMENT
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use clojure.walk)
+
+      ;; devuelve "hola mundo"
+      (-> "hola"
+          (str " mundo"))
+
+      ;; la macro (->) Thread-First,
+      ;; al expandirse la expresión resultante es (- (* x 2) 1)
+      ;;
+      ;; podriamos pensar que "x" será el 1º parámetro de la primer función,
+      ;; y su resultado será también el 1º parámetro de la siguiente función y así..
+      (-> 5
+          (* 2)
+          (- 1))
+
+      (macroexpand-all '(-> 5 (* 2) (- 1)))
+      (macroexpand-all '(-> 5 (* 2 6) (- 4 3)))
+    #+END_SRC
+*** Ejemplo 1 - Actualizar una estructura Map con (->) assoc y update
+    #+BEGIN_SRC clojure
+      ;; update, actualiza un valor de una estructura map
+      ;; assoc, agrega a una estructura map elementos de la forma :clave valor
+      ;; :keyword, la propia keyword actúa como una función getter y devuelve el valor asociado
+      (defn transform [person]
+        (update (assoc person :hair-color :gray) :age inc))
+
+      (transform {:name "Carlitos" :age 39})
+
+      ;; logramos el mismo resultado que la función anterior
+      ;; pero es más expresivo, se entiende mejor las operaciones de transformación
+      (defn transform* [person]
+        (-> person
+            (assoc :hair-color :gray)
+            (update :age inc)))
+
+
+      (transform* {:name "Carlitos" :age 39})
+
+      (-> [{:z 10}]
+          (conj [{:x 1} {:y 10}]))
+    #+END_SRC
+*** Ejemplo 2 - Componer keywords como función getter
+    #+BEGIN_SRC clojure
+      ;; anidamos varias estructuras map
+      (def naruto {:nombre "Naruto"
+                   :cuerpo {:cabeza {:size 5
+                                     :pelo {:color "amarillo" :largo 20}
+                                     :cantidad 1}
+                            :piernas {:size 20 :cantidad 2}
+                            :brazos {:size 25 :cantidad 2}}
+                   :posicion {:x 10 :y 5}})
+
+      ;; como las keywords también funcionan como una función getter
+      ;; usamos (->) para componerlas
+      (defn color-de-pelo [personaje]
+        (-> personaje :cuerpo :cabeza :pelo :color))
+
+      (color-de-pelo naruto)
+
+      ;; - mismo resultado que con la macro (->) pero usando la función comp
+      ;; - comp compone funciones y las evalúa de derecha a izquierda
+      ;; por tanto partimos por la keyword de la última estructura map anidada
+      (def color-de-pelo* (comp :color :pelo :cabeza :cuerpo))
+
+      (color-de-pelo* naruto)
+    #+END_SRC
+** Referencias
+   1. [[https://clojuredocs.org/clojure.core/-%3E][-> clojure.core (clojuredocs.org)]]
+   2. [[https://clojure.org/guides/threading_macros][Threading Macros Guide (clojure.org)]]
+* (->>) Thread-Last
+** Conceptos
+   - Es una macro y se representa con el símbolo ~->>~
+   - la sintáxis es de la forma ~(->> valor & funciones)~
+   - El 1º parámetro es el ~valor~ que se pasará como *último parámetro* a la 1º función y *cada resultado como último parámetro* de la siguiente
+
+   #+BEGIN_QUOTE
+   1. encadena el resultado de pasarle ~x~ como último parámetro a ~f1~
+   2. el resultado anterior se lo pasa como último parámetro a ~f2~
+   3. cada resultado se pasa como último parámetro a cada función siguiente
+   #+END_QUOTE
+** (->>) y Funciones Anónimas
+*** Conceptos
+    #+BEGIN_QUOTE
+    las *funciones anónimas* que son pasadas por parámetro a ~->>~
+    deben *paréntesis* adicionales quedando ~((funcion anónima))~
+    para que el *primer parámetro* ~valor~ pasado a ~->>~ sea pasado por parámetro a esa *función anónima*
+
+    por ejemplo luego de expandirse la macro ~->>~ quedaría algo asi ~( (fn [num] (map inc num) ) lista-numeros)~
+    #+END_QUOTE
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use clojure.walk)
+
+      ;; 1. primero se expande la macro (->>) quedando (apply + ((fn* ([num] (map inc num))) [1 2 3 4]))
+      ;; 2. luego aplica + en '(2 3 4 5) por tanto evalúa (+ 2 3 4 5)
+      (->> [1 2 3 4]
+           ((fn [num] (map inc num)))
+           (apply +))
+
+      (->> [1 2 3 4]
+           (fn [num] (map inc num))
+           (apply +))
+
+      (->> [1 2 3 4]
+           (#(map inc %))
+           (apply +))
+
+      (macroexpand-all '(->> [1 2 3 4]
+                             ((fn [num] (map inc num)))
+                             (apply +)))
+    #+END_SRC
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use 'clojure.walk)
+
+      ;; devuelve "mundohola"
+      (->> "hola"
+           (str " mundo"))
+
+      ;; la macro (->) Thread-Last
+      ;; al expandirse la expresión resultante es (- 1 (* 2 x))
+      ;;
+      ;; podriamos pensar que "x" será el último parámetro de la primer función,
+      ;; y su resultado será también el último parámetro de la siguiente función y así..
+      (->> 5
+           (* 2)
+           (- 1))
+
+      (macroexpand-all '(->> 5 (* 2) (- 1)))
+      (macroexpand-all '(->> 5 (* 2 6) (- 4 3)))
+    #+END_SRC
+*** Ejemplo Elemental 1 previo el Ejemplo 1
+    #+BEGIN_SRC clojure
+      ;; las siguientes llamadas generan el mismo resultado
+      ((comp not :leido) {:leido false})
+      (not (:leido? {:leido? false}))
+
+      ;; los dos primeros devuelven true, porque
+      ;; 1. :leido? devuelve el valor booleano
+      ;; 2. not negamos el valor devuelto por :leido?
+      ;; 3. el resultado de negar nil ó false es true
+      (not (:leido? {:leido? false}))
+      (not (:leido? {:leido? nil}))
+      (not (:leido? {:leido? true}))
+
+      ;; devuelve true
+      (let [mensaje {:id 100 :leido? false}]
+        ((comp not :leido?) mensaje))
+
+      ;; devuelve true
+      (let [mensaje {:id 100}]
+        ((comp not :leido?) mensaje))
+
+      ;; devuelve false
+      (let [mensaje {:id 100 :leido? true}]
+        ((comp not :leido?) mensaje))
+    #+END_SRC
+*** Ejemplo Elemental 2 previo el Ejemplo 1
+    #+BEGIN_SRC clojure
+      (def correo-fede {:mensajes [{:id 100}
+                                   {:id 101}
+                                   {:id 102}
+                                   {:id 103 :leido? false}
+                                   {:id 105 :leido? true}]})
+      ;; usamos filter con diferentes predicados que devuelven el mismo resultado,
+      ;; los mensajes que no fueron leidos
+
+      ;; 1. usamos la función comp en el predicado
+      (let [mensajes (:mensajes correo-fede)]
+        (filter (comp not :leido?) mensajes))
+
+      ;; 2. usamos una función anónima en el predicado con IF
+      (let [mensajes (:mensajes correo-fede)]
+        (filter (fn [mensaje]
+                  (if (not(:leido? mensaje)) mensaje))
+                mensajes))
+
+      ;; 3. usamos una función anónima en el predicado con la macro (->)
+      (let [mensajes (:mensajes correo-fede)]
+        (filter (fn [mensaje] (-> mensaje :leido? not))
+                mensajes))
+
+      ;; 4. usamos una función anónima con la macro #() y en el predicado la macro (->)
+      (let [mensajes (:mensajes correo-fede)]
+        (filter #(-> % :leido? not)
+                mensajes))
+    #+END_SRC
+*** Ejemplo 1 - Obtener primer mensaje no leido de un mail usando función comp + filter
+    #+BEGIN_SRC clojure
+      (def correo-juan {:mensajes [{:id 100 :leido? true}
+                                   {:id 101 :leido? true}
+                                   {:id 102 :leido? false}
+                                   {:id 103 :leido? false}
+                                   {:id 105 :leido? true}]})
+
+      (def correo-fede {:mensajes [{:id 100}
+                                   {:id 101}
+                                   {:id 102}
+                                   {:id 103 :leido? false}
+                                   {:id 105 :leido? true}]})
+
+      ;; el predicado del filter es (comp not :leido?)
+      ;; 1. hace (:leido mensaje) y obtiene el valor booleano
+      ;; 2. niega el valor booleano anterior (not (:leido mensaje))
+      (defn primer-mensaje-no-leido [correo]
+        (->> (:mensajes correo)
+             (filter (comp not :leido?))
+             (first)))
+
+      (primer-mensaje-no-leido correo-fede)
+    #+END_SRC
+*** Ejemplo Elemental previo al Ejemplo 2
+    #+BEGIN_SRC clojure
+      ;; recordemos lo básico del OR (en clojure)
+      ;; - devuelve la primer expresión que sea diferente a nil ó false
+      ;; - si todas las expresiones son nil ó false entonces devuelve la última
+      (or nil false "hola")
+      (or nil false false nil)
+      (or nil false false false)
+
+      ;; recordemos lo básico de juxt
+      ;; - devuelve una función anónima fn que espera un número variable de parámetros
+      ;; - la función fn devuelta devuelve un vector con el resultado de aplicar una serie de funciones
+      ;; a los parámetros pasados a ésta función fn
+      ((juxt + * str) 1 2 3)
+
+      ;; el ejemplo anterior de juxt sería similar que esto
+      [(+ 1 2 3) (* 1 2 3) (str 1 2 3)]
+    #+END_SRC
+*** Ejemplo 2 - Generador de nickname usando la función juxt y el operador lógico OR
+    #+BEGIN_SRC clojure
+      (def carlos {:nombre "Carlitos" :apellido "Perez" :edad 19})
+      (def samuel {:nombre "Samuel" :apellido "Perez" :nickname "koko" :edad 17})
+
+      (defn nickname [usuario]
+        (or (:nickname usuario)
+            (->> usuario
+                 ((juxt :nombre :apellido))
+                 (clojure.string/join " ")
+                 (clojure.string/capitalize))))
+
+      (nickname carlos)
+      (nickname samuel)
+    #+END_SRC
+*** Ejemplo 3 - Macro ->> con funciones range + filter + take + reduce
+    #+BEGIN_SRC clojure
+      ;; necesario para usar macroexpand-all
+      (use 'clojure.walk)
+
+      (->> (range)
+           (filter even?)
+           (take 5)
+           (reduce +))
+
+      (macroexpand-all '(->> (range) (filter even?) (take 5) (reduce +)))
+    #+END_SRC
+* juxt - Aplicar multiples funciones a varios argumentos
+** Conceptos
+   - la sintáxis es de la forma ~((juxt fn1 fn2 ..) x y z ..)~
+
+   #+BEGIN_QUOTE
+   1) ~juxt~ espera por parámetro una serie de funciones
+   2) ~juxt~ devuelve una función ~fn~ que espera una serie de argumentos
+      (/a los que le aplicará las funciones, pueden ser tipos primitivos, estructuras de datos, ../)
+   3) el resultado devuelto por ~fn~ es un vector
+      (/los elementos del vector son el resultado de aplicar la serie de funciones/)
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      ;; devolverá [10 24 1 4]
+      ;;
+      ;; - el 10 es resultado de (+ 1 2 3 4)
+      ;; - el 24 es resultado de (* 1 2 3 4)
+      ;; - el 1 es el resultado de (min 1 2 3 4)
+      ;; - el 4 es el resultado de (max 1 2 3 4)
+      ((juxt + * min max) 1 2 3 4)
+
+      ;; devolverá [(1 2 3) (4 5 6)]
+      ;;
+      ;; - el (1 2 3) es el resultado de (take 3 [1 2 3 4 5 6])
+      ;; - el (4 5 6) es el resultado de (drop 3 [1 2 3 4 5 6])
+      ((juxt take drop) 3 [1 2 3 4 5 6])
+
+
+      ;; devolverá [1 10]
+      ;;
+      ;; - el 1 es resultado de la keyword :a como función getter
+      ;; - el 10 es resultado de la keyword :b como función getter
+      ((juxt :a :b) {:a 1 :c 5 :b 10 :d 2})
+
+
+      ;; devolverá [1 2 9 5]
+      ((juxt first second last count) [1 2 3 4 9])
+
+      ;; devolverá [\H \o \! 11]
+      ((juxt first second last count) "Hola Mundo!")
+    #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://andersmurphy.com/2018/11/18/clojure-juxt-and-separate.html][Clojure, Juxt and Separate (andersmurphy.com)]]
+    2. [[https://michaelwhatcott.com/comp-and-juxt/][Clojure's comp and juxt functions (michaelwhatcott.com)]]
+    3. [[https://blog.mrhaki.com/2020/04/clojure-goodness-getting-results-from.html][Getting results from multiple functions with juxt function (blog.mrhaki.com)]]
+    4. [[https://blog.klipse.tech/clojure/2017/04/22/clojure-juxt-some-reduced.html][juxt, some and reduced (blog.klipse.tech)]]
+    5. [[https://livebook.manning.com/concept/clojure/juxt][juxt in clojure (Clojure, The Essential Reference MEAP)]]
+*** Referencias Youtube
+    1. [[https://www.youtube.com/watch?v=n0BTsKVs1Lw][Learn Reduce, Group-by and Juxt by creating a look up map (By on the code again)]]
