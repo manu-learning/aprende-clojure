@@ -235,6 +235,20 @@
       ;; el elemento se devuelve por el % de la función anónima que se evalúa luego que se cumple (> (:sugerencias %) 10)
       (some #(and (> (:sugerencias %) 10) %) libros-sugeridos)
     #+END_SRC
+*** Ejemplo 3 - Encontrar un elemento por id de un vector de estructuras map asociativas
+    #+BEGIN_SRC clojure
+      (def correo-juan {:mensajes [{:id 100 :leido? false}
+                                   {:id 101 :leido? false}
+                                   {:id 102 :leido? false}
+                                   {:id 103 :leido? false}
+                                   {:id 105 :leido? false}]})
+
+      (defn mensaje-por-id [id mensajes]
+        (first
+         (filter #(= id (:id %)) mensajes)))
+
+      (mensaje-por-id 102 (:mensajes correo-juan))
+    #+END_SRC
 * Sort y Sort-by
 ** Ejemplos
 *** Ejemplo 1 - Ordenar Secuencias Numéricas y de Strings
