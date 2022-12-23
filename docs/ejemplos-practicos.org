@@ -466,3 +466,30 @@
 
     (contador-muletillas "hola chaval como estas che che bien y vos?")
   #+END_SRC
+* ToDo List
+  #+BEGIN_SRC clojure
+    (def app-state
+      {:lista-tareas lista-tareas
+       :selected nil
+       :editando? false})
+
+    (def lista-tareas [{:titulo "Cocinar torta" :done? false}
+                       {:titulo "Mirar TV" :done? false}
+                       {:titulo "Lavar la ropa" :done? false}
+                       {:titulo "Preparar la cena" :done? true}])
+
+    (defn crear-tarea [tarea]
+      (select-keys tarea [:titulo :done]))
+
+    (defn agregar-tarea [lista-tareas nueva-tarea]
+      (conj lista-tareas nueva-tarea))
+
+    (defn remover-tarea [lista-tareas numero-tarea]
+      (vec
+       (concat
+        (subvec lista-tareas 0 numero-tarea)
+        (subvec lista-tareas (inc numero-tarea)))))
+
+    (defn reemplazar-tarea [lista-tareas numero-tarea nueva-tarea]
+      (assoc lista-tareas numero-tarea (crear-tarea nueva-tarea)))
+  #+END_SRC
