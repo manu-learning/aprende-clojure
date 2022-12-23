@@ -30,6 +30,10 @@
        ;; - apply le pasa a la función los argumentos de forma individual
        (apply max [1 2 10])
        (apply max (list 1 2 10))
+
+       ;; solución alternativa, usamos la función (reduce)
+       (reduce max [1 2 10])
+       (reduce max (list 1 2 10))
      #+END_SRC
 **** Ejemplo 2 - Aplicar funciones básicas
      #+BEGIN_SRC clojure
@@ -39,6 +43,11 @@
        (apply + [1 2 3 4])
        (apply + 1 [2 3 4])
        ;; es lo mismo que (+ 1 2 3 4)
+       ;; pero NO podriamos hacer los siguiente.. (+ [1 2 3 4])
+
+       ;; solución alternativa, usamos la función (reduce)
+       (reduce + [1 2 3 4])
+       (reduce + 1 [2 3 4])
 
        (apply str ["a" "b" "c"])
        (apply str "a" ["b" "c"])
@@ -66,15 +75,56 @@
     1. [[https://clojuredocs.org/clojure.core/apply][apply - clojure.core (clojuredocs.org)]]
 * Partial
 ** Conceptos
-   - ~partial~ se suele utilizar cuando al definir funciones estas repiten código ó bien tienen lógica en común (polimorfismo)
-
-   #+BEGIN_QUOTE
-   Recibe una función seguido de uno ó más parámetros (parameter rest) y devuelve una *función anónima*,
-   la *función anónima* recibe uno o más paraḿetros (parameter rest) y se los pasa a la primera función
-   #+END_QUOTE
+   - la sintáxis es de la forma ~(partial funcion param1 param2 & resto-parametros)~
+   - ~partial~ devuelve una función ~fn~ que espera uno o más parámetros
+     1) estos parámetros se pasarán a la función que le habiamos pasamos a ~partial~
+     2) ~& resto-parametros~ aplica el concepto de *parameter rest* que requiere anteponer el símbolo ~&~
 ** Ejemplos
 *** Ejemplos Básicos
-**** Ejemplo 1 - Devolver una función que usa la función conj
+**** Ejemplo Elemental antes de usar partial
+     #+BEGIN_SRC clojure
+       ;; definimos una función nombrada que suma dos valores
+       (defn add [x y]
+         (+ x y))
+
+       ;; es posible invocar/llamar a la variable add5, porque ésta devuelve una función
+       (add5 10)
+
+       ;; alternativas a la primera función nombrada
+       ;; - bindeamos/vinculamos a add5 una función anónima (también podriamos decir que nombramos a la función anónima)
+       (def add*
+         (fn [x y] (+ x y)))
+
+       ;; usamos una función anónima usando la macro #()
+       (def add** #(+ %1 %2))
+
+       (add 2 3)
+       (add* 2 3)
+       (add** 2 3)
+     #+END_SRC
+**** Ejemplo 1
+     #+BEGIN_SRC clojure
+       ;; definimos una función nombrada que suma dos valores
+       (defn add [x y]
+         (+ x y))
+
+       ;; definimos una variable que devuelve una función similar a (fn [y] (add 5 y))
+       ;; la función que devuelve sólo espera 1 parámetro
+       (def add5
+         (partial add 5))
+
+       ;; es posible invocar/llamar a la variable add5, porque ésta devuelve una función
+       (add5 10)
+     #+END_SRC
+**** Ejemplo 2
+     #+BEGIN_SRC clojure
+       ;; - add10 devuelve una función "casi" como (fn [x] (+ x 10))
+       ;; decimos "casi" porque espera uno ó mas parámetros ó ningun parámetro
+       ;; - en este ejemplo la idea es pasarle sólo un parámetro, lo importante es que devuelve una función y espera recibir parámetros
+       (def add10 (partial + 10))
+       (add10 5)
+     #+END_SRC
+**** Ejemplo 3 - Agrupar palabras - con la función conj
      #+BEGIN_SRC clojure
        (def agregar-palabras-claves
          (partial conj ["articulo" "blog"]))
@@ -83,28 +133,6 @@
 
        ;; a modo recordatorio de como usar conj
        (conj [] 1 2 3)
-     #+END_SRC
-**** Ejemplo 2
-     #+BEGIN_SRC clojure
-       ;; add10 devuelve una función (+ 10) y que espera cero, uno ó mas parámetros
-       ;; la idea es pasarle sólo 1, pero lo importante es que devuelve una función y espera recibir parámetros
-       (def add10 (partial + 10))
-       (add10 5)
-
-       ;; alternativas al anterior aunque estos esperan sólo 1 parámetro
-       ;; definimos una función nombrada
-       (defn add2 [n] (+ n 2))
-       (add2 5)
-
-       ;; - bindeamos/vinculamos a add5 una función anónima (ó también podriamos decir que nombramos una función anónima)
-       ;; - add5 devuelve una función anónima que espera un parámetro
-       (def add5 (fn [n] (+ n 5)))
-       (add5 10)
-
-       ;; usamos una función anónima abreviada de la forma #()
-       ;; add3 devuelve una función anónima que espera un parámetro
-       (def add3 #(+ 3 %))
-       (add3 5)
      #+END_SRC
 *** Ejemplos Interesantes
 **** Ejemplo 1 - Implementando la función partial
@@ -126,7 +154,7 @@
        (apply max [1 2 3 4])
        ")
      #+END_SRC
-**** Ejemplo 2 - Logger, funciones con lógica repetida
+**** Ejemplo 2 - Logger que evita funciones con lógica repetida
      #+BEGIN_SRC clojure
        (defn now[] (new java.util.Date))
 
