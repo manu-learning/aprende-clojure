@@ -11,20 +11,6 @@
     1. [[https://www.scaledagileframework.com/domain-modeling/][Domain modeling (scaledagileframework.com)]]
     2. [[https://www.geeksforgeeks.org/software-engineering-domain-modeling/][Domain modeling (geeksforgeeks.com)]]
     3. [[https://jeronimopalacios.com/software/domain-driven-development/][(DDD) Diseño Guiado por el Dominio, Domain Driven Design (jeronimopalacios.com)]]
-* TODO OOP Vs Paradigma Funcional
-** OOP - Programación Orientada a Objetos
-   - Los *objetos* encapsulan
-     1) estructuras de datos
-     2) y las funciones que las modifican
-** Programación Funcional
-   - Este paradigma es aplicado por Clojure y separa dos conceptos
-     1) las *estructuras de datos*
-     2) las *funciones puras* (/transforman los datos, tienen un comportamiento determinístico y no generan side-effect/)
-** Referencias
-*** Referencias Extraoficiales
-    1. [[https://www.vasinov.com/blog/16-months-of-functional-programming/][16 months of functional programming (vasinov.com)]]
-    2. [[https://thecocktail.engineering/qu%C3%A9-es-la-programaci%C3%B3n-funcional-c91b611b0258][Qué es la programación funcional (thecocktail.engineering)]]
-    3. [[https://aprenderbigdata.com/programacion-funcional/][Aprende que es la programación funcional (aprenderbigdata.com)]]
 * Convención de nombre para funciones que modifican el Estado de Objetos
 ** Conceptos
   #+BEGIN_QUOTE

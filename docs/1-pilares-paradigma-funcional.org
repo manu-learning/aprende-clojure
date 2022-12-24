@@ -1,0 +1,360 @@
+#+TITLE: Pilares Paradigma Funcional
+* TODO OOP Vs Paradigma Funcional
+** OOP - Programación Orientada a Objetos
+*** Conceptos
+    - Los *objetos* (/instancias de clases/) encapsulan
+      1) estructuras de datos (/estado interno/)
+      2) y las funciones que las modifican (/comportamiento/)
+*** Desventajas
+**** Comportamiento limitado
+      - las funciones están *atadas a clases específicas de objetos* por el *principio de responsabilidad única*
+*** Referencias
+**** Referencias Extraoficiales
+     1. [[https://desarrolloweb.com/articulos/principio-reponsabilidad-unica-I-dotnet.html][SRP, Principio de responsabilidad única (desarrolloweb.com)]]
+     2. [[https://devexperto.com/principio-responsabilidad-unica/][Principio de responsabilidad única (devexperto.com)]]
+** Programación Funcional
+   - Este paradigma es aplicado por Clojure y separa dos conceptos
+     1) las *estructuras de datos*
+     2) las *funciones puras* (/transforman los datos, tienen un comportamiento determinístico y no generan side-effect/)
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://www.vasinov.com/blog/16-months-of-functional-programming/][16 months of functional programming (vasinov.com)]]
+    2. [[https://thecocktail.engineering/qu%C3%A9-es-la-programaci%C3%B3n-funcional-c91b611b0258][Qué es la programación funcional (thecocktail.engineering)]]
+    3. [[https://aprenderbigdata.com/programacion-funcional/][Aprende que es la programación funcional (aprenderbigdata.com)]]
+* TODO Composición de Funciones + Estrategia Bottom-Up
+** Conceptos
+  - La *estrategia bottom-up* va de la mano con la *composición de funciones* porque al combinar
+    1. Planteamos la idea general
+    2. Definimos funciones pequeñas que resuelven problemas específicos, partimos solucionando problemas sencillo
+    3. *Componemos* esas funciones pequeñas para definir una función más compleja que resuelve un problema más complejo
+** Estrategia Bottom-Up
+   1) Primero se resuelven subproblemas más pequeños
+   2) Luego se resolven los problemas más complejos
+** Composición de funciones
+   - El resultado de una función es reutilizado por otra función y ésta por otra para resolver un problema más grande
+   - Varias funciones resuelven un pequeño problema específico, al componer esas funciones resuelven un problema complejo
+** TODO Ejemplos
+* Funciones Puras (Pure Functions)
+** NO producen Side-Effect
+   - NO modifican el *Estado* de un objeto
+   - Devuelven un valor ó un nuevo objeto (/una copia del objeto original con los cambios/)
+** Sólo dependen de sus parámetros de entrada
+    - permite un *comportamiento determinístico* ó predecible
+    - NO importa las veces que ingresemos las mismas Entradas (/parámetros que recibe/), estas producen la misma Salida (/el resultado, el valor de retorno/)
+    - su comportamiento no se ve afectado por factores externos porque
+      1) sólo usamos los parámetros que recibe
+      2) sólo usamos variables definidas dentro de la función
+** Ejemplos
+   #+BEGIN_SRC clojure
+     ;; ésta es una función pura,
+     ;; porque no importa cuantas veces le pasamos el 2 por parámetro, el resultado será 4
+     (defn doble [n] (* n 2))
+
+     ;; el resultado siempre es 4
+     (doble 2)
+
+     ;; el resultado siempre es 8
+     (doble 4)
+
+     ;; ésta es una función pura,
+     ;; porque no importa cuantas veces le pasamos los parámetros 1 y 2, el resultado será 2
+     (defn mayor-numero-entre [x y] (max x y))
+
+     ;; el resultado siempre es 2
+     (mayor-numero-entre 1 2)
+
+     ;; el resultado siempre es 6
+     (mayor-numero-entre 1 6)
+   #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://platzi.com/clases/1497-funcional-js/16795-funciones-puras/][Que son funciones puras (platzi.com)]]
+* Funciones Impuras
+** Conceptos
+  - Pueden invocar a las *funciones puras* (/Ej. obtienen inputs del DOM, realizan operaciones de cálculo ó conversiones ó transforman datos/)
+
+  #+BEGIN_QUOTE
+  Un ejemplo de *función impura* en Javascript sería la función ~forEach~
+  porque suele asociarse para iterar y modificar el estado de un objeto
+  como podría ser modificar los precios del objeto Carrito de compras
+  #+END_QUOTE
+** Generan Efecto de Lado (Side-Effect)
+  - Un indicio de una función que genera side-effect sería que NO devuelve un resultado
+
+  #+BEGIN_QUOTE
+   En clojure suelen devolver el valor ~nil~,
+   en lenguajes tipados son las funciones del tipo ~void~
+  #+END_QUOTE
+** Dependen de factores externos
+   - Dependen de un *estado global* (Ej. una variable global)
+   - Dependen de operaciones con archivos (Ej. leer un archivo)
+* Efecto de Lado (Side-Effects)
+  - Un lenguaje que es *puramente funcional* no permite *side-effects*
+  - El *efecto de lado* no se puede evitar en una aplicación web porque
+    1) necesitamos modificar el DOM para renderizar
+
+  #+BEGIN_QUOTE
+  Por ejemplo si tenemos una aplicación que convierte las temperatura de Celsius a Fahrenheit
+
+  *Funciones puras*
+  1) ~(defn convertir [unidad temperatura] cuerpo-funcion)~ tiene la lógica para la conversión
+  2) ~(defn label-unidades [unidades] cuerpo-funcion)~ muestra un string *Celsius* ó *Fahrenheit*
+
+  *Funciones impuras*
+  1) ~(defn actualizar-formulario)~
+     - reutiliza las *funciones puras* anteriores para obtener los datos del formulario y realizar la conversión
+     - utiliza funciones de alguna biblioteca para modificar el DOM y mostrar los datos al usuario
+  #+END_QUOTE
+* Función Pura Vs Función Impura
+** Conceptos
+  #+BEGIN_QUOTE
+  Se recomienda separar la lógica de las *funciones puras* de las *funciones impuras* porque
+  1) las *funciones impuras* al generar *side-effects* "podrían" devolver resultados diferentes ante mismas entradas (/dificulta la testeabilidad/)
+  2) las *funciones puras* devuelven mismo resultado ante mismas entradas (/facilita la testeabilidad/)
+  #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1
+   #+BEGIN_SRC clojure
+     ;; - ésta NO es una función PURA..
+     ;; - ésta es una funcion IMPURA porque la función (println) produce efecto de lado
+     ;; para poder imprimir el valor en la REPL, modifica el STDOUT
+     (defn imprimir-precio [producto]
+       (println (:precio producto)))
+
+     (imprimir-precio {:nombre "pan" :precio 50})
+
+     ;; - ésta NO es una función PURA..
+     ;; - ésta es una funcion IMPURA porque la función setTextContent de goog.dom produce side-effects
+     ;; para modificar el DOM de la aplicación web
+     (defn actualizar-precio [precio]
+       (let [elemento-precio (goog.dom/getElement "precio")]
+         (goog.dom/setTextContent  precio)))
+   #+END_SRC
+*** Ejemplo 2 - Problema se mezcla lógica de una función PURA y una función IMPURA
+   #+BEGIN_SRC clojure
+     (defn hora-actual[] (Integer/parseInt(.format (java.text.SimpleDateFormat. "HH") (new java.util.Date))))
+
+     ;; - esta es una "función IMPURA" porque depende de FACTORES EXTERNOS (la función hora-actual que usa la biblioteca de java)
+     ;; en vez de sus parámetros de entrada (no tiene parámetros)
+     ;; - al NO ser una "función PURA", ya no cumple con "TRANSFERENCIA REFERENCIAL"
+     ;;
+     ;; - Problema:
+     ;; Devuelve un resultado distinto para los mismos parámetros de entrada (aunque en este caso no recibe parámetros)
+     (defn saludar []
+       (condp <= (hora-actual)
+         11 "Buen día"
+         18 "Buenas tardes"
+         24 "Buenas noches"))
+   #+END_SRC
+*** Ejemplo 3 - Resuelve el problema del ejemplo 2
+   #+BEGIN_SRC clojure
+     ;; queda diferenciada cual es la funcion PURA y cual la función IMPURA
+     (defn hora-actual[] (Integer/parseInt(.format (java.text.SimpleDateFormat. "HH") (new java.util.Date))))
+
+     ;; - esta es una "funcion PURA" porque depende de sus parámetros de entrada (la hora)
+     ;; devuelve un resultado y NO produce efecto de lado (side-effects)
+     (defn saludar [hora]
+       (condp <= hora
+         11 "Buen día"
+         18 "Buenas tardes"
+         24 "Buenas noches"))
+
+     (saludar (hora-actual))
+   #+END_SRC
+* Funciones con Transparencia Referencial
+** Cumplir con ser Función Pura
+   - NO generar side-effects
+   - depender sólo de sus parámetros de entrada
+** La expresión puede ser reemplazada por su resultado
+*** Conceptos
+    Está relacionado con el *modelo de evaluación* de las expresiones
+*** Escenarios comunes que NO cumplen el requerimiento
+    1) una función que no reciba parámetros y devuelva un valor aleatorio
+    2) una función que no reciba parámetros y devuelva la fecha actual
+*** Escenarios comunes que SI cumplen el requerimiento
+    1) una función con operaciones ariméticas básicas ~(+ 1 1)~, ~(* 2 1)~, etc..
+
+   #+BEGIN_QUOTE
+   Por ejemplo
+   - la expresión ~5+1~ puede ser reemplazada por su resultado ~6~
+   - la expresión ~(+ 1 1)~ puede ser reemplazada por su resultado ~2~
+   - la expresión ~(str "hola " "amigo")~ puede ser reemplazada por ~"hola amigo"~
+   #+END_QUOTE
+** Referencias
+*** Referencias Oficiales
+    1. [[https://ericnormand.me/podcast/what-is-referential-transparency][What is a referential transparecency? (ericnormand.me)]]
+*** Referencias Extraoficiales
+    1. [[https://dev.to/ruizb/function-purity-and-referential-transparency-7h1][Function purity and referential Transparency (dev.to/ruizb)]]
+* Inmutabilidad (Inmutable Data)
+** Conceptos
+   - Lo opuesto a la *Inmutabilidad* es la *Mutabilidad*
+   - La *mutabilidad de estructuras de datos* implíca cambiar el estado de un objeto
+   - Permitir la *mutabilidad* implíca "posibles" bugs/fallas en el futuro de la aplicación
+
+   #+BEGIN_QUOTE
+   In ClojureScript, instead of modifying an object, we create copies of the original object with modifications.
+   While this sounds inefficient, ClojureScript uses data structures that are constructed in such a way that
+   similar objects can often share much of their structure in the same memory locations.
+
+   These immutable data structures actually enable highly-optimized user interfaces and can even speed up an application.
+
+   Written By Andrew Meredith, Learn ClojureScript
+   #+END_QUOTE
+** Ejemplos
+   #+BEGIN_SRC clojure
+     (def publicacion {:titulo "Codeando un poco"
+                       :vistos 1
+                       :estado "Publicado"
+                       :tags ["Clojure"]})
+
+     ;; - usamos la macro (->) para facilitar la composición de funciones
+     ;; - assoc y update devuelven una nueva estructura map con la entrada modificada
+     ;; - assoc le pasamos el valor específico
+     ;; - update le pasamos una función
+     (defn borrador-publicacion []
+       (-> publicacion
+           (assoc :estado "Borrador")
+           (update :tags conj "ClojureScript")
+           (update :vistos inc)
+           (update :titulo #(str % " con Clojure"))))
+
+     ;; - mismo que el anterior
+     ;; - en este ejemplo tiene más sentido usar la función update, porque no son estructuras map anidadas
+     (defn copia-publicacion []
+       (-> publicacion
+           (assoc :estado "Copia")
+           (update-in [:tags] conj "ClojureScript")
+           (update-in [:vistos] inc)
+           (update-in [:titulo] #(str % " con Clojure"))))
+
+     (borrador-publicacion)
+     (copia-publicacion)
+   #+END_SRC
+* TODO Closures, Lexical Scope, Higher Order Functions
+** Closures (Clausuras)
+  - Se destacan cuando usamos *funciones de Orden Superior*
+  - Están relacionados al concepto del *Ámbito Léxico* (Alcance léxico, Lexical scope)
+  - Se crean por defecto sobre una variable cuando *existen al menos dos variables definidas en distintos scopes con el mismo nombre*
+
+  #+BEGIN_QUOTE
+  Podemos definir variables con el mismo nombre en distintos *ámbitos léxicos*
+  y por defecto se creará un *closure* encima de éstas si exista otra variable con el mismo nombre en un scope superior
+
+  Posibles escenarios
+  1) definimos una *variable global* a nivel de *Namespace* (/tendrá menos éxito de ser evaluada si ya existe una definida con el mismo nombre en una función/)
+  2) definimos una *variable local* de una *Función Nombrada* (/en el modelo de evaluacion, ésta tiene mayor prioridad que la definida a nivel Namespace/)
+  3) definimos una variable como *parámetro* de una *Función Anónima*
+  4) definimos una variable en la función ~let~ (/tiene mayor prioridad que el parámetro de la Función nombrada o Función Anónima que contenga a let/)
+  #+END_QUOTE
+** Ámbito Léxico (Lexical Scope)
+ - El *ámbito léxico* es dónde las funciones pueden referenciar símbolos (variables locales ó parámetros) que son visibles en la definición de la función
+ - Si una función referencia a un variable de su *lexical scope* y existe otra variable con el mismo nombre en un scope superior (/Ej. en el namespace/)
+   - se crea un *closure* encima de esa variable, siendo ésta la única *visible* dentro de la función
+   - las variables definidas más cerca de la definición de la función tienen más prioridad de ser referenciadas, por tanto evaluadas al invocar la función
+   - las variables de un scope superior que se llamen igual estarán en la sombra (/concepto de Variable Shadowing/) de las definidas dentro de la función
+
+ #+BEGIN_QUOTE
+ Si existen dos variables con el mismo nombre ~X~, una definida a nivel de namespace y otra como parámetro de una función ~f1~,
+ y luego ~f1~ referencia a la variable ~X~, entonces se creará un *closure* encima del parámetro ~X~ y será la que estará visible en la definición de la función
+ #+END_QUOTE
+** Funciones de Orden Superior (Higher Order Functions)
+   - Pueden acceder al *Lexical Scope* dónde fue definida ó invocada
+   - Acceder al *Lexical Scope* les permite *referenciar a las variables* ó usar valores de ese *Lexical Scope*
+
+   #+BEGIN_QUOTE
+   Por ejemplo si una función anónima ~A~ es definida dentro de la definición de otra función ~B~,
+   entonces ésta primera ~A~ puede acceder al *Lexical Scope* de la función ~B~
+
+   Ese *Lexical Scope* representa las variables definidas ó valores dentro de la definición de la función ~B~,
+   esas variables ó valores en Clojure puede ser
+   - parámetros que recibe la función
+   - variables definidas en el contexto de una función ~let~ que están dentro de la definición de la función ~B~
+   - valores que están en una llamada/invocación <- en el Ejemplo 3 se entiende mejor
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1 - Closure que prioriza Variable definida como parámetro de una Función nombrada contra la definida a nivel de Namespace
+    #+BEGIN_SRC clojure
+      ;; variable global a nivel de namespace
+      (def servidor "localhost")
+
+      ;; 1. la función conectar-servidor devuelve una función anónima fn
+      ;; 2. la función anónima devuelta puede acceder al Léxical Scope de dónde fue definida que es la función padre conectar-servidor
+      ;; y por tanto referenciar sus variables (pero NO tiene VISIBILIDAD a la Variable Global servidor, pero podría con otra global)
+      (defn conectar-servidor [servidor]
+        (fn [descripcion]
+          (str "Conectando a " servidor ", " descripcion)))
+
+      ((conectar-servidor "google") "navegación oculta")
+    #+END_SRC
+*** Ejemplo 2 - Función Anónima como función de Orden Superior que accede al Ámbito Léxico de una Función nombrada
+    #+BEGIN_SRC clojure
+      (defn incrementador [cantidad-incremento]
+        (fn [x] (+ x cantidad-incremento)))
+
+      ;; 1. la función incrementador devuelve una función anónima fn
+      ;; 2. la función anónima fn devuelta puede acceder al "Ámbito Léxico" dónde fue llamada/invocada que es incrementar-en-1
+      ;; 3. entonces la función anónima fn puede referenciar a las mismas variables que incrementar-en-1 (el parámetro num que recibe)
+      (defn incrementar-en-1 [num]
+        ((incrementador 1) num))
+
+      (incrementar-en-1 2)
+    #+END_SRC
+*** Ejemplo 3 - Función Anónima como función de Orden Superior que accede al Ámbito Léxico de una invocación/llamada
+    #+BEGIN_SRC clojure
+      (defn incrementar-en [cantidad-incremento]
+        (fn [x] (+ x cantidad-incremento)))
+
+      ;; ocurre lo mismo que en los ejemplos 1 y 2
+      ;; la única diferencia es que la función anónima fn, pero referencia los valores de la llamada/invocación
+      ((incrementar-en 1) 10) ;; devuelve 11
+      ((incrementar-en 2) 10) ;; devuelve 12
+      ((incrementar-en 4) 10) ;; devuelve 14
+    #+END_SRC
+*** Ejemplo 4 - Función Anónima como función de Orden Superior que accede a varios Ámbitos Léxicos
+    #+BEGIN_SRC clojure
+      (def saludo "Hola!")
+
+      (defn notificador [usuario]
+        (fn [mensaje]
+          (str saludo " " ;; la función anónima fn referencia la variable global a nivel de Namespace (puede acceder a su ámbito léxico)
+               usuario " " ;; la función anónima fn referencia la variable de la Función nombrada (porque accede a su ámbito léxico)
+               mensaje)))
+
+      (def notificar-cliente
+        (notificador "carlos"))
+
+      (println (notificar-cliente "usted tiene un pago pendiente"))
+
+      ;; detallamos como en el println anterior la fn devuelta por notificador referencia a variables/valores
+      (println
+       (str "Hola!" " " ;; la fn del  notificador referenció a una variable a nivel de namespace osea fuera de la función notificador, porque estaba en su Lexical Scope
+            "carlos" " " ;; la fn del notificador referenció a un valor (un string) del Ámbito Léxico donde fue invocada, la definición de notificar-cliente
+            "usted tiene un pago pendiente")) ;; la fn de notificador referenció la variable que ésta recibía por parámetro al invocar notificar-cliente
+    #+END_SRC
+** TODO Referencias
+  #+BEGIN_COMMENT
+ Referencias PENDIENTES de REVISIÓN..
+ falta pulir con más variedad de ejemplos...
+ https://developer.mozilla.org/es/docs/Web/JavaScript/Closures
+
+ https://hmong.es/wiki/Scope_(programming)
+ https://code.tutsplus.com/es/tutorials/grokking-scope-in-javascript--cms-26259
+
+ https://emanuelpeg.blogspot.com/2021/01/primeros-pasos-con-clojure-parte-16.html
+ https://dmitripavlutin.com/simple-explanation-of-javascript-closures/
+ https://www.freecodecamp.org/news/javascript-closure-lexical-scope/
+ https://dev.to/stephencweiss/closure-lexical-scope-12f4
+ https://jscurious.com/closures-and-lexical-scoping-in-javascript/
+ https://muthuks.medium.com/closure-remembers-lexical-scope-f3700c0e6452
+
+ https://medium.com/@sergiodxa/definiendo-conceptos-closure-y-scope-en-javascript-9081f1e113e6
+ https://css-tricks.com/javascript-scope-closures/
+ https://javascript.info/closure#lexical-environment
+ https://wsvincent.com/javascript-scope-closures/
+ https://guias.makeitreal.camp/javascript-ii/scope-hoisting-closures
+
+ https://levelup.gitconnected.com/closures-first-class-and-higher-order-functions-2dc97dc89cd8
+ https://stackoverflow.com/questions/53899827/are-closures-higher-order-functions
+ https://opendsa-server.cs.vt.edu/ODSA/Books/PL/html/FP5.html
+ https://hashnode.com/post/closures-first-class-functions-and-higher-order-function-cl0tx8qmb0069jlnv5ea78rdq
+  #+END_COMMENT
