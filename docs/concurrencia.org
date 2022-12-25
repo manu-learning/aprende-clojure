@@ -1,0 +1,271 @@
+#+TITLE: Concurrencia
+* Atomos (Atom)
+** Conceptos
+   - ~atom~ crea y *transforma una estructura ó valor en un tipo de dato Atom* al que se lo puede bindear/vincular a un nombre de variable
+   - el tipo de dato devuelto ~atom~ es *mutable*, por tanto aplican las mismas operaciones que con los *tipos de datos primitivos*
+   - ~derefe~ es la función *recupera el valor* de una referencia a un átomo
+   - ~@~ es una *macro ó azúcar sintáctico* de ~deref~
+     (similar a cuando usamos la macro ~#~ para definir una *función anónima*)
+
+   #+BEGIN_QUOTE
+   El objetivo de ~atom~ es *persistir datos en una Estructura Inmutable* como lo es una *Estructura Asociativa Map*
+
+   El *estado* de un átomo se lo suele representar en un *Estructura Asociativa Map* (/ésta es una buena práctica/)
+   #+END_QUOTE
+** Buenas Prácticas Vs Malas Prácticas
+*** Pasar el estado del átomo por parámetro en las Funciones IMPURAS
+    - lo opuesto sería modificar el nombre de una variable global a nivel de namespace
+    - hace más *testeable* a la *función impura* porque no dependemos de un estado global
+
+    #+BEGIN_QUOTE
+    Los conceptos están más detallados en la documentación de *pilares del paradigma funcional*
+    una *función IMPURA* NO cumple con los requisitos para ser *función PURA*
+
+    Las *funciones PURAS*
+    1) NO generan side-effects (/y devuelven ó retornan un valor ó estructura de dato/)
+    2) sólo dependen de sus parámetros de entrada
+
+    Las *funciones IMPURAS*
+    1) generan side-effects (/no devuelven ó retornan un valor, a lo mucho devuelven el valor nil/)
+    2) dependen de factores externos (/bibliotecas, APIs, operaciones con archivos, ../)
+    #+END_QUOTE
+*** Estructuras Asociativas Map como Estado
+*** Ejemplos
+**** Ejemplo 1 - Estado como Estructura Asociativa Map y Pasar el estado del átomo por parámetro
+     #+BEGIN_SRC clojure
+       ;; NO se recomienda hacer.. Se sugiere tener menos átomos
+       (comment
+         (def nivel (atom 0))
+         (def velocidad (atom 0))
+         (def puntos (atom 0)))
+
+       ;; OK, usamos una Estructura Asociativa Map para tener menor cantidad de átomos
+       (defonce jugador (atom {:vehiculo "auto"
+                               :nivel 1
+                               :velocidad 0
+                               :puntos 0}))
+
+       (def estado-inicial @jugador)
+
+       ;; NO se recomienda hacer.. Se sugiere pasar el estado del átomo por parámetro de la función
+       (comment
+         (defn subir-de-nivel []
+           (swap! app-state (fn [vehiculo]
+                              (-> vehiculo
+                                  (update :nivel + 1)
+                                  (update :velocidad + 10)
+                                  (update :velocidad + 100))))))
+
+       ;; OK, aunque ésta es una Función IMPURA porque genera side-effects
+       (defn subir-de-nivel [state]
+         (swap! state (fn [vehiculo]
+                        (-> vehiculo
+                            (update :nivel + 1)
+                            (update :velocidad + 10)
+                            (update :velocidad + 100)))))
+
+       (defn reiniciar-estado [estado-actual estado-inicial]
+         (reset! estado-actual estado-inicial))
+
+       ;; test 1
+       (and (= 1 (:nivel @jugador))
+            (= 0 (:velocidad @jugador))
+            (= 0 (:puntos @jugador)))
+
+       ;; test 2
+       (subir-de-nivel jugador)
+       (and (= 2 (:nivel @jugador))
+            (= 10 (:velocidad @jugador))
+            (= 100 (:puntos @jugador)))
+
+       ;; test 3
+       (reiniciar-estado jugador estado-inicial)
+       (and (= 1 (:nivel @jugador))
+            (= 0 (:velocidad @jugador))
+            (= 0 (:puntos @jugador)))
+     #+END_SRC
+**** Ejemplo 2 - Estado como Estructura Asociativa Map y Pasar el estado del átomo por parámetro
+     #+BEGIN_SRC clojure
+       (defonce app-state (atom {:contador 0}))
+
+       ;; ésta es una Función IMPURA porque genera side-effects
+       (defn incrementar-contador-en-1 [state]
+         (swap! state #(update % :contador inc)))
+
+       (incrementar-contador-en-1 app-state)
+     #+END_SRC
+** swap! - Modificar el estado actual de un Átomo
+   - ~swap!~ cambia el estado (valor) de *forma atómica* de una referencia a un tipo de dato *Atom*
+     (/es necesario también pasarle la función que transformará y aplicará el cambio de estado/)
+   - ~swap!~ tiene la característica de *thread-safe* que asegura que aplicará cambios evitando una *condición de carrera*
+   - la sintáxis es de la forma ~(swap! referencia-atomo funcion-de-transformacion & argumentos-funcion-transformacion)~
+     1) ~referencia-atomo~ es el nombre de la variable que guarda la referencia al átomo
+     2) ~funcion-de-transformacion~ es la función que va a transformar/modificar el valor del átomo
+     3) ~argumentos-funcion-transformacion~ si la función que transforma el átomo necesita argumentos adicionales
+        - Ej. ~(swap! mi-atomo + 2)~ en ese caso el 2 sería argumento adicional
+        - Ej. ~(swap! mi-atomo inc)~ en ese caso no necesita argumentos adicionales
+
+   #+BEGIN_QUOTE
+   Internamente la función ~swap!~ opera de la siguiente manera
+   1. lee el valor actual que se referencia
+   2. aplica la función de transformación (que le pasemos) en el valor
+   3. intenta ejecutar la función ~compare-to-set~ (función de bajo nivel)
+   #+END_QUOTE
+** reset! - Modificar el estado inicial de un Átomo
+   - ~reset!~ cambia el estado (valor) inicial de un átomo (ó bien de un nombre que referencia a un tipo de dato ~atom~)
+
+   #+BEGIN_QUOTE
+   Usarlo "podría" ser una MALA PRÁCTICA,
+   porque no tiene la característica de *thread-safe* por tanto podría existir *condición de carrera*
+   #+END_QUOTE
+** Ejemplos Básicos
+*** Ejemplo 1 - Crear un átomo con atom y Recuperar su valor con la macro @
+    #+BEGIN_SRC clojure
+      (def mi-atomo (atom 40))
+
+      ;; deref
+      ;; - recuperar el valor del átomo ó desreferenciar el átomo
+      (deref mi-atomo)
+
+      ;; el @ es la macro ó azúcar sintáctico de la función deref
+      @mi-atomo
+    #+END_SRC
+*** Ejemplo 2 - Modificar el valor de un átomo con swap!
+    #+BEGIN_SRC clojure
+      (def mi-atomo (atom 40))
+
+      ;; le pasamos la función (inc) que incrementa en 1
+      ;; en éste caso cada vez que evaluamos la expresión, el valor del átomo incrementará en 1 (41,42,..)
+      (swap! mi-atomo inc)
+
+      ;; le pasamos la función + y el valor que le sumará al valor del átomo
+      ;; en éste caso cada vez que evaluamos la expresión, el valor del átomo incrementará en 2
+      (swap! mi-atomo + 2)
+
+      (swap! mi-atomo - 2)
+
+      ;; otra forma sería pasarle una funcion anónima
+      (swap! mi-atomo (fn [x] (+ x 2)))
+
+      ;; otra forma sería pasarle una funcion anónima usando la macro #
+      (swap! mi-atomo #(+ % 2))
+    #+END_SRC
+*** Ejemplo 3 - Establecer un nuevo valor inicial al átomo con reset!
+    #+BEGIN_SRC clojure
+      (def mi-atomo (atom 40))
+
+      ;; reset!
+      ;; - cambiar el valor actual del átomo por uno nuevo
+      (reset! mi-atomo 0)
+    #+END_SRC
+** Ejemplos
+*** Ejemplo 1 - Crear un átomo con una estructura map
+    #+BEGIN_SRC clojure
+      ;; bindeamos/vinculamos a la variable auto un átomo que contiene una estructura map
+      (def auto
+        (atom {:modelo "Audi"
+               :velocidad 10
+               :precio 500}))
+
+      ;; desreferenciamos el átomo vinculado/bindeado a la variable auto
+      ;; y devolverá la estructura map
+      @auto
+
+      ;; - si queremos "emular" cual sería el estado nuevo
+      ;; - con assoc devolvemos una nueva estructura map con la velocidad cambiada
+      ;; (si evaluamos @auto el valor seguirá siendo 10)
+      (assoc @auto :velocidad 25)
+
+      ;; - si queremos persistir el estado nuevo usamos swap!
+      ;; - con swap! cambiamos de forma atómica el estado del átomo y se persiste el cambio de estado
+      ;; - pasamos por parámetro la misma función anterior como función de transformación
+      ;; (pero ésta vez el cambio persistirá por usar swap!)
+      (swap! auto
+             assoc :velocidad 25)
+
+      ;; update
+      ;; - si queremos cambiar el estado pasandole una función usamos update
+      ;;
+      ;; assoc
+      ;; - si queremos cambiar el estado pasandole un valor concreto usamos assoc
+      (swap! auto
+             update :velocidad inc)
+
+      (swap! auto
+             update :velocidad + 10)
+
+      ;; cambiamos los valores iniciales  del átomo
+      ;; (OJO, se considera una mala práctica, porque no tiene la característica de thread-safe por tanto podría existir condición de carrera)
+      (reset! auto
+             {:modelo "" :velocidad 0 :precio 0})
+
+      ;; para recordar la función assoc
+      ;; - devuelve una nueva estructura map
+      ;; - asocia a una estructura map un elemento del tipo :clave valor
+      ;; - modifica un elemento :clave valor del map, si éste está incluído
+
+      ;; agregamos a un map vacío {} la keyword :velocidad con el valor 10
+      (assoc {} :velocidad 10)
+
+      ;; modificamos la keyword velocidad de 10 a 0
+      (assoc {:velocidad 10} :velocidad 0)
+    #+END_SRC
+*** Ejemplo 2 - Contador
+    #+BEGIN_SRC clojure
+      (defonce app-state (atom {:contador 0}))
+
+      ;; ésta es una Función IMPURA porque genera side-effects
+      (defn incrementar-contador-en-1 [state]
+        (swap! state #(update % :contador inc)))
+
+      (incrementar-contador-en-1 app-state)
+    #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure.org/reference/atoms][Reference, Atoms (clojure.org)]]
+    2. [[https://clojuredocs.org/clojure.core/atom][atom, clojure.core (clojuredocs.org)]]
+    3. [[https://clojuredocs.org/clojure.core/swap!][swap! clojure.core (clojuredocs.org)]]
+    4. [[https://clojuredocs.org/clojure.core/reset!][reset! clojure.core (clojuredocs.org)]]
+*** Referencias Extraoficiales
+    1. [[https://www.tutorialspoint.com/clojure/clojure_atoms_swap.htm][Atom and swap! (tutorialspoint.com)]]
+    2. [[https://emanuelpeg.blogspot.com/2022/01/concurrencia-en-clojure.html][Concurrencia en Clojure (by Emanuel Goette)]]
+    3. [[https://ericnormand.me/mini-guide/atom-code-explanation][Atom code explanation (ericnormand.me)]]
+* TODO Estructuras de Datos Transient
+** Conceptos
+   - ~transient~ función que transforma cualquier tipo de *colección INMUTABLE* (vector, set, map) en una *colección MUTABLE*
+   - Se recomienda usar unicamente cuando se detecta problemas de performance
+   - Mejora y optimiza la performance al operar *estructuras de datos*
+   - podemos utilizar las mismas operaciones que con las *colecciones INMUTABLES* pero agregamos el símbolo ~!~ al final
+     (ej. ~assoc!~, ~conj!~, ...)
+
+   #+BEGIN_QUOTE
+   Transients require *thread isolation*. Because *each result of a transient operation shares (mutable) structure with the previous*,
+   it is an error if more than one thread manipulates a transient at once
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   Se necesitan más ejemplos
+   #+END_COMMENT
+** Ejemplos
+*** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (def persona {})
+
+      ;; operaciones sobre una estructura transient (colección MUTABLE)
+      (-> persona
+          transient
+          (assoc! :velocidad 10)
+          (assoc! :posicion [10,20])
+          persistent!)
+
+      ;; operaciones sobre una colección INMUTABLE (vector, set, map)
+      (-> persona
+          (assoc :velocidad 10)
+          (assoc :posicion [10,20]))
+    #+END_SRC
+** TODO Referencias
+*** Referencias Oficiales
+    1. [[https://clojure.org/reference/transients][Transient Data Structures (clojure.org)]]
+*** Referencias Extraoficiales
+    1. [[https://www.juxt.pro/blog/clojurescript-app-performance/][Speed up your ClojureScript Webapp (juxt.pro)]]
+    2. [[https://hypirion.com/musings/understanding-clojure-transients][Understanding Clojure's Transients (hypirion.com)]]
