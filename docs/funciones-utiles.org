@@ -38,4 +38,236 @@
 *** Referencias Extraoficiales
     1. [[https://www.spacjer.com/blog/2015/11/24/lesser-known-clojure-keep-and-keep-indexed-functions/][Lesser known clojure (spacjer.com)]]
 
+* TODO fnil
+** Conceptos
+   - ~fnil~ recibe una función ~f~ y reemplaza los parámetros recibidos con valor ~nil~ por un valor predeterminado
+   - ~fnil~ recibe una función con aridad ~n~ se deben agregar ~n~ parámetros por default
+   - la sintáxis es de la forma ~(fnil nombre-funcion parametro1-default parametro2-default ...)~
+** Ejemplos Básicos
+*** Ejemplo 1 - fnil con función de aridad-1
+   #+BEGIN_SRC clojure
+     (ns testing
+       (:use clojure.test))
 
+     (defn saludar [nombre]
+       (str "Hola " nombre))
+
+     (def saludo-automatico
+       (fnil saludar "Mundo"))
+
+     ;; tests simples
+     (is (= "Hola Carlitos"
+            (saludar "Carlitos")))
+
+     (is (= "Hola Carlitos"
+            (saludo-automatico "Carlitos")))
+
+     (is (= "Hola Mundo"
+            (saludo-automatico nil)))
+   #+END_SRC
+*** Ejemplo 2 - fnil con función de aridad-2
+   #+BEGIN_SRC clojure
+     (ns testing
+       (:use clojure.test))
+
+     (defn saludar [nombre edad]
+       (str "Hola " nombre " tu edad es " edad))
+
+     (def saludo-automatico
+       (fnil saludar "desconocido" "desconocida"))
+
+     ;; tests simples
+     (is (= "Hola Carlitos tu edad es 10"
+            (saludar "Carlitos" 10)))
+
+     (is (= "Hola Carlitos tu edad es desconocida"
+            (saludo-automatico "Carlitos " nil)))
+
+     (is (= "Hola desconocido tu edad es desconocida"
+            (saludo-automatico nil nil)))
+   #+END_SRC
+** Ejemplos
+*** Ejemplo Elemental 1 previo al Ejemplo 1 y 2
+    #+BEGIN_SRC clojure
+      ;; si evaluamos la siguiente expresión, andará OK
+      (inc 0)
+
+      ;; esto otro lanzará la siguiente excepción.. Unhandled java.lang.NullPointerException
+      ;; porque nil no tiene una referencia, por tanto no podemos sumarle 1 a nil
+      (inc nil)
+
+      (def persona {:nombre "Carlitos" :edad 11})
+
+      ;; - update-in de una Estructura Asociativa map con una Secuencia de Keywords que NO existe,
+      ;; entonces agrega esa secuencia de keywords a la estructura map
+      ;; - en este ejemplo lanza una excepción porque :velocidad está asociado a nil
+      ;; y (inc nil) lanza una excepción...
+      (update-in persona [:velocidad] inc)
+
+      ;; OK :)
+      ;; usamos fnil para solucionar el problema de (inc nil)
+      ;; agregando el valor 0 por default
+      (update-in persona [:velocidad] (fnil inc 0))
+    #+END_SRC
+*** Ejemplo Elemental 2 previo al Ejemplo 1 y 2
+    #+BEGIN_SRC clojure
+      ;; estas operaciones lanzarán una excepción, porque nil no tiene una referencia
+      (+ 10 nil) ; no podemos sumarle 10 al valor nil
+
+      ;; la función anónima del update lanzará una excepción por lo mencionado del valor nil
+      (update {:precio nil}
+              :precio
+              (fn [precio-actual] (+ precio-actual 10)))
+
+      ;; la función anónima del update NO lanzará una excepción
+      ;; porque :precio tiene asociado un valor y es 10
+      (update {:precio 10}
+              :precio
+              (fn [precio-actual] (+ precio-actual 10)))
+    #+END_SRC
+*** Ejemplo Elemental 3 previo al Ejemplo 1 y 2
+    #+BEGIN_SRC clojure
+      (def pan {})
+
+      ;; la función anónima del update lanzará una excepción por lo mencionado del valor nil
+      ;; la entrada :precio no existe en la estructura map que referencia la variable pan
+      ;; por tanto tiene asociado el valor nil
+      (let [producto pan
+            intereses 200]
+        (-> producto
+            ;; agregamos los intereses
+            (update :precio (fn [precio-actual] (+ precio-actual intereses)))))
+
+      ;; la función anónima del update NO lanzará una excepción
+      ;; porque :precio tiene asociado un valor y es 10 (lo hicimos con la función assoc, antes del update)
+      (let [producto pan
+            precio-nuevo 100
+            tasa-interes 0.10
+            intereses (* precio-nuevo tasa-interes)]
+        (-> producto
+            ;; asignamos el nuevo precio
+            (assoc :precio precio-nuevo)
+            ;; agregamos los intereses
+            (update :precio (fn [precio-actual] (+ precio-actual intereses)))))
+    #+END_SRC
+*** TODO Ejemplo 1 - Actualizar vector con estructuras asociativas map con función map + update-in + assoc ó update
+    #+BEGIN_SRC clojure
+      (def carrito-compras {:productos {}})
+      ;; el resultado será nil, la secuencia de keywords no existe (en particular por la keyword :pan)
+      (get-in carrito-compras [:productos :pan])
+
+
+      ;; - Estructura Asociativa map con un vector de Estructuras Asociativas map
+      ;; - para obtener un elemento en particular necesitamos recorrerlos (Ej. filter, reduce) y comparar por :nombre
+      ;; - podriamos tener elementos repetidos (podría no ser una opción para éste contexto de carrito de compras)
+      ;;
+      ;; Desventajas? Debemos recorrer la colección y comparar cada entrada por una keyword
+      (def carrito-compras {:productos [{:nombre "pan" :cantidad 10}
+                                        {:nombre "leche" :cantidad 50}]})
+
+      (defn obtener-producto-por-nombre [carrito nombre-producto]
+        (let [productos (get-in carrito [:productos])]
+          (->> productos
+               (filter #(if (= nombre-producto (:nombre %)) %))
+               first)))
+
+      ;; - PROBLEMA: NO genera el resultado deseado porque debería devolver {:productos vector-estructuras-transformadas]}
+      (defn actualizar-cantidad-producto [carrito nombre-producto nuevo-valor]
+        (let [productos (:productos carrito)]
+          (map (fn[producto] (if (= nombre-producto (:nombre producto))
+                               (assoc producto :cantidad nuevo-valor)
+                               producto))
+               productos)))
+
+      ;; "Casi" soluciona el problema de la función actualizar-cantidad-producto porque usamos la función update-in (también podriamos usar update)
+      ;; TODO: la función map devuelve una secuencia en vez de un vector..
+      (defn actualizar-cantidad-producto* [carrito nombre-producto nuevo-valor]
+        (update-in carrito [:productos] (fn [productos] (map (fn[producto] (if (= nombre-producto (:nombre producto))
+                                                                             (assoc producto :cantidad nuevo-valor)
+                                                                             producto))
+                                                             productos))))
+
+      ;; - PROBLEMA: NO genera el resultado deseado porque debería devolver {:productos vector-estructuras-transformadas]}
+      ;; - SOLUCIÓN: Usar update+map ó update-in+map para actualizar las entradas y devolver la misma estructura
+      (defn agregar-cantidad-producto [carrito nombre-producto cantidad-adicional]
+        (let [productos (:productos carrito-compras)]
+          (map (fn[producto] (if (= nombre-producto (:nombre producto))
+                               (update producto :cantidad (fn[cantidad-actual] (+ cantidad-actual cantidad-adicional)))
+                               producto))
+               productos)))
+
+      ;; - soluciona el problema de la función agregar-cantidad-producto porque usamos update-in (también podriamos usar update)
+      ;; - a la función map contenida en la fn, le pasamos por parámetro una función anónima definida con la macro #()
+      (defn agregar-cantidad-producto* [carrito nombre-producto cantidad-adicional]
+        (update-in carrito [:productos] (fn [productos] (map #(if (= nombre-producto (:nombre %))
+                                                                (update % :cantidad (fn [cantidad-actual] (+ cantidad-actual cantidad-adicional)))
+                                                                %)
+                                                             productos))))
+
+      (obtener-producto-por-nombre carrito-compras "pan")
+      (actualizar-cantidad-producto carrito-compras "pan" 0)
+      (actualizar-cantidad-producto* carrito-compras "pan" 0)  ;; "casi" el resultado deseado
+      (agregar-cantidad-producto carrito-compras "pan" 10)
+      (agregar-cantidad-producto* carrito-compras "pan" 10) ;; "casi" el resultado deseado
+    #+END_SRC
+*** TODO Ejemplo 2 - Actualizar estructuras asociativas map anidadas con update-in + assoc ó update
+    #+BEGIN_SRC clojure
+      ;; - Estructuras Asociativas map anidadas
+      ;; - para obtener un elemento en particular sólo usariamos una Secuencia de Keywords (por ser estructuras asociativas map anidadas)
+      ;; - NO habrian elementos repetidos porque las keywords actúan como índices
+      ;;
+      ;; Ventajas..? Nos evitamos iterar sobre una colección, acceso inmediato a las entradas porque usamos keywords como índices, menos lógica para escribir
+      (def carrito-compras {:productos {:pan {:producto :pan :cantidad 10}
+                                         :leche {:producto :leche :cantidad 50}}})
+
+      (defn obtener-producto-por-keyword [carrito keyword-producto]
+        (get-in carrito [:productos keyword-producto]))
+
+      (defn actualizar-cantidad-producto [carrito keyword-producto nueva-cantidad]
+        (update-in carrito [:productos keyword-producto] (fn [producto]
+                                                           (assoc producto :cantidad nueva-cantidad))))
+
+      ;; - al update ahora le pasamos una función anónima con la macro #() en vez de (fn) porque facilita la lectura
+      ;; - usamos la función (update) en vez de (assoc) porque ya no queremos cambiar una cantidad concreta, si no una función que transforme el valor
+      (defn agregar-cantidad-producto [carrito keyword-producto cantidad-adicional]
+        (update-in carrito [:productos keyword-producto] #(update % :cantidad
+                                                                  (fn [cantidad-actual] (+ cantidad-actual cantidad-adicional)))))
+
+      ;; difiere de los anteriores porque recibe un producto como Estructura Asociativa map
+      ;; TODO: integrar la función (fnil) porque lanzará excepción NullPointerException si la entrada con esa keyword no existe
+      (defn agregar-cantidad-al-producto* [producto cantidad-adicional]
+        (update-in producto [:cantidad] (fn [cantidad-actual]
+                                          (+ cantidad-actual cantidad-adicional))))
+
+      ;; TODO: agregar valores por default al invocar (agregar-cantidad-al-producto*) con la función (fnil)
+      ;; porque si NO existe la entrada con esa keyword en :productos entonces le estaremos pasando el valor nil
+      ;; y ésta lanzará la excepción NullPointerException
+      (defn agregar-producto [carrito keyword-producto cantidad]
+        (update-in carrito [:productos keyword-producto] (fn [producto] (agregar-cantidad-al-producto* producto cantidad))))
+
+      ;; igual que la función anterior, excepto que cambiamos la función anónima por la macro #()
+      (defn agregar-producto [carrito keyword-producto cantidad]
+        (update-in carrito [:productos keyword-producto] #(agregar-cantidad-al-producto* % cantidad)))
+
+      ;; igual que la función anterior, excepto que usamos el concepto de sobrecarga por aridad
+      (defn agregar-producto
+        ([carrito keyword-producto] (agregar-producto carrito keyword-producto 1))
+        ([carrito keyword-producto cantidad]
+         (update-in carrito [:productos keyword-producto] #(agregar-cantidad-al-producto* % cantidad))))
+
+      ;; probando
+      (comment
+        (def leche {:producto :leche :cantidad 10})
+        (update-in leche [:cantidad] (fn [precio-actual] (+ precio-actual 500)))
+        (agregar-cantidad-al-producto* leche 20)
+        (agregar-cantidad-al-producto* {:producto :leche :cantidad 10} 20))
+
+      (obtener-producto-por-keyword carrito-compras :pan)
+      (actualizar-cantidad-producto carrito-compras :pan 20)
+      (agregar-cantidad-producto carrito-compras :pan 900)
+      (agregar-cantidad-producto carrito-compras :ajo 900) ;; lanzará excepción NullPointerException porque la entrada con :ajo no existe en :productos
+
+      (agregar-producto carrito-compras :leche)
+      (agregar-producto carrito-compras :leche 50)
+      (agregar-producto carrito-compras :ajo 50) ;; lanzará excepción NullPointerException porque la entrada con :ajo no existe en :productos
+    #+END_SRC
