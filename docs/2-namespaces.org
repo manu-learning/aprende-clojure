@@ -1,0 +1,201 @@
+#+TITLE: Namespace
+* Conceptos
+  - En *Clojure* el *Namespace* es la *unidad mínima de Modularidad* (podemos verlos como módulos de un programa)
+  - Cada *Namespace* (módulo) agrupa lógica de funciones, variables y estructuras de datos reusable por otro *Namespace* (módulo)
+* Convención de nombres
+ - El nombre del *Namespace* es una ruta relativa de un archivo ~.clj~ ó ~.cljs~ en este orden
+   1) el nombre del directorio
+      - el nombre físico debe ser con guión bajo ~_~ si éste fuese extenso
+      - el nombre en código fuente (.clj y .cljs) debe ser con guión medio ~-~
+   2) seguido del nombre del archivo
+   3) quedando ~nombre-directorio.nombre-archivo~ (agrupamos con el símbolo ~.~ el nombre del directorio y del archivo)
+
+   #+BEGIN_QUOTE
+   La convención de nombres de un *Namespace* es
+   - usar el estilo *kebab-case*, que usa palabras separadas con ~-~ el guión medio
+   - en minúsculas
+   #+END_QUOTE
+* Buenas prácticas
+** Intro
+   #+BEGIN_QUOTE
+   Si necesitamos definir funciones específicas de dos namespaces (Ej. ~juego-mario.format~ y ~juego-mario.inventario~)
+   podemos definir un nuevo namespace con el nombre de ambos (Ej. ~juego-mario.format-inventario~)
+   que incluya las estructuras de datos y lógica de ambos namespaces
+   #+END_QUOTE
+** Modularidad/Modularización
+   - La *Modularidad* deriva de (OOP) *Paradigma Orientado a Objetos* y Clojure lo soporta
+   - *Modularizar* es una estrategia que consiste en *dividir el problema principal en un conjunto de subproblemas*
+     1) el problema principal sería el programa a desarrollar
+     2) los subproblemas los módulos (partes pequeñas del programa)
+** Cualidades de Diseño
+*** Conceptos
+   - Facilita la *Mantenibilidad* (/al estar bien claras, definidas y divididas las responsabilidades de cada módulo/)
+   - Mejora la *Extensibilidad* (/capacidad de agregar nuevas funcionalidades sin afectar al sistema/)
+*** Alta Cohesión (High Cohesion)
+**** Ventajas
+     - los fragmentos de código (funciones, variables, ..) de los módulos están fuertemente relacionados entre si
+**** Desventajas
+     - Si sólo nos concentramos en esta cualidad, cada componente tendría demasiadas *responsabilidades*
+*** Bajo Acoplamiento (Low Coupling)
+**** Ventajas
+     - independencia entre los módulos ó mínima dependencia entre ellos
+     - mejor *testeabilidad* (/por la baja dependencia entre módulos/)
+     - es lo opuesto a la cualidad *Alta Cohesión* (/fragmentos de código que no tengan mucha relación NO deberían estar juntos/)
+**** Desventajas
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://enterprisecraftsmanship.com/posts/cohesion-coupling-difference/][Cohesion and Coupling, the difference (enterprisecraftmanship.com)]]
+    2. [[https://www.baeldung.com/cs/cohesion-vs-coupling][Difference between cohesion and coupling (baeldung.com)]]
+    3. [[https://www.cartagena99.com/recursos/alumnos/apuntes/Patrones%20de%20Diseno.pdf][Patrones de diseño (cartagena99.com)]]
+    4. [[https://sg.com.mx/revista/27/modularizacion-efectiva-java][Modularización efectiva en java (sg.com.mx)]]
+    5. [[https://www.disrupciontecnologica.com/acoplamiento-y-cohesion/#%C2%BFQue_es_cohesion][Acoplamiento Vs Cohesión (disrupciontecnologica.com)]]
+* Require - Incluir lógica de otro Namespace
+** Conceptos
+   - La sintáxis es de la forma ~(require & argumentos)~
+   - También podemos usarlo como ~:require~ dentro de la macro ~ns~
+   - Cada argumento es un ~libspec~ que *identifica a una biblioteca* ó un *Namespace* a incluir y se puede representar
+     - sólo con el nombre de una biblioteca (ó del Namespace)
+     - ó con un *vector* que contiene
+       1) el nombre de la biblioteca (ó del Namespace)
+       2) seguido de las opciones y los argumentos
+
+   #+BEGIN_QUOTE
+   A *libspec* is a *lib name* or a vector containing a lib name followed by
+   options expressed as sequential keywords and arguments.
+
+   A *lib* is a named *set of resources in classpath* whose contents define a
+   library of Clojure code. Lib names are symbols and each lib is associated
+   with a Clojure namespace and a Java package that share its name. A lib's
+   name also locates its root directory within classpath using Java's
+   package name to classpath-relative path mapping
+   #+END_QUOTE
+** Require dentro de la macro NS y Require fuera de la macro NS
+   #+BEGIN_SRC clojure
+     (ns learn-cljs.core
+       (:require [goog.dom :as gdom]
+        [learn-cljs.productos :as productos]))
+
+     ;; suponiendo que NO queremos agregarlo dentro de la macro ns
+     ;; aunque habría q agregarle la comilla simple al principio de cada biblioteca
+     (ns learn-cljs.core)
+
+     (require '[learn-cljs.productos :as productos]
+              '[goog.dom :as gdom])
+   #+END_SRC
+** Incluir toda la lógica de un Namespace con y sin Alias
+*** Conceptos
+    - Hay dos maneras de incluir toda la lógica
+      1) Escribir todo el nombre para usar cada función ~(:require nombre-del-namespace~ (/podría quedar muy extenso, algo molesto para usar/)
+      2) Agregamos un *alias* con ~:as~ luego del namespace quedando ~(:require nombre-del-namespace :as nombre-corto~ (/es más fácil de usar/)
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; - learn-cljs es el directorio de la aplicación
+      ;; - core es el archivo core.cljs (está en learn-cljs/core.cljs)
+      ;;
+      (ns learn-cljs.core
+        (:require
+         learn-cljs.clientes
+         [learn-cljs.productos :as productos]))
+
+      ;; Namespace: learn-cljs.clientes
+      ;;
+      ;; debemos escribir el namespace completo seguido de la función que queremos usar
+      ;; "porque no tiene un alias asignado con :as"
+      (defn tiene-descuento? [cliente-id]
+        (:es-premium? (-> cliente
+                          (filter #(if (= cliente-id (:id %) %)) learn-cljs.clientes/lista-clientes)
+                          first)))
+
+      (defn ofrecer-pago-con-tarjeta? [cliente-id]
+        (not (:es-deudor? (-> cliente
+                              (filter #(if (= cliente-id (:id %) %)) learn-cljs.clientes/lista-clientes)
+                              first))))
+
+      ;; Namespace: learn-cljs.productos
+      ;; Alias: productos
+      ;;
+      ;; podemos escribir el alias en vez del namespace completo
+      (let [carrito (-> (productos/crear-carrito-compras)
+                        (productos/agregar-producto "Pan" 50)
+                        (productos/agregar-producto "Leche" 20))]
+        (productos/render-carrito-compras carrito))
+    #+END_SRC
+** Incluir funciones específicas de un Namespace
+*** Conceptos
+    - Luego del namespace agregamos ~:refer [nombres-de-funciones]~ quedando ~(:require nombre-namespace :refer [funcion1 funcion]~
+    - Las funciones deben estar separadas por espacios
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; - learn-cljs es el directorio de la aplicación
+      ;; - core es el archivo core.cljs (está en learn-cljs/core.cljs)
+      (ns learn-cljs.core
+        (:require
+         learn-cljs.clientes
+         [learn-cljs.productos :refer [crear-carrito-compras agregar-producto render-carrito-compras]]))
+
+      ;; Namespace: learn-cljs.clientes
+      (defn tiene-descuento? [cliente-id]
+        (:es-premium? (-> cliente
+                          (filter #(if (= cliente-id (:id %) %)) learn-cljs.clientes/lista-clientes)
+                          first)))
+
+      (defn ofrecer-pago-con-tarjeta? [cliente-id]
+        (not (:es-deudor? (-> cliente
+                              (filter #(if (= cliente-id (:id %) %)) learn-cljs.clientes/lista-clientes)
+                              first))))
+
+      ;; Namespace: learn-cljs.productos
+      ;;
+      ;; al usar :refer especificamos que usaremos sólo esas funciones
+      ;; PROBLEMAS: si fueran muchas funciones habría que agregar una por una, y si luego cambiaran el nombre PEOR
+      (let [carrito (-> (crear-carrito-compras)
+                        (agregar-producto "Pan" 50)
+                        (agregar-producto "Leche" 20))]
+        (render-carrito-compras carrito))
+    #+END_SRC
+** Renombrar funciones incluidas de otro Namespace
+*** Conceptos
+    - Luego del ~:refer [nombre-funcion]~ agregamos ~:rename {nombre-funcion nuevo-nombre}~
+*** Ejemplo
+    #+BEGIN_SRC clojure
+      ;; - learn-cljs es el directorio de la aplicación
+      ;; - core es el archivo core.cljs (está en learn-cljs/core.cljs)
+      (ns learn-cljs.core
+        (:require
+         learn-cljs.clientes
+         [learn-cljs.productos :as productos]
+         [goog.dom :refer [setTextContent]
+          :rename {setTextContent set-content}]))
+
+      ;; Namespace: learn-cljs.productos
+      ;;
+      ;; usamos (set-content ..) en vez de (goog.dom/setTextContent ..)
+      (let [carrito (-> (crear-carrito-compras)
+                        (agregar-producto "Pan" 50)
+                        (agregar-producto "Leche" 20))]
+        (set-content productos/render-carrito carrito))
+
+      ;; Namespace: learn-cljs.clientes
+      (defn tiene-descuento? [cliente-id]
+        (:es-premium? (-> cliente
+                          (filter #(if (= cliente-id (:id %) %)) learn-cljs.clientes/lista-clientes)
+                          first)))
+    #+END_SRC
+** Opciones de Required :as Vs :refer
+   - ~:as~ incluye toda la lógica de un Namespace bajo un *alias*
+   - ~:refer~ incluye funciones especificas
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojuredocs.org/clojure.core/require][Require (clojuredocs.org)]]
+    2. [[https://clojure.org/reference/namespaces][Namespaces (clojure.org)]]
+    3. [[https://clojure-doc.org/articles/language/namespaces/][Clojure Namespaces (clojure-doc.org)]]
+    4. [[https://www.tutorialspoint.com/clojure/clojure_namespaces.htm][Clojure namespaces (tutorialspoint.com)]]
+    5. [[https://practical.li/clojure/clojure-cli/projects/namespace.html][Namespaces (practical.li)]]
+* Incluir Macros
+** Conceptos
+   - Similar que con los ~namespace~ pero en vez de ~:require~ usamos ~:require-macros~
+   - Transforma el código antes de retornarlo al compilador de JavaScript
+** Ejemplo
+   #+BEGIN_SRC clojure
+  (:require-macros [hiccups.core :as hiccups])
+   #+END_SRC
