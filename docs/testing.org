@@ -1,0 +1,16 @@
+#+TITLE: Testing
+* Tests basados en propiedades (Property Based Testing, Generative Testing)
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure.org/guides/test_check_beginner][Test Check Beginner (clojure.org)]]
+*** Referencias Extraoficiales
+    1. [[https://lambdaisland.com/episodes/generative-testing-clojure-test-check][Generative Testing with test.check (lambdaisland.com)]]
+    2. [[https://blog.klipse.tech/clojure/2020/09/11/test-check-clj.html][Generative testing in Clojure with test.check (blog.klipse.tech)]]
+    3. [[https://book.purescript.org/chapter13.html][Generative Testing (book.purescript.org)]]
+    4. [[https://typeable.io/blog/2021-08-09-pbt.html][Property-based Tsting with QuickCheck (typeable.io)]]
+    5. [[https://jesper.sikanda.be/posts/quickcheck-intro.html][QuickCheck Intro (jesper.sikanda.be)]]
+    6. [[https://blog.koalite.com/2013/12/tests-basados-en-propiedades-con-simplecheck/][Tests basados en propiedades con simplecheck (blog.koalitle.com)]]
+    7. [[https://medium.com/criteo-engineering/introduction-to-property-based-testing-f5236229d237][Introduction to property based testing (By Nicolas Duben)]]
+*** Referencias Youtube
+    1. [[https://www.youtube.com/watch?v=5Z8w6b6Dlvk][Fuzz & Property Based Testing (PyAR, Pablo Fernandez)]]
+    2. [[https://www.youtube.com/watch?v=3iREsXSjALw][Testing basado en propiedades (ACM, UPM, Luis Eduardo)]]
