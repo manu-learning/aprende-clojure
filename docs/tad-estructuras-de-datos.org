@@ -1,4 +1,16 @@
 #+TITLE: (TAD) Tipo abstracto de datos: Colecciones y Secuencias
+* Conceptos
+  #+BEGIN_QUOTE
+  *Testing two data structures for equality* is a relatively cheap operation in Clojure.
+  The reason for this has to do with the fact that *Clojure uses persistent data structures* that implement *structural sharing*.
+
+  What this means is that when we have one data structure and *apply some transformation* to it,
+  the resulting data structure *will only recreate the portions of the original that have changed*.
+
+  Any collection within *the data structure that does not change* as a result of *the update will refer to the exact same collection in memory*.
+
+  Written by Andrew Meredith, Learn ClojureScript
+  #+END_QUOTE
 * Estructura Asociativa Map
 ** Conceptos
    - Estructura asociativa con pares ordenados comunmente usados con *keywords* de la forma ~{:clave valor}~

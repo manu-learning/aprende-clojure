@@ -180,35 +180,56 @@
      #+END_SRC
 ** Condicional if-let
 *** Conceptos
-    - vincula a un nombre de variable un valor si se cumple un predicado
-      (/NO puede vincular más de un nombre de variable/)
+    - ~if-let~ es similar a ~when-let~ excepto que éste segundo no tiene una rama else
     - ~if-let~ es una combinación entre
-      1. ~if~ para validar si se cumple ó no un *predicado* (función booleana) y también tiene la *rama else*
-      2. ~let~ para vincular/bindear a un nombre de variable si el *predicado* es distinto a ~nil~ ó ~false~ (/por tanto es true u otro valor que no sea nil ó false/)
-*** Ejemplo Básico
-    #+BEGIN_SRC clojure
-      ;; suponiendo que no sabíamos que existe "if-let"...
-      ;; 1. con let vinculamos/bindeamos el valor al nombre de la variable
-      ;; 2. con if validamos si su valor es distinto de nil ó false
-      (defn confirmar-suscripcion [persona]
-        (let [email (:email persona)]
-          (if email
-            (str "Te enviaremos un correo a " email)
-            "Error")))
+      1) ~if~ para validar si se cumple ó no un *predicado* (función booleana) y también tiene la *rama else*
+      2) ~let~ para vincular/bindear a un nombre de variable si el *predicado* es distinto a ~nil~ ó ~false~ (/por tanto es true u otro valor que no sea nil ó false/)
+    - la sintáxis es de la forma ~(if-let predicado-binding expresion-then expresion-else)~
+      1) ~predicado-binding~ definimos el nombre de la variable (igual que el ~let~ común)
+         - vincula a un nombre de variable un valor si se cumple un *predicado* que devuelva un valor
+         - NO puede vincular más de un nombre de variable (lo mismo ocurre con ~when-let~)
+      2) ~expresion-then~ se evalúa si se cumple el predicado (si es distinto de ~nil~ ó ~false~)
+      3) ~expresion-else~ se evalúa si no se cumple el predicado
+*** Ejemplo Básicos
+**** Ejemplo 1
+     #+BEGIN_SRC clojure
+       (def capitan-picard {:nombre "Jean Luc"
+                            :rango "Capitán"})
 
-      (confirmar-suscripcion {:nombre "Riker" :email "riker@gmail.com"})
-      (confirmar-suscripcion {:nombre "Riker"})
+       ;; cómo (:apodo capitan-picard) devuelve nil, el resultado será la rama-else
+       (if-let [apodo (:apodo capitan-picard)]
+         (str "El apodo del capitán es " apodo)
+         "No sabemos el apodo de nuestro capitán :(")
 
-      ;; con if-let nos facilita lo anterior
-      ;; pero..! sólo podemos vincular/bindear un nombre
-      (defn confirmar-registro [persona]
-        (if-let [email (:email persona)]
-          (str "Te enviaremos un correo a " email)
-          "Error"))
+       ;; cómo (:apodo capitan-picard) devuelve un valor distinto a nil y a false, el resultado será la rama-then
+       (if-let [nombre (:nombre capitan-picard)]
+         (str "El nombre nuestro capitán es " nombre)
+         "No sabemos el nombre del capitán :(")
+     #+END_SRC
+**** Ejemplo 2
+     #+BEGIN_SRC clojure
+       ;; suponiendo que no sabíamos que existe "if-let"...
+       ;; 1. con let vinculamos/bindeamos el valor al nombre de la variable
+       ;; 2. con if validamos si su valor es distinto de nil ó false
+       (defn confirmar-suscripcion [persona]
+         (let [email (:email persona)]
+           (if email
+             (str "Te enviaremos un correo a " email)
+             "Error")))
 
-      (confirmar-registro {:nombre "Riker" :email "riker@gmail.com"})
-      (confirmar-registro {:nombre "Riker"})
-    #+END_SRC
+       (confirmar-suscripcion {:nombre "Riker" :email "riker@gmail.com"})
+       (confirmar-suscripcion {:nombre "Riker"})
+
+       ;; con if-let agrupamos dos expresiones en una sola, más fácil
+       ;; pero..! sólo podemos vincular/bindear un nombre
+       (defn confirmar-registro [persona]
+         (if-let [email (:email persona)]
+           (str "Te enviaremos un correo a " email)
+           "Error"))
+
+       (confirmar-registro {:nombre "Riker" :email "riker@gmail.com"})
+       (confirmar-registro {:nombre "Riker"})
+     #+END_SRC
 ** nil?
 *** Conceptos
     - ~nil?~ es un *predicado* que evalúa si una expresión representa el valor ~nil~
@@ -223,6 +244,58 @@
       "esta cadena no se imprimirá porque no es nil se trata como un false"
       "nil actúa similar al false")
   #+END_SRC
+** cond
+*** Conceptos
+*** Ejemplos Básicos
+**** Ejemplo 1
+     #+BEGIN_SRC clojure
+       (ns example
+         (:use clojure.test))
+
+       (defn signo-numero [num]
+         (cond
+           (< num 0) "negativo"
+           (> num 0) "positivo"
+           :else "cero"))
+
+       ;; tests simples que devuelven true
+       (is (= "negativo" (signo-numero -1)))
+
+       (is (= "positivo" (signo-numero 1)))
+
+       (is (= "cero" (signo-numero 0)))
+
+     #+END_SRC
+**** Ejemplo 2
+     #+BEGIN_SRC clojure
+       (ns example
+         (:use clojure.test))
+
+       (defn clasificar-usuario [usuario]
+         (if-let [edad (:edad usuario)]
+           (cond
+             (< edad 12) "es menor de edad"
+             (< edad 16) "es adolescente"
+             (< edad 18) "es mayor de edad"
+             :else "es adulto")
+           "el usuario NO tiene edad"))
+
+       ;; tests simples que devuelven true
+       (is (= "es menor de edad"
+              (clasificar-usuario {:nombre "tom" :edad 11})))
+
+       (is (= "es adolescente"
+              (clasificar-usuario {:nombre "tom" :edad 13})))
+
+       (is (= "es mayor de edad"
+              (clasificar-usuario {:nombre "tom" :edad 17})))
+
+       (is (= "es adulto"
+              (clasificar-usuario {:nombre "tom" :edad 19})))
+
+       (is (= "el usuario NO tiene edad"
+              (clasificar-usuario {:nombre "tom"})))
+     #+END_SRC
 * Operadores lógicos y relacionales
 ** Operador Lógico OR
 *** Conceptos
