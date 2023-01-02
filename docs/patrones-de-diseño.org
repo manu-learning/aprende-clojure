@@ -1,0 +1,98 @@
+#+TITLE: Patrones de Diseño
+* TODO Middleware
+** Conceptos
+   - es un *patrón de de diseño de comportamiento*
+   - en *Clojure* la función del lado del cliente
+     1) espera recibir una *Solicitud* (Request) que sea una *Estructura Asociativa map*
+     2) devuelve una *Respuesta* (Response) que sea una *Estructura Asociativa map*
+** Composición de Funciones
+   - podemos aplicar *Composición de funciones* porque
+     1) cada función espera como entrada una *Solicitud* (Request)
+     2) transformamos los datos de una *Solicitud* (Request) a traves de una serie de funciones (/composición/)
+     3) cada función devuelve un resultado que será la entrada de la siguiente función
+** Ejemplo Básico
+    #+BEGIN_SRC clojure
+      (ns example
+        (:use clojure.test))
+
+      ;; código del lado de un "supuesto" servidor
+      (defn handler [request]
+        (println "Petición a la API" request)
+        {:data (str "hola " (nickname request))})
+
+      (defn validar-peticion [request]
+        (cond
+          (nil? (:id request)) {:error "error falta id"}
+          (nil? (:header request)) {:error "error falta encabezado"}
+          (nil? (:token request)) {:error "error falta token"}))
+
+      (defn handler-con-validacion [handler]
+        (fn [request]
+          (if-let [error-validacion (validar-peticion request)]
+            error-validacion
+            (handler request))))
+
+      (defn handler-con-logger [handler]
+        (fn [request]
+          (println "Petición realizada a la API" request)
+          (let [response (handler request)]
+            (println "Response" response)
+            response)))
+
+      (defn nickname [request]
+        (if-let [nick (get-in request [:form :usuario])]
+          nick
+          "Anónimo"))
+
+      ;; código del lado de un "supuesto" cliente (Ej. una aplicación ejecutando en el browser)
+      (defn login [request]
+        "Login básico"
+        (if-let [error-validacion (validar-peticion request)]
+          error-validacion
+          (handler request)))
+
+      ;; se delega mejor la responsabilidades/lógica
+      ;; - validar solicitud
+      ;; - logger (guarda ó imprime un historial de los eventos)
+      ;;
+      ;; se define una "función wrapper" (función que envuelve) sobre el handler, mediante composición de dos funciones
+      ;; 1) se evalúa el handler que valida la petición (handler-con-validacion)
+      ;; 2) el resultado anterior lo reutiliza y es la entrada al handler que hace de logger (handler-con-logger)
+      (defn login* [request]
+        "Login con varios handlers, primero validan la solicitud y luego instancia a un logger"
+        (let [wrap-handler (comp handler-con-logger handler-con-validacion)
+              handler (wrap-handler handler)]
+          (handler request)))
+
+      (def pepe-login {:id 100
+                       :header "HTTP/1"
+                       :token "1230ABcd1eFk"
+                       :form {:usuario "pepe", :clave "123123"}})
+
+      (def hacker-login {:header "HTTP/1"
+                         :token "1230ABcd1eFk"
+                         :form {:usuario "admin", :clave "admin"}})
+
+      ;; tests simples que devuelven true
+      (is (= "hola pepe"
+             (:data (login pepe-login))))
+
+      (is (= "error falta id"
+             (:error (login hacker-login))))
+
+      (is (= "hola pepe"
+             (:data (login* pepe-login))))
+
+      (is (= "error falta id"
+             (:error (login* hacker-login))))
+    #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1. [[https://clojure-doc.org/articles/cookbooks/middleware/][Middleware in Clojure (clojure-doc.org)]]
+    2. [[https://ericnormand.me/article/parts-of-ring][The parts of Ring, the Clojure Web library (ericnormand.me)]]
+    3. [[https://github.com/day8/re-frame/wiki/Using-Handler-Middleware][Using Handle Middleware (Wiki re-frame framework)]]
+*** Referencias Extraoficiales
+    1. [[https://blog.janetacarr.com/fix-your-clojure-code-clojure-comes-with-design-patterns-part-2/][Fix your Clojure code comes with dessign patterns (blog.janetcarr.com)]]
+    2. [[https://www.baeldung.com/clojure-ring][Writing Clojure Webapps with Ring (baeldung.com)]]
+    3. [[https://luminusweb.com/docs/middleware.html][Middleware (luminusweb.com)]]
+    4. [[https://practical.li/clojure-web-services/projects/leiningen/todo-app/reloading-the-application/middleware.html][Middleware in Ring (practical.li)]]
