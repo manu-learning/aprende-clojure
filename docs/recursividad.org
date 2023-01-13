@@ -176,29 +176,148 @@ https://www.quora.com/How-should-I-learn-maths-for-programming-algorithm
 ** Referencias
 *** Referencias Issues
     1. [[https://stackoverflow.com/questions/4725417/difference-between-doseq-and-for-in-clojure][Difference between doseq and for in Clojure (stackoverflow.com)]]
-* Loop y Recur
+* Recur
 ** Conceptos
-  - Combinados ~loop~ y ~recur~
-    1) generamos *recursivad de cola* (tail recursion), de una forma menos verbosa que definir una *función recursiva*
-    2) el *compilador de clojure* tiene optimizaciones para *recursividad de cola* ésta será más rápido y eficiente que una *función recursiva*
-       (/aclaramos compilador de clojure, porque NO todos los lenguajes tienen optimizaciones en una recursividad de cola/)
+  - ~recur~ hace un *llamado recursivo* dentro de la función que lo contenga
+  - el compilador de Clojure aplica una *Optimización de Cola* (TCO, Tail Call Optimization) que optimiza los *llamados recursivos* de ~recur~
+  - implementa *Recursividad de Cola* (tail recursion), por tanto su llamada debe colocarse como la *última expresion a evaluar*
 
   #+BEGIN_QUOTE
-  Every time a recursive function calls itself, it consumes a stack frame, and if it recurses too deeply,
-  the JavaScript runtime will stop execution with an error.
+  Para utilizar ~recur~ no es obligatorio usar la función ~loop~,
+  porque ~recur~ hace un *llamado recursivo* a la función dónde esté contenida.
 
-  However, recursive processes written with ~loop~ and ~recur~ can recurse arbitrarily deeply because
-  *the ClojureScript compiler is able to optimize them into an imperative loop*.
-  For this reason, loop is also usually faster than functional recursion.
-
-  By Andrew Meredith, Learn ClojureScript
+  Podemos combinar las funciones ~recur~ y ~loop~ si queremos vincular/bindear un valor por default,
+  previo a los llamados recursivos de ~recur~ y que se evaluará dentro del cuerpo de la función ~loop~
   #+END_QUOTE
+** Ejemplos Básicos
+*** Ejemplo 1 - Contador de numeros
+    #+BEGIN_SRC clojure
+      (defn contar-hasta-cero-desde [n]
+        (println n)
+        (if (= 0 n)
+          (println "Terminé de contar!")
+          (recur (dec n))))
+
+      ;; alternativa 1: aplicamos el concepto de Sobrecarga de Aridad (arity overloading)
+      (defn contar-desde-cero-hasta
+        ([n] (contar-desde-cero-hasta n 0))
+        ([n contador]
+         (println contador)
+         (if (= contador n)
+           (println "Terminé de contar")
+           (recur n (inc contador)))))
+
+      ;; alternativa 2: usar la función (loop), que vincula/bindea al contador el valor 0
+      (defn contar-desde-cero-hasta* [n]
+        (loop [num n
+               contador 0]
+          (println contador)
+          (if (= contador num)
+            (println "Terminé de contar")
+            (recur num (inc contador)))))
+
+      ;;(contar-hasta-cero-desde 10)
+      ;;(contar-desde-cero-hasta 10)
+      ;;(contar-desde-cero-hasta* 10)
+    #+END_SRC
+*** Ejemplo 2 - Implementación de un Join de cadenas
+    #+BEGIN_SRC clojure
+      (def estudiantes ["carlitos" "pedrito" "samuel" "pichon"])
+
+      (defn my-join [coll resultado]
+        (if (= 1 (count coll)) (str resultado (first coll))
+          (recur (rest coll) (str resultado (first coll) ", "))))
+
+      ;; tests sencillos, que devuelven true
+      (= (my-join estudiantes "Estudiantes: ")
+         "Estudiantes: carlitos, pedrito, samuel, pichon")
+
+      (= (my-join estudiantes "Estudiantes: ")
+         (str "Estudiantes: " (clojure.string/join ", " estudiantes)))
+    #+END_SRC
+*** Ejemplo 3 - Implementación de un Sumatoria de una colección de números
+    #+BEGIN_SRC clojure
+      (defn sumatoria [coll-numeros resultado]
+        (if (empty? coll-numeros)
+          resultado
+          (recur (rest coll-numeros) (+ resultado (first coll-numeros)))))
+
+      (defn sumatoria*
+        ([coll-numeros] (sumatoria coll-numeros 0))
+        ([coll-numeros resultado]
+         (if (empty? coll-numeros)
+           resultado
+           (recur (rest coll-numeros) (+ resultado (first coll-numeros))))))
+
+      ;; tests sencillos, que devuelven true
+
+      (= 10 (sumatoria [1 2 3 4] 0))
+      (= 10 (sumatoria* [1 2 3 4]))
+
+      ;; (range 4) devuelve (0 1 2 3)
+      (= 6 (sumatoria* (range 4)))
+      (= 10 (sumatoria* (range 1 (inc 4))))
+    #+END_SRC
+*** Ejemplo 4 - Imprimir cada elemento de una colección con el (&) rest parameter
+    #+BEGIN_SRC clojure
+      (defn imprimir-elementos [& coll-argumentos]
+        (let [[primer-elemento & siguientes-elementos] coll-argumentos]
+          (println primer-elemento)
+          (when-not (empty? siguientes-elementos)
+            (recur siguientes-elementos))))
+
+      ;;(imprimir-elementos :a :b :c)
+
+      (defn imprimir-elementos* [& coll-argumentos]
+        (let [[primer-elemento & siguientes-elementos] coll-argumentos]
+          (println primer-elemento)
+          (if-not (sequential? siguientes-elementos)
+            "no hay más elementos"
+            (recur siguientes-elementos)
+            )
+          ))
+
+      ;;(imprimir-elementos* :a :b :c)
+    #+END_SRC
+** Referencias Clojure
+*** Referencias Extraoficiales
+    1. [[https://clojurebridgelondon.github.io/community-docs/docs/clojure/recur/][Loop recur (clojurebridgelondon.github.io)]]
+    2. [[https://aphyr.com/posts/305-clojure-from-the-ground-up-macros#recursion][Recursion (aphyr.com)]]
+** Referencias JavaScript
+*** Referencias Extraoficiales
+    1. [[http://www.etnassoft.com/2016/10/03/optimizacion-de-cola-en-es6-tco/][Optimización de Cola en ES6 (etnasoft.com)]]
+    2. [[https://es.javascript.info/recursion][Recursion y pila (javascript.info)]]
+* Combinar funciones Loop y Recur
+** Conceptos
+   #+BEGIN_QUOTE
+   ~loop~ vincula/bindea un valor previo a los llamados recursivos de ~recur~
+
+   si no queremos usar la función ~loop~
+   1) aplicamos el concepto de *sobrecarga de aridad* (arity overloading)
+   2) definimos el valor por default y seguido de la llamada recursiva a la misma función
+   #+END_QUOTE
+
+   #+BEGIN_SRC clojure
+      ;; alternativa 1: aplicamos el concepto de Sobrecarga de Aridad (arity overloading)
+     (defn contar-desde-cero-hasta
+       ([n] (contar-desde-cero-hasta n 0))
+       ([n contador]
+        ;; usamos la función (recur)
+        ))
+
+      ;; alternativa 2: usar la función (loop), que vincula/bindea al contador el valor 0
+     (defn contar-desde-cero-hasta* [n]
+       (loop [num n
+              contador 0]
+        ;; usamos la función (recur)
+         ))
+   #+END_SRC
 ** Loop
+  - Vincula/bindea un valor a una variable previo a la llamada recursiva de ~recur~
   - Contiene a las llamadas recursivas de ~recur~ recibiendo uno ó más argumentos
-  - Bindea/vincula un valor a una variable
 ** Recur
   - Si combinamos ~loop~ y ~recur~, el llamado recursivo de ~recur~ se hará dentro del scope de ~loop~ (/pasandole recur a loop, uno ó más parámetros/)
-  - Si NO combinamos ~loop~ y ~recur~, entonces ~recur~ hará el *llamado recursivo* dentro de la función que lo contenga
+  - Si usamos sólo ~recur~ sin ~loop~, entonces ~recur~ hará el *llamado recursivo* dentro de la función que lo contenga
 ** Ejemplos Básicos
 *** Ejemplo 1 - Contador con loop y recur
     #+BEGIN_SRC clojure
