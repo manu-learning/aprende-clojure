@@ -593,3 +593,183 @@
       (take! ch #(println "Valor obtenido" %))
       ;; => nil
     #+END_SRC
+* alts! Operador de lectura/escritura/selecciona un Canal
+** Conceptos
+   - Opera sobre el scope de la macro ~go~
+   - Selecciona un canal de entre varios y aplica una operación de lectura ~(<!)~ ó escritura ~(>!)~
+   - Devuelve como resultado un vector ~[valor canal-seleccionado]~
+     - ~valor~ es true, si la operación es PUT ~(>!)~
+     - ~valor~ es el valor obtenido del canal, si la operación es TAKE ~(<!)~
+** Cambiar su Comportamiento NO Determinístico
+   - tiene un comportamiento NO determinístico cuando las operaciones de varios Canales están listas para ser ejecutadas
+   - la opción ~:priority~ lo hace determinístico, priorizando el orden de los canales
+
+   #+BEGIN_QUOTE
+   En el siguiente ejemplo elegido al canal ~c3~ porque tiene mayor prioridad
+   ~(alts! [c3 c2 c1] :priority true)~
+   #+END_QUOTE
+** Sintáxis según el tipo de Operación
+*** alts! como operador de lectura
+    - cuando queremos obtener un valor (TAKE) del Canal seleccionado
+    - la sintáxis es de la forma ~(alts! [canal1 canal2 ...])~
+*** alts! como operador de escritura
+    - cuando queremos agregar un valor (PUT) en el Canal seleccionado
+    - la sintáxis es de la forma ~(alts! [[canal1 valor] [canal2 otroValor]...])~
+** Ejemplos
+*** Ejemplo 1 - alts! como operador de lectura (similar al operador <!) entre 2 canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go chan >! timeout alts!]])
+
+      (def c1 (chan))
+      (def c2 (chan))
+
+      ;; el operador (>!)
+      ;; - actúa como PUT
+      ;; - NO admite una Función Callback como tercer parámetro
+      (go
+        (println "Proceso A: agregaré el valor 10 en el canal 1")
+        (>! c1 10)
+        (println "Proceso A: terminé mi tarea, adiós"))
+
+      ;; - alts! puede elegir un canal entre varios y obtener un valor (take) ó agregar un valor (put)
+      ;; en este caso, intentamos leer un valor de dos canales (c1) y (c3) al mismo tiempo
+      ;;
+      ;; - alts! actuará como un operador (<!) es decir TAKE,
+      ;; y elegirá el canal que esté listo (ya tenga valores para solicitar)
+      ;; - si más de un Canal está listo, elegirá de forma no determinística
+      ;;
+      ;; - en éste escenario siempre será elegido el canal c1,
+      ;; porque ya tiene un valor, en cambio c3 aún no tiene valores para sacar
+      (go
+        (let [c3 (timeout 0)
+              [valor canal-seleccionado] (alts! [c1 c3])] ;; <-- alts!
+          (if (= canal-seleccionado c3)
+            (println "El canal elegido fue c3" )
+            (println "El canal elegido fue c1" valor))))
+      ;; => "El canal elegido fue c1 10"
+    #+END_SRC
+*** Ejemplo 2 - alts! como operador de lectura entre 2 canales + la opción :priority
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go chan >! alts!]])
+
+      (def c1 (chan))
+      (def c2 (chan))
+
+      (go
+        (println "Proceso A: agregaré el valor 10 en el canal 1")
+        (>! c1 10)
+        (println "Proceso A: terminé mi tarea, adiós"))
+
+      (go
+        (println "Proceso B: agregaré el valor 50 en el canal 2")
+        (>! c2 50)
+        (println "Proceso B: terminé mi tarea, adiós"))
+
+      ;; - si varias operaciones asociadas a los canales que le pasamos por parámetro a alts!
+      ;; están listas (READY) para se ejecutadas,
+      ;; por default elegirá un canal de forma NO determinística (cualquiera)
+      ;;
+      ;; - alts! elegirá de forma determinística con la opción :priority true
+      ;; en el orden que le pasemos los canales por parámetro
+      ;;
+      (go
+        (let [ [valor canal-seleccionado] (alts! [c2 c1] :priority true)] ;; <-- alts!
+          (if (= canal-seleccionado c2)
+            (println "El canal elegido fue c2 y el valor obtenido es" valor)
+            (println "El canal elegido fue c1 y el valor obtenido es" valor))))
+    #+END_SRC
+*** Ejemplo 3 - alts! como operador de lectura con más de 2 canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go chan timeout >! alts!]])
+
+      (def c1 (chan))
+      (def c2 (chan))
+
+      (go
+        (println "Proceso B: agregaré el valor 10 en el canal 2")
+        (>! c2 99)
+        (println "Proceso B: terminé mi tarea, adiós"))
+
+      ;; - en éste escenario siempre será elegido el canal c2,
+      ;; porque ya tiene un valor, en cambio c1 y c3 aún no tiene valores para sacar
+      (go
+        (let [c3 (timeout 2000)
+              [valor canal] (alts! [c1 c3 c2])] ;; <-- alts!
+          (condp = canal
+            c3 (println "El canal elegido fue c3 y el valor es" valor)
+            c2 (println "El canal elegido fue c2 y el valor es" valor)
+            c1 (println "El canal elegido fue c1 y el valor es" valor))))
+    #+END_SRC
+*** Ejemplo 4 - alts! como operador de escritura entre 2 canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go chan timeout <! alts!]])
+
+      (def c1 (chan))
+
+      (go
+        (println "Proceso B: tomaré un valor del canal 1, si no hay me quedaré esperando..")
+        (println "Proceso B: el valor que obtuve es" (<! c1))
+        (println "Proceso B: terminé mi tarea, adiós"))
+
+      ;; - alts! elegirá (choice) el canal 1 y agregará (put) el valor 30 en él
+      ;; porque tiene una operación de lectura pendiente (<!)
+      (go
+        (let [c3 (timeout 0)
+              [valor canal] (alts! [[c1 30]
+                                    [c3 25]])] ;; <-- alts!
+          (if (= canal c3)
+            (println "El canal elegido fue c3")
+            (println "El canal elegido fue c1"))))
+    #+END_SRC
+*** Ejemplo 5 - alts! como operador de escritura entre 2 canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go chan <! alts!]])
+
+      (def c1 (chan))
+      (def c2 (chan))
+
+      (go
+        (println "Proceso A: tomaré un valor del canal 1, si no hay me quedaré esperando..")
+        (println "Proceso A: el valor que obtuve es" (<! c1))
+        (println "Proceso A: terminé mi tarea, adiós"))
+
+      (go
+        (println "Proceso B: tomaré un valor del canal 2, si no hay me quedaré esperando..")
+        (println "Proceso B: el valor que obtuve es" (<! c2))
+        (println "Proceso B: terminé mi tarea, adiós"))
+
+      ;; - alts! elegirá (CHOICE) de manera NO determinística entre el canal 1 y 2 para agregar (PUT)
+      ;; porque las operaciones (TAKE) asociadas a ambos canales estan listas (READY) para obtener (TAKE) un valor
+      ;;
+      ;; - alts! actúa como PUT cuando le pasamos un vector de vectores,
+      ;; dónde cada elemento es "similar" a un par ordenado de la forma [canal valor]
+      (go
+        (let [ [valor canal-seleccionado] (alts! [[c1 30]
+                                                  [c2 25]])] ;; <-- alts!
+          (if (= canal-seleccionado c2)
+            (println "El canal elegido fue c2")
+            (println "El canal elegido fue c1"))))
+    #+END_SRC
+** Referencias
+*** Issues
+    1. [[https://stackoverflow.com/questions/34856230/how-to-understand-alt-in-clojure-core-async][How to understand alt in clojure core.async (stackoverflow.com)]]
+* TODO Share Memory By Communicating
+** Conceptos
+   #+BEGIN_QUOTE
+   La frase completa es..
+   *Do not communicate by sharing memory; instead, share memory by communicating.*
+   #+END_QUOTE
+** Referencias
+*** Referencias Oficiales
+    1. [[https://go.dev/blog/codelab-share][Share Memory By Communicating (go.dev)]]
+*** Issues
+   1. [[https://stackoverflow.com/questions/36391421/explain-dont-communicate-by-sharing-memory-share-memory-by-communicating][What does the quote means? (stackoverflow.com)]]
+   2. [[https://www.quora.com/What-is-the-actual-meaning-of-Gos-Dont-communicate-by-sharing-memory-share-memory-by-communicating][What is the actual meaning of Go's phrase? (quora.com)]]
+* Referencias
+** Referencias Oficiales
+   1. [[http://www.usingcsp.com/cspbook.pdf][Communicating Sequential Processes Book (usingcsp.com)]]
+** Referencias Extraoficiales
+   1. [[https://levelup.gitconnected.com/communicating-sequential-processes-csp-for-go-developer-in-a-nutshell-866795eb879d][Communicating sequential processes for GO developer (levelup.gitconnected.com)]]
+** Referencias Youtube
+   1. [[https://www.youtube.com/watch?v=zJd7Dvg3XCk][Go Class CSP + Goroutines + Channels (By Matt KODVB)]]
+   2. [[https://www.youtube.com/watch?v=a3LubNgevVk&list=PLxwq_p7jhKRFBX9RT39yJS13pf5yhGAIH&index=4][Introducción a CSP (By Maximiliano Cristiá)]]
