@@ -137,3 +137,459 @@
   - >!
   - alts!
   #+END_QUOTE
+* Diferencias entre Operadores take! put! <! >!
+  - ~take!~ y ~put!~ son operaciones asincrónicas
+  - ~>!~ y ~<!~ son las operaciones PUT/TAKE utilizadas sólo por Procesos Ligeros (creados con la macro ~go~)
+    1) utilizadas dentro de un bloque ~(go ..)~
+    2) pueden BLOQUEAR (dejar esperando) a un Proceso (si el Canal está vacío ó lleno)
+
+  #+BEGIN_QUOTE
+  Como los operadores ~>!~ y ~<!~ pueden BLOQUEAR (dejan esperando) a un Proceso Ligero cuando un Canal está lleno ó vacío
+  - si el Canal está VACIO y el proceso ligero pide un valor con ~<!~, se quedará esperando..
+  - si el Canal está LLENO y el proceso ligero pide un valor con ~>!~, se quedará esperando..
+
+  Los operadores asincrónicos ~take!~ y ~put!~ evitan que el proceso principal (la aplicación en si)
+  quede en estado BLOQUEADO porque un Canal esté lleno ó vacío.
+  #+END_QUOTE
+* Procesos Ligeros (LWP, Lightweight Process)
+** Conceptos
+   - ~go~ es la macro para *crear un proceso ligero*
+   - Clojure los implementa en la biblioteca ~core.async~ con la macro ~go~
+   - Clojure planifica la concurrencia de los procesos ligeros (quien/cuando debería ejecutar)
+   - La comunicación entre procesos (/es opcional, NO se conocen/)
+     - es mediante *mensajes* a través de *Canales*
+     - es OPCIONAL porque pueden NO comunicarse con ningún otro proceso ligero
+   - Si quiere leer un mensaje de un canal, pasa a un estado de BLOQUEADO (ó espera) hasta que el mensaje esté disponible
+   - Envían mensajes a un canal de forma Síncrona ó Asíncrona
+** Relación con los Sistemas Operativos
+   - Representa un *hilo* (algunas fuentes lo refieren como una CPU virtual) que corre sobre la (JVM) Máquina Virtual de Java
+   - Son independientes entre si (tienen su propia lógica, no dependen de otro proceso ligero)
+   - Comparten recursos del proceso padre que los creó (/el espacio de memoria por tanto también las variables, TADs, .../)
+   - La implementación cambia el estado de *Bloqueado* de espera (BLOCKED) por *Parked*
+
+   #+BEGIN_QUOTE
+   Los (LWP) Procesos Ligeros son el puente entre los (ULTs) Hilos de Usuario y los (KLTs) Hilos de Kernel,
+   un proceso puede tener uno ó mas (LWPs) y cada (LWP) puede ejecutar uno ó mas (ULTs)
+   #+END_QUOTE
+** Macro go-loop
+   - ~go-loop~ es un *azúcar sintáctico* de ~(go (loop ... ))~
+** Operaciones sobre Canales
+   - ~>!~ y ~<!~ son las operaciones PUT/TAKE que utiliza un Proceso Ligero creado con la macro ~go~
+     1) ~>!~ actúa como ~put!~
+     2) ~<!~ actúa como ~take!~
+   - NO permiten el valor ~nil~ por parámetro
+     - porque éste es un *Valor Centinela* que avisa que un Canal cerró
+     - si avisa que un Canal cerró, entonces cancelaría las operaciones TAKE pendientes
+
+   #+BEGIN_QUOTE
+   Recordemos que las operaciones
+   1) ~<!~ y ~>!~ se utilizan sólo DENTRO del bloque ~(go ...)~
+   2) ~put!~ y ~take!~ se utilizan FUERA del bloque ~(go ...)~
+   #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1 - Crear un Proceso Ligero que saluda
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go]])
+
+      ;; esto es similar a un setTimeOut de JavaScript
+      ;; Ej. setTimeOut(() => console.log('hola!'), 0))
+      (go (println "hola!"))
+    #+END_SRC
+*** Ejemplo 2 - Sincronizar procesos ligeros para lectura/escritura en un Canal
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go chan >! <!]])
+
+      (def c1 (chan))
+
+      ;; - con go creamos un proceso ligero, que ejecutará de forma secuencial cada función
+      ;; - luego de pedir (take) un valor con el operador (<!) del Canal un VACIO, éste proceso ligero se quedará BLOQUEADO esperando (parked)
+      ;; hasta que se ingrese (put) un valor en el canal
+      (go
+        (println "Proceso 1: Hola! tomaré un valor del Canal c1 y me quedaré esperando hasta que haya uno disponible!")
+        (println "Proceso 1: Hola de nuevo! el valor era" (<! c1))
+        (println "Proceso 1: Me retiro, no me olvides!"))
+
+      ;; - creamos otro proceso, independiente al anterior
+      ;; - luego de agregar (put) un valor con el operador (>!),
+      ;; la operación pendiente (take) del proceso reaccionará, tomará el valor y seguirá su flujo
+      (go
+        (println "Proceso 2: Hola! agregaré un valor 99 en el Canal c1")
+        (>! c1 99)
+        (println "Proceso 2: ya agregé el valor 99")
+        (println "Proceso 2: Me retiro, no me olvides!"))
+    #+END_SRC
+*** Ejemplo 3 - Ejecución constante de un proceso ligero al combinar las funciones loop + recur y la operación sincrónica (<!)
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go go-loop <! timeout]])
+
+      ;; - Cada 2000ms un mismo Proceso Ligero ejecutará el cuerpo de la función loop, imprimiendo un string
+      ;; y pedirá un valor de un un Canal VACIO (que cerrará pasados 2000ms).
+      ;; - Esta es una Función Recursiva que se ejecutará cada 2000ms porque combinamos las funciones LOOP y RECUR,
+      ;; si no utilizaramos RECUR entonces se ejecutaría sólo una vez (porque no habría un llamado recursivo)
+      ;;
+      ;; - Como el Proceso Ligero intenta tomar (operador take, usando <!) un valor de un Canal VACIO,
+      ;; se quedará ESPERANDO (parked) hasta que otro Proceso Ligero ENVIE (operador put, ó >!) un valor,
+      ;; pero como NO ocurrirá de que algún Proceso Ligero envíe un valor al canal, ése proceso se quedará ESPERANDO hasta que se cierre el Canal (pasados los 2000ms)
+      (defn saludar-intensamente []
+        (go (loop [tiempo-de-espera 2000]
+              (println "Hola! soy el proceso ligero 1! te saludaré cada " tiempo-de-espera "milisegundos")
+              (<! (timeout tiempo-de-espera))
+              (recur tiempo-de-espera))))
+      ;; (saludar-intensamente)
+
+      ;; creamos otro Proceso Ligero que invoca otras funciones y explicamos desde la perspectiva de las funciones
+      ;;
+      ;; - (go): CREA un Proceso Ligero (independiente al resto)
+      ;; - (timeout n): CREA un CANAL que se cerrará luego del tiempo que le pasemos en milisegundos
+      ;; - (<!): operador (take) dentro de un rutina (go) pide un valor de un Canal
+      ;; - (go-loop [parametros] cuerpo-loop): es un Azúcar Sintáctico de (go (loop [params] cuerpo-loop))
+      ;;
+      ;; Se utilizó el operador (<!) sobre el Canal VACIO (que cerrará pasados los 2000ms)
+      ;; para generar un tiempo de espera de 2000ms antes de volver a imprimir el string,
+      ;; se repetirá éste comportamiento N veces por estar dentro de una Función Recursiva (por usar loop y recur)
+      (defn despedirse-intensamente []
+        (go-loop [tiempo-de-espera 2000]
+          (println "Chau! no te olvides que soy el proceso ligero 2!")
+          (<! (timeout tiempo-de-espera))
+          (recur tiempo-de-espera)))
+      ;; (despedirse-intensamente)
+    #+END_SRC
+*** Ejemplo 4 - Ejecución de un proceso ligero sólo con la función loop y combinando loop + recur
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go go-loop <! timeout]])
+
+      ;; como NO utilizamos la función RECUR la función se ejecutará una sola vez
+      (defn saludar-tres-veces []
+        (go-loop [seconds (atom 0)
+                  add-seconds! #(swap! seconds + %)]
+          (println "Hola! Esperaré 2 segundos y te volveré a saludar")
+          (<! (timeout 2000))
+          (add-seconds! 2)
+
+          (println "Hola! Esperaré otros 4 segundos y te volveré a saludar")
+          (<! (timeout 4000))
+          (add-seconds! 4)
+
+          (println "Hola! Me cansé de saludar..")))
+
+      ;; como utilizamos la función RECUR la función se ejecutará de manera recursiva
+      ;; (si combinamos las funciones LOOP + RECUR estamos definiendo una Función Recursiva)
+      (defn saludar-tres-veces-intensamente []
+        (go-loop [seconds (atom 0)
+                  add-seconds! #(swap! seconds + %)]
+          (println "Hola! Esperaré 2 segundos y te volveré a saludar")
+          (<! (timeout 2000))
+          (add-seconds! 2)
+
+          (println "Hola! Esperaré otros 4 segundos y te volveré a saludar")
+          (<! (timeout 4000))
+          (add-seconds! 4)
+
+          (println "Hola! Daré un gran respiro y te volveré saludar..")
+          (recur seconds add-seconds!)))
+    #+END_SRC
+*** Ejemplo 5 - Ejecución constante de un proceso al combinar go-loop + recur
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go go-loop <! timeout]])
+
+      (defn saludar-entre-intervalos-constantes [tiempo-entre-saludos]
+        (go-loop [tiempo-espera tiempo-entre-saludos]
+          (println "Hola..! Esperé" tiempo-espera "milisegundos")
+          (<! (timeout tiempo-espera))
+          (recur tiempo-espera)))
+
+      ;; (let [tiempo-en-ms 2000] (saludar-entre-intervalos-constantes tiempo-en-ms))
+
+      (defn saludar-entre-intervalos-incrementales [tiempo-entre-saludos]
+        (go-loop [tiempo-espera tiempo-entre-saludos]
+          (println "Hola..! Esperé" tiempo-espera "milisegundos")
+          (<! (timeout tiempo-espera))
+          (recur (+ tiempo-espera 1000))))
+
+      ;; (let [tiempo-en-ms 2000] (saludar-entre-intervalos-incrementales tiempo-en-ms))
+    #+END_SRC
+** Referencias
+*** Referencias Oficiales
+    1) [[https://docs.oracle.com/cd/E19455-01/806-5257/mtintro-72944/index.html][Lightweight Processes (docs.oracle.com)]]
+*** Referencias Extraoficiales
+    1) [[https://www.tutorialspoint.com/lightweight-process-lwp][Lightweight process (tutorialspoint.com)]]
+*** Issues (Stackoverflow)
+    1) [[https://stackoverflow.com/questions/27001336/how-to-use-lightweight-thread-in-clojure][How to use Lightweight thread in clojure]]
+    2) [[https://www.ques10.com/p/2173/compare-processes-and-threads-explain-user-and-ker/?][Compare processes and threads (ques10.com)]]
+* TODO Canales (Channel)
+** Conceptos
+   - Desacopla la lógica entre *Procesos Productores* (Producer) y *Procesos Consumidores* (Consumer)
+   - ~chan~ es la función que CREA y devuelve un Canal
+   - Cada Canal puede transferir sólo un valor por vez
+   - Soportan múltiples operaciones (lectura/escritura) sin el problema de *Condición de Carrera* (/común en la programación concurrente/)
+
+   #+BEGIN_QUOTE
+   Una interpretación de un Canal sería una *tubería (pipe) de la terminal de UNIX*
+   1) tienen sólo un sentido (input --> output)
+   2) reciben un valor que pasan de un Proceso a otro
+   #+END_QUOTE
+** Operaciones asincrónicas
+*** Conceptos
+    - ~take!~ y ~put!~ son *operaciones Asincrónicas*
+*** Funciones callback
+   - Se ejecutan cuando se completó la acción asociada a ~put!~ ó ~take!~
+   - La *función callback* de ~take!~ además obtiene el valor obtenido
+
+   #+BEGIN_QUOTE
+   Ambas funciones reciben una *función callback* como 3º parámetro,
+   que se ejecuta cuando completan la acción que tienen asociadas
+   - la acción asociada para ~take!~ es retirar un valor de un canal
+   - la acción asociada para ~put!~ es ingresar un valor de un canal
+   #+END_QUOTE
+*** Comportamiento cuando el Canal está lleno según el tipo de Buffer
+    - si tiene un *Buffer de tamaño fijo*, las próximas operaciones (PUT) se agregan a una *Cola de Espera* asociada a ese Canal
+    - si tiene un *Dropping Buffer*, las próximas operaciones (PUT) se descartan
+    - si tiene un *Sliding Buffer*, el valor cargado hace más tiempo se descarta
+*** Estado Exitoso (Succeded)
+    - cuando se pudieron ejecutar (/no quiere decir que hayan terminado su ejecución/)
+    - no se lanzó ninguna excepción como error (Ej. un escenario con error sería intentar agregar con ~put!~ el valor ~nil~)
+*** Estado Completado (Completed)
+    - cuando pudieron ejecutar (Succeed)
+    - completaron la acción asociada (Ej. agregar un valor al canal)
+*** Ejemplo Básico - Operaciones asincrónicas sobre Canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan take! put!]])
+
+      ;; 1) creamos el canal (y lo vinculamos/bindeamos a la variable ch)
+      (def ch (chan))
+
+      ;; 2) solicitamos un valor del canal
+      ;; - luego de evaluar el (take!) se quedará esperando en el canal,
+      ;; hasta que algún proceso envíe (usando algún operador put) un valor al mismo canal
+      (take! ch #(println "obtuve un valor:" %))
+
+      ;; 3) enviamos un valor al canal
+      ;; - luego de evaluar el (put!) la operación anterior (take!) reacciona,
+      ;; y evalúa la función anónima que tenía como 3º parámetro
+      ;; - si al invocar la operación (put!) devuelve true, entonces tuvo éxito al agregar/enviar el valor al Canal
+      (put! ch 99)
+    #+END_SRC
+** Operaciones sincrónicas
+*** Conceptos
+    - ~offer!~ y ~poll!~ son *operaciones sincrónicas*
+      1) ~!offer~ actúa como PUT
+      2) ~!poll~ actúa como TAKE
+*** Comportamiento cuando el Canal está lleno
+    - si el Canal está LLENO, entonces las próximas operaciones ~!offer~
+      1) NO se agregarán en una *Cola de Espera* (ocurriría si fueran asincrónicas y con un buffer de tamaño fijo)
+      2) NO agregarán el valor al Canal
+      3) NO reaccionarán ante el evento de que el Canal tenga espacio para nuevos valores (/sólo ocurre con las operaciones asincrónicas/)
+*** Ejemplo Básico - Operaciones sincrónicas offer! y poll! sobre Canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan offer! poll!]])
+
+      (def ch (chan 2))
+
+      ;; la operacion (!offer) hace de PUT pero de forma sincrónica
+      (offer! ch 20)
+      (offer! ch 21)
+
+      ;; - la operación (offer!) es sincrónica, si el buffer del canal está lleno entonces NO puede agregarlo
+      ;; - al ser (offer!) una operación sincrónica, NO será agregada a una Cola de Espera
+      ;; (mientras que con la operación asincrónica put! se ejecutaría luego, cuando hubiera espacio en el buffer)
+      (offer! ch 22)
+
+      ;; la operacion (!poll) hace de TAKE pero de forma sincrónica
+      (poll! ch)
+      ;; => 20
+
+      (poll! ch)
+      ;; => 21
+
+      ;; - no obtendremos el valor 22 porque (offer!) es sincrónica
+      ;; - como no había espacio en el buffer del canal, no se pudo agregar el valor 22
+      ;; - cuando había espacio en el buffer del canal, tampoco se agregó porque (offer!) no es asincrónica
+      (poll! ch)
+      ;; => nil
+    #+END_SRC
+** Canales con Timeout
+*** Conceptos
+    - ~(timeout duracion-del-canal-en-milisegundos)~ crea y devuelve un canal que cierra luego de un tiempo determinado
+    - cuando cierra el canal ya no permite ingresar ó sacar valores
+*** Ejemplo Básico - Creando canales con timeout
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [go timeout put! take!]])
+
+      ;; creamos un canal que se cerrará en 1000ms y lo vinculamos a la variable b
+      (def b (timeout 2000))
+
+      ;; - si demoramos más de 1000ms para evaluar el put!,
+      ;; entonces el put! devolverá false, porque el canal ya se cerró
+      ;; por tanto no se agregará la cadena "hola"
+      ;;
+      ;; - si evaluamos el put! antes de que pasen 1000ms,
+      ;; entonces el put! devolverá true, porque el canal aún sigue abierto,
+      ;; por tanto agregará la cadena "hola"
+      (put! b "hola")
+
+      (take! b
+             (fn [x] (println "el valor era" x)))
+
+      ;; lo mismo que antes pero todo dentro del let
+      (let [tiempo-de-espera 2000
+            unCanal (timeout tiempo-de-espera)]
+        (put! unCanal "hola")
+        (take! unCanal
+               (fn [valor] (println "el valor era" valor))))
+    #+END_SRC
+** Procesos en Espera en Canales Vacíos ó Canales Llenos
+   - Escenarios comunes donde un Proceso se quedará *BLOQUEADO* esperando (parked)
+     1) Si un Proceso toma (TAKE) un valor de un *Canal VACIO* (/esperará que alguno ingrese un valor al Canal/)
+     2) Si un Proceso envía (PUT) un valor de un *Canal LLENO* (/esperará que alguno tome un valor al Canal/)
+
+   #+BEGIN_QUOTE
+   Processes can park when trying to read from an empty channel or write to a full channel.
+   From the perspective of the process, it is blocked and cannot make any progress until the state of the channel changes
+   However, from the perspective of the ClojureScript runtime, other processes can continue running,
+   and the parked process can eventually be resumed if the state of the channel changes
+   #+END_QUOTE
+** TODO Canales con Transductores (Transducers)
+   #+BEGIN_COMMENT
+   Pendiente hasta ver el tema de *transductores* en detalle..
+   1) Creates a channel with an optional buffer, an optional transducer like ~(map f)~, ~(filter p)~, ...
+   2) If a transducer is supplied a buffer must be specified.
+   #+END_COMMENT
+** Ejemplos Básicos
+*** Ejemplo 1 - Cerrar un canal
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan close! put!]])
+
+      (def ch (chan))
+
+      ;; cerramos el canal, por tanto
+      ;; - NO le podremos enviar/agregar (alguna operación PUT)
+      ;; - NO le podremos solicitar/pedir (alguna operación TAKE)
+      (close! ch)
+
+      ;; - al evaluar la operación (put!) ésta devolverá false,
+      ;; porque NO tuvo éxito al agregar/enviar el valor 99 al canal
+      (put! ch 99)
+    #+END_SRC
+*** Ejemplo 2 - nil como Valor Centinela en los Canales
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan take! close!]])
+
+      (def ch (chan))
+
+      (take! ch #(println "obtuve un valor:" %))
+      (take! ch #(println "obtuve un valor:" %))
+
+      ;; - al cerrar el canal, enviamos el valor nil a las operaciones TAKE pendientes
+      ;; - el valor nil es un Valor Centinela, avisando que un canal se cerró
+      ;; (por eso NO está permitido que las operaciones PUT envíen un valor nil)
+      (close! ch)
+    #+END_SRC
+* Buffers
+** Conceptos
+   - ~(buffer n)~ crea y devuelve un *buffer* de tamaño ~n~ (/cantidad de valores que puede contener/)
+   - el *tamaño de un buffer* determina la *cantidad de valores que pueden contener*
+   - restringen que valores NO pueden ser tomados (take) del Canal el que se creó
+
+  #+NAME: tipo-buffer-operaciones-put
+  |-----------------------+----------------------------------------------------------------------------------------------|
+  | Tipo de Buffer        | Comportamiento sobre las siguientes operaciones ~put!~ si el Canal está LLENO                |
+  |-----------------------+----------------------------------------------------------------------------------------------|
+  | Buffer de Tamaño Fijo | Pasan a una *Cola de Espera* asociada al Canal y reaccionan cuando hay un espacio disponible |
+  |-----------------------+----------------------------------------------------------------------------------------------|
+  | Dropping Buffer       | Son DESCARTADAS junto con el valor que querían agregar                                       |
+  |-----------------------+----------------------------------------------------------------------------------------------|
+  | Sliding Buffer        | Son PRIORIDAD y se ejecutan pero DESCARTA el valor cargado hace más tiempo                   |
+  |-----------------------+----------------------------------------------------------------------------------------------|
+** Buffer de Tamaño Fijo (fixed buffer of size)
+   - ~(buffer n)~ crea y devuelve un *buffer* de tamaño ~n~ (/cantidad de valores que puede contener/)
+   - si el buffer está LLENO, el comportamiento sobre las siguientes operaciones ~put!~
+     1) Pasan a una *Cola de Espera* asociada al Canal
+     2) Reaccionan/ejecutan cuando hay lugar disponible en el Canal
+     3) Agregan el valor en el Canal y ejecutan la *función callback* asociada (/es opcional pasarla por parametro/)
+** Dropping Buffer
+   - ~(dropping-buffer n)~ devuelve un *buffer* de tamaño ~n~
+   - Si el buffer está LLENO, entonces DESCARTA las siguientes operaciones ~put!~
+** Sliding Buffer
+   - ~(sliding-buffer n)~ devuelve un *buffer* de tamaño ~n~
+   - Si el buffer está LLENO, entonces PRIORIZA cada nueva operación ~put!~ y DESCARTA el valor cargado hace más tiempo
+** Ejemplos
+*** Ejemplo 1 - Operaciones sobre un Buffer de tamaño fijo
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan buffer put! take!]])
+
+      ;; - creamos un canal con un buffer tamaño fijo de 2 (sólo podrá guardar hasta 2 valores)
+      ;; - cuando se llene el canal (2 valores) las operaciones (put!) irán a una Cola de espera
+      ;; asociada a éste canal
+      (def ch (chan (buffer 2)))
+
+      (put! ch 10 #(println "agregué el valor 10"))
+      (put! ch 11 #(println "agregué el valor 11"))
+      ;; las siguientes operaciones (put!)
+      ;; - pasarán a una Cola de Espera del canal ch (porque el tamaño del buffer limita guardar hasta 2 valores)
+      ;; - cuando se libere espacio en el Canal, agregarán el valor asociado al Canal
+      ;; - cuando se libere espacio en el Canal, se ejecutarán su función callback
+      (put! ch 12 #(println "agregué el valor 12"))
+      (put! ch 13 #(println "agregué el valor 13"))
+
+      ;; luego de evaluar la operación (take!) se liberará espacio para un valor en el canal
+      ;; y se ejecutará la operación (put! ch 12)
+      (take! ch #(println "Valor obtenido" %))
+
+      ;; luego de evaluar la operación (take!) se liberará espacio para un valor en el canal
+      ;; y se ejecutará la operación (put! ch 13)
+      (take! ch #(println "Valor obtenido" %))
+
+      (take! ch #(println "Valor obtenido" %))
+      (take! ch #(println "Valor obtenido" %))
+    #+END_SRC
+*** Ejemplo 2 - Operaciones sobre un Dropping Buffer
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan dropping-buffer put! take!]])
+
+      (def ch (chan (dropping-buffer 2)))
+
+      (put! ch 20)
+      ;; => true
+
+      (put! ch 21)
+      ;; => true
+
+      ;; - como el tamaño del dropping-buffer es 2, esta operación (put!) será descartada
+      (put! ch 22)
+      ;; => true
+
+      (take! ch #(println "Valor obtenido" %))
+      ;; => "valor obtenido 20"
+
+      (take! ch #(println "Valor obtenido" %))
+      ;; => "valor obtenido 21"
+
+      ;; - la operación (take!) no obtendrá del canal el valor 22
+      ;; porque la operación (put!) fue descartada luego de llenarse el dropping-buffer
+      (take! ch #(println "Valor obtenido" %))
+      ;; => nil
+    #+END_SRC
+*** Ejemplo 3 - Operaciones sobre un Sliding Buffer
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan sliding-buffer put! take!]])
+
+      ;; - el sliding-buffer prioriza los valores cargados más recientes,
+      ;; - si se llena el buffer, descartará los valores cargados hace más tiempo, para cargar uno nuevo
+      (def ch (chan (sliding-buffer 2)))
+
+      (put! ch 20)
+      (put! ch 21)
+
+      ;; - como el tamaño del sliding-buffer es 2,
+      ;; ésta  operacion (put!) hará que se descarte del canal el valor hace más tiempo cargado (el 20)
+      (put! ch 22)
+
+      (take! ch #(println "Valor obtenido" %))
+      ;; => "valor obtenido 21"
+
+      (take! ch #(println "Valor obtenido" %))
+      ;; => "valor obtenido 22"
+
+      (take! ch #(println "Valor obtenido" %))
+      ;; => nil
+    #+END_SRC
