@@ -185,21 +185,33 @@
     1. [[https://ericnormand.me/podcast/what-is-referential-transparency][What is a referential transparecency? (ericnormand.me)]]
 *** Referencias Extraoficiales
     1. [[https://dev.to/ruizb/function-purity-and-referential-transparency-7h1][Function purity and referential Transparency (dev.to/ruizb)]]
-* Inmutabilidad (Inmutable Data)
-** Conceptos
-   - Lo opuesto a la *Inmutabilidad* es la *Mutabilidad*
-   - La *mutabilidad de estructuras de datos* implíca cambiar el estado de un objeto
-   - Permitir la *mutabilidad* implíca "posibles" bugs/fallas en el futuro de la aplicación
+* Inmutabilidad - Estructuras de Datos
+** Concepto Elemental sobre las Estructuras de Datos
+   - En *Clojure* una *colección* puede ser
+     - un Vector
+     - ó una Lista (colección ordenada, puede tener elementos repetidos)
+     - ó un set (colección no necesariamente ordenada, NO tiene elementos sin repetidos)
+   - Por naturaleza son *inmutables* ninguna operación las modifica (/devuelven una copia de la original/)
+** Estrategia de Memoria Compartida - Mayor velocidad al comparar elementos
+   - Las *colecciones* por default son *inmutables*
+     1) Ninguna función que opere sobre ellas las modifica, devuelven una copia de la original
+     2) Poseen la característica de *estructuras de datos persistentes* que implementa una *estrategia de memoria compartida* entre ellas
+     3) La *estrategia de memoria compartida* se da entre
+        - una colección
+        - una copia de la colección anterior (resultado de aplicar una o varias funciones que transforman/actualizan colecciones)
 
-   #+BEGIN_QUOTE
-   In ClojureScript, instead of modifying an object, we create copies of the original object with modifications.
-   While this sounds inefficient, ClojureScript uses data structures that are constructed in such a way that
-   similar objects can often share much of their structure in the same memory locations.
+     #+BEGIN_QUOTE
+     Si una colección es resultado de aplicar una ó varias funciones que transforman/actualizan estructuras de datos (Ej. ~assoc~, ~update~, ~map~, ..)
+     1) Si el resultado es una colección que NO tuvo ningún cambio, entonces la colección original y la devuelta tienen misma *dirección de memoria*
+     2) Si el resultado es una colección con algunos cambios, entonces las operaciones de comparación con los elementos de ambas será más rápido
 
-   These immutable data structures actually enable highly-optimized user interfaces and can even speed up an application.
+     En el segundo escenario, es mayor la velocidad de *comparación entre elementos de las colecciones*
+     sólo de los objetos que son iguales, porque apuntan a misma dirección de memoria
 
-   Written By Andrew Meredith, Learn ClojureScript
-   #+END_QUOTE
+     Por ejemplo, retomando el segundo escenario..
+     Si la colección era una *lista* y el único elemento diferente entre ambas era el último,
+     entonces la comparación entre los primeros elementos de ambas listas será más rápido hasta llegar hasta ese último
+     #+END_QUOTE
 ** Ejemplos
    #+BEGIN_SRC clojure
      (def publicacion {:titulo "Codeando un poco"
@@ -230,6 +242,14 @@
      (borrador-publicacion)
      (copia-publicacion)
    #+END_SRC
+** Referencias
+*** Referencias Extraoficiales
+    1. [[https://www.infoq.com/articles/in-depth-look-clojure-collections/][An In-Depth Look at Clojure Collections (infoq.com)]]
+* Mutabilidad Vs Inmutabilidad
+** Conceptos
+   - Lo opuesto a la *Inmutabilidad* es la *Mutabilidad*
+   - La *mutabilidad de estructuras de datos* implíca *cambiar el estado de un objeto*
+   - Permitir la *mutabilidad* implíca "posibles" bugs/fallas en el futuro de la aplicación
 * TODO Closures, Lexical Scope, Higher Order Functions
 ** Closures (Clausuras)
   - Se destacan cuando usamos *funciones de Orden Superior*
