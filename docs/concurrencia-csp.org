@@ -1,0 +1,139 @@
+#+TITLE: (CSP) Comunicación de Procesos Secuenciales
+* Conceptos Elementales
+** Funciones Callback
+*** Conceptos
+    - Funciones que se pasan por parámetro a otra función
+    - Ejecutan luego de ocurrido un evento
+
+    #+BEGIN_QUOTE
+    Un ejemplo común de callback son las funciones que manejan eventos (event handler)
+    - son pasadas por parámetro (Ej. a una función addListener, addObserver, ...)
+    - se ejecutan luego de ocurrido el evento (Ej. algún evento del DOM como un Click)
+    #+END_QUOTE
+*** Ejemplos Básicos en JavaScript
+**** Ejemplo 1 - Callback sincrónica
+     #+BEGIN_SRC js :results output
+       // quizás podriamos haber usado condicionales ó un switch case para el tipo de callback... pero ese no era el objetivo
+
+       function saludoFormal(nombre){
+           console.log('Hola ' + nombre);
+       }
+
+       function saludoInformal(nombre){
+           console.log('olis ' + nombre);
+       }
+
+       function saludar(callback, nombre){
+           callback(nombre);
+       }
+
+       saludar(saludoFormal, "carlitos");
+
+       saludar(saludoInformal, "carlitos");
+     #+END_SRC
+
+     #+RESULTS:
+     : Hola carlitos
+     : olis carlitos
+**** Ejemplo 2 - Callback asincrónica con setTimeout
+     #+BEGIN_SRC js :results output
+       setTimeout(function(){
+           console.log("Ejecuté una callback asincrónica NO bloqueante, luego de 2 segundos")
+       }, 2000)
+
+       setTimeout( () => console.log("Ejecuté otra callback asincrónica NO bloqueante, luego de 3 segundos"), 3000)
+     #+END_SRC
+
+     #+RESULTS:
+     : Ejecuté una callback luego de  2 segundos
+     : Ejecuté otra callback luego de 3 segundos
+*** Ejemplos en JavaScript
+**** Ejemplo 1 - Callback para manejar errores
+     #+BEGIN_SRC js
+       const fs = require('fs');
+
+       // la función callback es la pasada como 2º parámetro a la función readFile
+       fs.readFile('archivo-inventado.js', function (error, data){
+           if (error) throw error;
+
+           console.log(data.toString());
+       })
+     #+END_SRC
+**** Ejemplo 2 - Callback para manejar de eventos
+     #+BEGIN_SRC js
+       // con $() suponemos que utilizamos la biblioteca jQuery..
+       //
+       // la función callback es la pasada como 2º parámetro,
+       // se ejecutará luego de ocurrir el evento "click"
+       // en el elemento UI del DOM que tiene como propiedad id='login'
+       $('#login').click( function(){
+           console.log('Validando datos...');
+       });
+
+       // la función handler reaccionará y ejecutará luego de ocurrido el evento 'click'
+       document.getElementById('login').addEventListener('click', () => {
+           // lógica que se ejecuta luego de ocurrir el evento click
+           // en el un elemento del DOM con la propiedad id='login'
+       });
+
+       // la función handler reaccionará y ejecutará luego de ocurrido el evento 'load'
+       window.addEventListener('load', () => {
+           // lógica que se ejecuta luego de cargarse la ventana
+       });
+     #+END_SRC
+**** Ejemplo 3 - Varias funciones Callback
+     #+BEGIN_SRC js
+       window.addEventListener('load', () => {
+           // lógica que se ejecuta luego de cargarse la ventana
+           document.getElementById('login').addEventListener('click', () => {
+               // lógica que se ejecuta luego de ocurrir el evento click
+               // en el un elemento del DOM con la propiedad id='login'
+
+               setTimeOut(() => console.log('Pasé por 3 funciones callback'), 2000);
+           });
+       });
+
+     #+END_SRC
+*** Referencias JavaScript
+**** Referencias Oficiales
+     1. [[https://developer.mozilla.org/es/docs/Glossary/Callback_function][Callback function (developer.mozilla.org)]]
+     2. [[https://nodejs.dev/en/learn/javascript-asynchronous-programming-and-callbacks/][Javascript asynchronous programming and callbacks (nodejs.dev)]]
+**** Referencias Extraoficiales
+     1. [[https://www.codefellows.org/blog/what-is-a-callback-anyway/][What is a callback anyway (codefellows.org)]]
+     2. [[https://lenguajejs.com/javascript/asincronia/callbacks/][Callbacks en Javascript (lenguajejs.com)]]
+* Funciones Elementales
+  #+BEGIN_QUOTE
+  Una forma de recordar los operadores básicos suponer
+  1) tenemos sólo un canal (previamente creado con ~ch~)
+  2) dirigimos los operadores básicos (~take!~, ~put!~, ...)
+
+  Entonces las operaciones básicas sobre Canales serían
+  1) ~put!~ channel ~take!~
+  2) ~>!~ channel ~<!~
+  3) ~>!!~ channel ~<!!~
+  4) ~alt!~ channel ~alt!~
+  #+END_QUOTE
+
+  #+NAME: clojure-async-operadores
+  | Operador | Descripción                                                                        |
+  |----------+------------------------------------------------------------------------------------|
+  | go       | macro que crea un proceso ligero                                                   |
+  | chan     | crea y devuelve un canal                                                           |
+  | timeout  | crea y devuelve un canal que se cerrará pasado cierto tiempo                       |
+  | buffer   | devuelve un buffer de tamaño N                                                     |
+  |----------+------------------------------------------------------------------------------------|
+  | take!    | saca un valor dentro de un canal (de forma asíncrona)                              |
+  | <!       | operador take, se puede invocar sólo dentro de un bloque ~(go ..)~                 |
+  |----------+------------------------------------------------------------------------------------|
+  | put!     | agrega un valor dentro de un canal (de forma asíncrona)                            |
+  | >!       | operador put, se puede invocar sólo dentro de un bloque ~(go ..)~                  |
+  |----------+------------------------------------------------------------------------------------|
+  | alts!    | selecciona un canal de entre varios y realiza una operación de lectura ó escritura |
+  |----------+------------------------------------------------------------------------------------|
+
+  #+BEGIN_QUOTE
+  Operadores que sólo se pueden invocar dentro de un bloque ~(go ...)~
+  - <!
+  - >!
+  - alts!
+  #+END_QUOTE
