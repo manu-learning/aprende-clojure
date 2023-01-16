@@ -22,3 +22,5 @@
     (defn run [opts]
       (println "Hola Mundo!"))
   #+END_SRC
+* Motivación de Empresas por migrar a Clojure
+  1. https://flexiana.com/clojure
