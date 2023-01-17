@@ -138,6 +138,7 @@
   - alts!
   #+END_QUOTE
 * Diferencias entre Operadores take! put! <! >!
+** Conceptos
   - ~take!~ y ~put!~ son operaciones asincrónicas
   - ~>!~ y ~<!~ son las operaciones PUT/TAKE utilizadas sólo por Procesos Ligeros (creados con la macro ~go~)
     1) utilizadas dentro de un bloque ~(go ..)~
@@ -151,6 +152,38 @@
   Los operadores asincrónicos ~take!~ y ~put!~ evitan que el proceso principal (la aplicación en si)
   quede en estado BLOQUEADO porque un Canal esté lleno ó vacío.
   #+END_QUOTE
+** Ejemplos
+*** Ejemplo 1 - Operador put! Vs Operador (>!)
+    #+BEGIN_SRC clojure
+      (require '[clojure.core.async :refer [chan put!]])
+
+      (def keydown-canal (chan))
+      (def keyup-canal (chan))
+
+      ;; put! Vs >!
+      ;; - ambos operadores agregan un valor a un canal
+      ;; - put! es un operador asincrónico
+      ;; - >! es un operador que se utilizan los Procesos Ligeros,
+      ;; los utilizan dentro de su bloque (go ...)
+      ;;
+      ;; en este caso sería más costoso (en términos de eficiencia) utilizar el operador (>!)
+      ;; porque creariamos un Proceso Ligero por cada ocurrencia de un evento "keydown"
+      ;; y éste operador Bloquearia al Proceso Ligero si el Canal estuviera lleno,
+      ;; por tanto tendriamos varios Procesos Ligeros bloqueados esperando agregar un valor al Canal
+      ;; es decir ejecutar el operador (>!)
+      ;;
+      ;; en este caso (put!) es más eficiente, porque se agregaría a una Cola de Espera
+      ;; de operaciones pendientes asociadas a ese Canal
+      (defn keydown-event-handler [evento]
+        (let [tecla (.-key evento)]
+          (println "Presionaron la tecla" tecla)
+          (put! keydown-canal tecla)))
+
+      (defn keyup-event-handler [evento]
+        (let [tecla (.-key evento)]
+          (println "Dejaron de presionar la tecla" tecla)
+          (put! keyup-canal tecla)))
+    #+END_SRC
 * Procesos Ligeros (LWP, Lightweight Process)
 ** Conceptos
    - ~go~ es la macro para *crear un proceso ligero*
@@ -172,7 +205,8 @@
    un proceso puede tener uno ó mas (LWPs) y cada (LWP) puede ejecutar uno ó mas (ULTs)
    #+END_QUOTE
 ** Macro go-loop
-   - ~go-loop~ es un *azúcar sintáctico* de ~(go (loop ... ))~
+*** Conceptos
+    - ~go-loop~ es un *azúcar sintáctico* de ~(go (loop ... ))~
 ** Operaciones sobre Canales
    - ~>!~ y ~<!~ son las operaciones PUT/TAKE que utiliza un Proceso Ligero creado con la macro ~go~
      1) ~>!~ actúa como ~put!~
