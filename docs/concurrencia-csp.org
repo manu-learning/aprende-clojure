@@ -207,6 +207,75 @@
 ** Macro go-loop
 *** Conceptos
     - ~go-loop~ es un *azúcar sintáctico* de ~(go (loop ... ))~
+*** Ejemplos
+**** Ejemplo 1 - Sincronizando operaciones sobre varios canales con un Proceso Ligero
+     #+BEGIN_SRC clojure
+       (require '[clojure.core.async :refer [go-loop chan put! take! >! alts!]])
+
+       ;; creamos un Proceso Ligero que a cada rato hará
+       ;; 1- usará (alts!) como operador de lectura (<!),
+       ;; seleccionando el canal que esté listo (el que tenga un valor para obtener con <!),
+       ;;
+       ;; Nota: si (alts!) se usa como operador de lectura usará (<!) y éste bloqueará al Proceso Ligero,
+       ;; hasta que alguno de los Canales tenga un valor para leer
+       ;;
+       ;; 2- una vez seleccionado el canal, agregará el valor obtenido con (>!)
+       ;; en el canal que agrupa los valores de la Secuencia de Canales (el que se pasó por parámetro como & parameter rest)
+       (defn merge-canales [& resto-canales]
+         (let [canales-agrupados (chan)]
+           (go-loop []
+             (println "Buscando valores de los canales pasados por parámetro..")
+             (>! canales-agrupados (first (alts! resto-canales)))
+             (println "Agregamos un valor al canal que agrupa valores de los canales")
+             (recur))
+           canales-agrupados))
+
+       (def c1 (chan))
+       (def c2 (chan))
+
+       ;; cada vez que agregen un valor al canal c1 ó c2,
+       ;; se agregará de forma sincronizada a canales-agrupados
+       (def canales-agrupados (merge-canales c1 c2))
+
+       (put! c1 10)
+       (put! c2 20)
+
+       (take! canales-agrupados #(println "valor obtenido" %))
+
+       ;; - suponiendo que sabemos que siempre son la misma cantidad de operaciones put!
+       ;; - también podríamos hacer un go-loop que imprima cada vez que agregen un valor a canales
+       (dotimes [n 2]
+         (take! canales-agrupados #(println "valor obtenido" %)))
+     #+END_SRC
+**** Ejemplo 2 - Sincronizando operaciones sobre dos canales con un Proceso Ligero
+     #+BEGIN_SRC clojure
+       (require '[clojure.core.async :refer [go-loop chan put! take! >! <!]])
+
+       ;; - al utilizar la combinación de funciones LOOP + RECUR, tendremos una función que iterará de forma constante
+       ;; y en este caso con la macro GO creamos un Proceso Ligero que se ejecutará reitaradas veces una serie de funciones
+       ;; que le pasemos de manera secuencial
+       ;;
+       ;; - sincronizamos el valor de dos canales en uno solo
+       ;; - cada vez que ambos canales (canal-1 y canal-2) tengan un valor, el valor de ambos se agregarán
+       ;; como un par ordenado con forma de vector [valor valor]
+       ;;
+       ;; Nota: el operador de lectura (<!) bloquea al Proceso Ligero que lo utiliza,
+       ;; es decir que se queda esperando.. hasta que haya un valor para leer del canal asociado al operador (<!)
+       (defn par-ordenado-de-canales [canal-1 canal-2]
+         (let [par-ordenado (chan)]
+           (go-loop []
+             (>! par-ordenado [(<! canal-1) (<! canal-2)])
+             (recur))
+           par-ordenado))
+
+       (def x-ch (chan))
+       (def y-ch (chan))
+       (def coordenadas-ch (par-ordenado-de-canales x-ch y-ch))
+
+       (put! x-ch 10)
+       (put! y-ch 25)
+       (take! coordenadas-ch #(println "coordenada:" %))
+     #+END_SRC
 ** Operaciones sobre Canales
    - ~>!~ y ~<!~ son las operaciones PUT/TAKE que utiliza un Proceso Ligero creado con la macro ~go~
      1) ~>!~ actúa como ~put!~
