@@ -1,4 +1,6 @@
 #+TITLE: Intro
+* Motivación de Empresas por migrar a Clojure
+  1. https://flexiana.com/clojure
 * Hola Mundo
   #+BEGIN_SRC shell :results output
   # ejecutamos la siguiente linea de comando en algún emulador de terminal (TTY)
@@ -22,5 +24,3 @@
     (defn run [opts]
       (println "Hola Mundo!"))
   #+END_SRC
-* Motivación de Empresas por migrar a Clojure
-  1. https://flexiana.com/clojure
