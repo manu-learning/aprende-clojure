@@ -276,6 +276,46 @@
        (put! y-ch 25)
        (take! coordenadas-ch #(println "coordenada:" %))
      #+END_SRC
+**** Ejemplo 3 - Sincronizando ocurrencias de dos eventos de teclado (keyup, keydown) con canales
+     #+BEGIN_SRC clojure
+       (require '[goog.events :as gevents])
+       (require '[clojure.core.async :refer [go-loop chan put! >! alts!]])
+
+       (defn keydown-event-handler [evento]
+         (let [tecla (.-key evento)]
+           (println "Presionaron la tecla" tecla)
+           (put! keydown-canal tecla)))
+
+       (defn keyup-event-handler [evento]
+         (let [tecla (.-key evento)]
+           (println "Dejaron de presionar la tecla" tecla)
+           (put! keyup-canal tecla)))
+
+       (gevents/listen js/document "keydown" keydown-event-handler)
+       (gevents/listen js/document "keyup" keyup-event-handler)
+
+       (defn es-tecla-modificadora? [tecla]
+         (contains? ["Control" "Meta" "Alt" "Shift"] tecla))
+
+       (def combinacion-de-teclas (chan))
+
+       (defn vector-sin-incluir-elemento [elemento vector]
+         (filterv #(not= elemento) vector))
+
+       (go-loop [teclas-modificadoras []
+                 tecla-presionada nil]
+         (when (and (not-empty teclas-modificadoras) tecla-presionada)
+           (>! combinacion-de-teclas (conj teclas-modificadoras tecla-presionada))) ;; agregamos combinación de teclas
+         (let [[nombre-tecla canal-seleccionado] (alts! [keydown-canal
+                                                         keyup-canal])] ;; alts! como operador TAKE
+           (condp = canal-seleccionado
+             keydown-canal (if (es-tecla-modificadora? nombre-tecla) ;; agregamos sólo las que mantenemos presionadas
+                             (recur (conj teclas-modificadoras nombre-tecla) tecla-presionada)
+                             (recur teclas-modificadoras nombre-tecla))
+             keyup-canal (if (es-tecla-modificadora? nombre-tecla) ;; al soltar teclas las removemos del análisis
+                           (recur (vector-sin-incluir-elemento nombre-tecla teclas-modificadoras) nombre-tecla)
+                           (recur teclas-modificadoras nil)))))
+     #+END_SRC
 ** Operaciones sobre Canales
    - ~>!~ y ~<!~ son las operaciones PUT/TAKE que utiliza un Proceso Ligero creado con la macro ~go~
      1) ~>!~ actúa como ~put!~
