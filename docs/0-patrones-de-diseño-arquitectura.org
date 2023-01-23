@@ -1,4 +1,4 @@
-#+TITLE: Patrones de Diseño
+#+TITLE: Patrones de Diseño y Arquitectura
 * TODO Middleware
 ** Conceptos
    - es un *patrón de de diseño de comportamiento*
@@ -86,11 +86,13 @@
       (is (= "error falta id"
              (:error (login* hacker-login))))
     #+END_SRC
-** Referencias
+** TODO Referencias
 *** Referencias Oficiales
     1. [[https://clojure-doc.org/articles/cookbooks/middleware/][Middleware in Clojure (clojure-doc.org)]]
     2. [[https://ericnormand.me/article/parts-of-ring][The parts of Ring, the Clojure Web library (ericnormand.me)]]
     3. [[https://github.com/day8/re-frame/wiki/Using-Handler-Middleware][Using Handle Middleware (Wiki re-frame framework)]]
+*** TODO Referencias Destacadas
+    1. https://www.ibm.com/topics/middleware
 *** Referencias Extraoficiales
     1. [[https://blog.janetacarr.com/fix-your-clojure-code-clojure-comes-with-design-patterns-part-2/][Fix your Clojure code comes with dessign patterns (blog.janetcarr.com)]]
     2. [[https://www.baeldung.com/clojure-ring][Writing Clojure Webapps with Ring (baeldung.com)]]
