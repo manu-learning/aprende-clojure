@@ -256,3 +256,70 @@
     3. [[https://docs.aws.amazon.com/es_es/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html][SQS, Colas de tipo FIFO (docs.aws.amazon.com)]]
     4. [[https://aws.amazon.com/es/message-queue/][Cola de mensajes (aws.amazon.com)]]
     5. [[https://www.ibm.com/topics/message-queues][Message queues (ibm.com)]]
+* Modelo Publicación/Suscripción (Publish/Subscribe)
+** Conceptos
+   - un *grupo de Consumidores* previamente *suscriptos/registrados al mismo Canal* reciben el mismo *mensaje/evento publicado*
+   - los *mensajes/eventos publicados* en un *Canal* NO son encolados, esto lo diferencia del modelo (PTP) Cola de Mensajes
+** Implementa/Extiende el Patrón de Diseño Observer
+*** Implementa del Patrón Observer
+    - al *Sujeto Observable* que notifica a todos los *Suscriptores* cuando
+      1) hay un *cambio de estado*
+      2) una *ocurrencia de un evento*
+*** Extiende el Patrón Observer
+   - agrega la notificación a los *suscriptores* se realiza a través de un *Canal publish/subscribe*
+** Comunicación
+   - tiene una relación *One to Many* porque la *publicación de un mensaje/evento* puede ser recibido por varios *Suscriptores*
+   - ningún componente (Editor/Suscriptor) conoce al otro por tanto es una comunicación anónima
+** Actores
+*** Editor (Producer/Publisher)
+    - *CREA y PUBLICA* Mensajes ó Eventos a uno ó varios *Canales Publish/Subscribe*
+    - expone la operación de *Suscripción*
+      (/necesaria para que los consumidores se suscriban al Canal de interés y luego reciban los eventos ó mensajes publicados/)
+    - NO necesita conocer de los Suscriptores
+      1) quienes son
+      2) que hacen con los datos que reciban
+*** Suscriptor (Consumer/Subscriber)
+    - un *Consumidor* puede *suscribirse/registrarse* (operación) a uno ó varios *Canales*
+    - un *Consumidor* se convierte en *Suscriptor* luego de suscribirse a un *Canal*
+    - los *Suscriptores* reciben los *eventos/mensajes publicados* de los *Canales* a los que registró/suscribió
+** Canal Publish/Subscribe
+   - permite clasificar los *eventos/mensajes publicados* en *categorías*
+     (Ej. para componentes interesados en recibir errores de la aplicación)
+   - el destino de los *eventos publicados* por los *editores* (producer/publisher)
+   - el recurso que permite el *bajo acoplamiento* entre los componentes Emisor y Receptor
+
+   #+BEGIN_QUOTE
+   Si interpretamos al Canal sólo como un tunel (pipe) con entradas/salidas
+   1) recibe como entrada el *Mensaje ó Evento publicado*
+   2) tiene múltiples salidas, una salida por cada Suscriptor
+   3) la salida es una *COPIA del mensaje* ó la *propagación del evento* (/a cada Suscriptor/)
+   #+END_QUOTE
+** Referencias
+*** Referencias Destacadas
+    1. [[https://www.enterpriseintegrationpatterns.com/PublishSubscribeChannel.html][Publish-Subscribe Channel (enterpriseintegrationpatterns.com)]]
+    2. [[https://www.enterpriseintegrationpatterns.com/EventMessage.html][Event Message (enterpriseintegrationpatterns.com)]]
+    3. [[https://cloud.google.com/pubsub/docs/overview?hl=es-419][Que es Pub/Sub (cloud.google.com)]]
+    4. [[https://cloud.google.com/pubsub/architecture][Descripción de la Arquitectura de Pub/Sub (cloud.google.com)]]
+    5. [[https://aws.amazon.com/es/pub-sub-messaging/][Pub/Sub Messaging (aws.amazon.com)]]
+    6. [[https://learn.microsoft.com/en-us/azure/architecture/patterns/publisher-subscriber][Publisher-Subscriber pattern (learn.microsoft.com)]]
+*** Otras Referencias
+    1. [[https://www.scaler.com/topics/design-patterns/observer-design-pattern/][Observer Design Pattern (scaler.com)]]
+    2. [[https://www.pubnub.com/learn/glossary/what-is-publish-subscribe/][What is Publish-Subscribe (pubnub.com)]]
+    3. [[https://www.enjoyalgorithms.com/blog/publisher-subscriber-pattern][Publisher-Subscriber an Architectural Design Pattern (enjoyalgorithms.com)]]
+    4. [[https://www.toptal.com/ruby-on-rails/the-publish-subscribe-pattern-on-rails][The publish-subscribe pattern on Rails (toptal.com, Ahmed AbdelHalim)]]
+    5. [[https://ably.com/blog/pub-sub-pattern-examples][Pub/Sub examples (ably.com, Martin Fietkiewicz)]]
+* TODO Modelo Publicación/Suscripción basado en Tópicos
+** Extiende el Canal Pub/Sub
+   - agrega el subscribirse a múltiples Canales identificados mediante *palabras clave* (keywords)
+** Tópico/Tema/Categoría/Grupo de Comunicación
+   - Los tópicos se pueden ver como *grupos de comunicación*, por lo tanto
+     1) la subscripción a un tópico ~X~ se puede interpretar como ingresar a un grupo ~X~ al que estamos interesados
+     2) la publicación de un evento en ~X~ deriva en la propagación del evento entre todos los miembros del grupo ~X~
+** Jerarquía de Tópicos
+   - organizados según relaciones de contenido de los eventos
+   - SUBSCRIBIRSE a un nodo en la jerarquía, implíca SUSCRIBIRSE a todos los SUBTÓPICOS de ese nodo
+** Referencias
+*** Referencias de Universidades
+    1. [[http://shenh.people.clemson.edu/publishedPaper/bookChapter/2009/sub-pub-Shen.pdf][Pub/Sub System as topic-based (Universidad Clemson, Dr. Haiying Shen)]]
+*** Otras Referencias
+    1. [[https://dev.to/jucian0/pub-sub-pattern-a-brief-explanation-21ed][Pub-Sub pattern a brief explanation (dev.to, Jucian0)]]
