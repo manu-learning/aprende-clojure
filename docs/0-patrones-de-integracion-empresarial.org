@@ -185,3 +185,74 @@
     3. [[https://www.enterpriseintegrationpatterns.com/patterns/conversation/][Conversation Patterns (enterpriseintegrationpatterns.com)]]
 *** Otras Referencias
     1. [[https://iberasync.es/publicacion-subscripcion-vs-cola-de-mensajes/][Publicación/Suscripción Vs Cola de Mensajes (iberasync.es)]]
+* Cola de Mensajes (Message Queue) ó Modelo Punto a Punto (PTP, P2P) ó Productor/Consumidor
+** Comunicación punto a punto (PTP, P2P)
+   - el modelo (PTP) tiene una comunicación *One to One* porque un mensaje lo recibe sólo un Consumidor
+   - el *flujo de los datos* tiene sólo un sentido ~(Productor) -> Cola de Mensajes -> (Consumidor ó Consumidores)~
+     (/el Productor podría conocer al Consumidor, pero NO al revés/)
+** Escenarios Particulares
+*** Muchos Consumidores utilizando la misma Cola de Mensajes
+     #+BEGIN_QUOTE
+     Si tenemos un escenario dónde varios *Consumidores* esperan y compiten por recuperar/leer un mensaje de la misma Cola de Mensajes,
+     entonces sólo un Consumidor recibirá el mensaje (/porque una vez que se retira el mensaje, se elimina de la cola de mensajes/)
+     porque este modelo de comunicación está pensada de *punto a punto* (PTP, P2P)
+     #+END_QUOTE
+*** Decidir si cambiar al modelo pub/sub
+     #+BEGIN_QUOTE
+     Si tenemos un escenario dónde varios *Productores* y *Consumidores* utilizan la misma *Cola de Mensajes*,
+     pero queremos que varios *Consumidores* reciban el mismo mensaje
+
+     entonces debemos cambiar al modelo *Publicación/Suscripción* (Publish/Subscribe),
+     porque varios consumidores reciben una *copia del mensaje*
+     #+END_QUOTE
+** Comunicación Indirecta (Operaciones Asincrónicas)
+  - entre los componentes del sistema (/ó bien entre aplicaciones distribuidas en distintos entornos/)
+    1) reduce el *acoplamiento* entre el Productor/Consumidor
+    2) aparece un recurso/componente intermediario entre el Productor/Consumidor que es la *Cola de Mensajes*
+** Mensajes
+*** Conceptos
+    - cada mensaje se puede retirar/consumir una única vez
+    - luego de retirado de la Cola de Mensajes, se elimina y deja de estar disponible
+*** Criterio de Entrega
+    - por default la lógica de entrega es FIFO, el primero que ingresa a la Cola de Mensajes será el primero en salir (ser entregado)
+    - los mensajes podrían tener *prioridad* modificando el orden de entrega FIFO
+*** Persistentes y No Persistentes
+    - los *NO persistentes* tienen un *tiempo de expiración*
+    - los *persistentes* quedan en la *cola de espera*
+
+    #+BEGIN_QUOTE
+    Un *mensaje no persistente* podría ser un problema si ocurre algún problema durante la recepción del mensaje
+    (Ej. falla la conexión, falla el consumidor, ...)
+    #+END_QUOTE
+** Actores
+*** Productor (Producer)
+  - agrega mensajes en la *Cola de mensajes*
+  - si la Comunicación es 1 a 1, entonces conoce al *Consumidor* y agrega mensajes en esa *Cola de mensajes*
+  - puede conocer al Consumidor, quien recibe y recupera los mensajes (/pero no ocurre el caso inverso/)
+*** Consumidor (Consumer)
+  - recupera el mensaje de la *Cola de mensajes*
+  - difiere del *Modelo Publicación/Subscripción*
+    - en este modelo (PTP) el propio Consumidor debe retirar el mensaje de la *Cola de Mensajes*
+    - en el modelo Pub/Sub el Suscriptor recibe automáticamente el mensaje que es entregado por un (MOM) Middleware Orientado a Mensajes
+** Tranmisión de datos Asíncrona
+  - las operaciones de envío/recepción de mensajes es asincrónica
+    (/Ej. el productor y consumidor pueden ejecutar en distintos instantes de tiempo e igual se concretaría la comunicación/)
+  - los mensajes son consumidos (retirados de la cola de mensajes) sólo cuando las aplicaciones estén disponibles
+    (/Ej. útil cuando hay problemas de conectividad, los datos quedan en la cola de mensajes, y no se pierde información/)
+** Cualidades de diseño
+*** Fiabilidad (Reliable)
+    - si NO es un mensaje con tiempo de expiración entonces
+      1) NO ocurre pérdida de información por falla de conectividad
+      2) los mensajes persisten en la *Cola de mensajes* hasta ser retirados
+*** Bajo Acoplamiento
+    - un *componente emisor* envía un *mensaje* a un *destino* y el *componente receptor* lo retira de dicho *destino*
+      1) el componete emisor, es el productor del mensaje
+      2) el destino, es la cola de mensajes (/este componente permite el bajo acoplamiento, la no dependencia/)
+      3) el componente receptor, es el consumidor del mensaje
+** Referencias
+*** Referencias Destacadas
+    1. [[https://www.enterpriseintegrationpatterns.com/PointToPointChannel.html][Point to point Channel (enterpriseintegrationpatterns.com)]]
+    2. [[https://www.oreilly.com/library/view/java-message-service/9780596802264/ch04.html][Point to point Messaging (oreilly.com)]]
+    3. [[https://docs.aws.amazon.com/es_es/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html][SQS, Colas de tipo FIFO (docs.aws.amazon.com)]]
+    4. [[https://aws.amazon.com/es/message-queue/][Cola de mensajes (aws.amazon.com)]]
+    5. [[https://www.ibm.com/topics/message-queues][Message queues (ibm.com)]]
