@@ -147,3 +147,41 @@
     5. [[https://medium.com/@maniakhitoccori/los-10-patrones-comunes-de-arquitectura-de-software-d8b9047edf0b][Los 10 patrones comunes de arquitectura de software (medium.com/@maniakhitoccori)]]
 *** Issues
     1. [[https://stackoverflow.com/questions/6574291/ems-esb-and-mom-jms][EMS, ESB, MOM and JMS (stackoverflow.com)]]
+* Cola de Mensajes Vs Publicación/Suscripción
+** Tabla Comparativa
+    #+NAME: cola-de-mensajes
+    | Patrón de Mensajería               | Cola de Mensajes ó (PTP, punto a punto)                                                       |
+    |------------------------------------+-----------------------------------------------------------------------------------------------|
+    | Comunicación                       | One to one (1 mensaje -> 1 consumidor)                                                        |
+    |------------------------------------+-----------------------------------------------------------------------------------------------|
+    | Objeto de interés                  | mensaje (se consume una única vez, es eliminado luego de ser retirado de la Cola de mensajes) |
+    |------------------------------------+-----------------------------------------------------------------------------------------------|
+    | Destino del objeto de interés      | Cola de Mensajes (persiste mensajes)                                                          |
+    |------------------------------------+-----------------------------------------------------------------------------------------------|
+    | Emisor                             | Productor (crea/envía mensajes a una Cola específica)                                         |
+    |------------------------------------+-----------------------------------------------------------------------------------------------|
+    | Receptor                           | Consumidor (retira mensajes de 1 o varias Colas de mensajes)                                  |
+    |------------------------------------+-----------------------------------------------------------------------------------------------|
+    | Interés del Emisor con el Receptor | SI, si lo configuramos como *request/reply* para que confirme la recepción del mensaje        |
+
+    #+NAME: publicacion-suscripcion
+    | Patrón de Mensajería               | Publicación/Suscripción                                                                                     |
+    |------------------------------------+-------------------------------------------------------------------------------------------------------------|
+    | Comunicación                       | Many to Many ó One to Many ( 1 evento/mensaje -> muchos suscriptores )                                      |
+    |------------------------------------+-------------------------------------------------------------------------------------------------------------|
+    | Objeto de interés                  | mensaje ó evento                                                                                            |
+    |------------------------------------+-------------------------------------------------------------------------------------------------------------|
+    | Destino del objeto de interés      | Canal Publish-Suscribe (un Middleware propaga el evento ó entrega una copia del mensaje a los Suscriptores) |
+    |------------------------------------+-------------------------------------------------------------------------------------------------------------|
+    | Emisor                             | Editor (crea/publica eventos ó mensajes en un Canal Virtual contenido por un Middleware)                    |
+    |------------------------------------+-------------------------------------------------------------------------------------------------------------|
+    | Receptor                           | Suscriptor (se suscribe/registra a un canal y reciben automáticamente los eventos ó mensajes)               |
+    |------------------------------------+-------------------------------------------------------------------------------------------------------------|
+    | Interés del Emisor con el Receptor | NO, la comunicación es anónima (no se entera si el Receptor recibe ó no el evento ó mensaje)                |
+** Referencias
+*** Referencias Destacadas
+    1. [[https://www.baeldung.com/pub-sub-vs-message-queues][Pub-Sub Vs Message Queues (baeldung.com)]]
+    2. [[https://docs.oracle.com/cd/E19225-01/820-5822/byauk/index.html][Point to Point or Publish and Subscribe (docs.oracle.com)]]
+    3. [[https://www.enterpriseintegrationpatterns.com/patterns/conversation/][Conversation Patterns (enterpriseintegrationpatterns.com)]]
+*** Otras Referencias
+    1. [[https://iberasync.es/publicacion-subscripcion-vs-cola-de-mensajes/][Publicación/Suscripción Vs Cola de Mensajes (iberasync.es)]]
