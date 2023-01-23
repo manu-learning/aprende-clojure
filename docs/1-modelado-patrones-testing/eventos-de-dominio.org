@@ -1,8 +1,10 @@
 #+TITLE: Modelo Guiado por el Dominio (DDD, Domain Driven Design)
 * Eventos de dominio
+  #+BEGIN_COMMENT
   1. https://www.youtube.com/watch?v=Xmep77ZyLX4&ab_channel=DesarrolloyArquitecturaDigital
   2. https://www.youtube.com/watch?v=Mn4TFBXa_2g&ab_channel=YoelvisMulen%7Bcode%7D
   3. https://www.youtube.com/watch?v=Mb21zCnkHj8&ab_channel=CodelyTV-Redescubrelaprogramaci%C3%B3n
+  #+END_COMMENT
 * TODO Modelado de Dominio
 ** Referencias
 *** Referencias Oficiales
@@ -16,4 +18,6 @@
     2. [[https://www.geeksforgeeks.org/software-engineering-domain-modeling/][Domain modeling (geeksforgeeks.com)]]
     3. [[https://jeronimopalacios.com/software/domain-driven-development/][(DDD) Diseño Guiado por el Dominio, Domain Driven Design (jeronimopalacios.com)]]
 * Microservicios
+  #+BEGIN_COMMENT
   1. https://www.youtube.com/watch?v=8SJxBVTj3yw&ab_channel=Autentia
+  #+END_COMMENT
