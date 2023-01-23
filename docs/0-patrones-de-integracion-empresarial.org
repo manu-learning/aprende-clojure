@@ -1,0 +1,149 @@
+#+TITLE: Patrones de Integración Empresarial (EIP)
+* Conceptos Básicos
+** Conceptos relacionados
+    #+BEGIN_QUOTE
+    Un *Sistema Distribuido* requiere de un *Middleware* que actúe como puente para la comunicación entre los componentes/servicios de dicho Sistema,
+    los *Sistemas/Agentes de Mensajería* son un tipo *Middleware* pero *Orientado a Mensajes* (MOM) para la *comunicación distribuida*,
+    un *Middleware Orientado a Mensajes* (MOM) puede implementar el modelo *Publish/Subscribe*
+
+    El modelo *Publish/Subscribe* es una extensión del *Patrón de Diseño Observer*,
+    que implementa un *canal Publish/Subscribe* (canal virtual) en el cual
+    1) el *Editor* publica un Mensaje ó un Evento
+    2) cuando el Mensaje/Evento ingresa al Canal éste se *propaga* a todos los *Suscriptores* (concepto de broadcast)
+    3) es el (MOM) *Middleware Orientado a Mensajes* quien transmite/entrega una copia del Mensaje ó propaga el Evento
+    4) los *Suscriptores* reciben automáticamente el Evento (deciden como manejarlo) ó la copia del Mensaje
+
+    El modelo *Publish/Subscribe basado en tópicos* es una extensión del modelo *Pub/Sub*,
+    agregando a la implementación que los participantes puedan
+    1) publicar eventos
+    2) subscribirse a múltiples identificados mediante *palabras clave* (keywords)
+
+    El Sistema/Agente de Mensajería (MOM) tiene la responsabilidad de transmitir los *eventos ó mensajes publicados* que ingresan en un *Canal Publish/Subscribe*,
+    pero sólo a los Suscriptores que previamente se suscribieron/registraron a ese Canal (que interpretarlo como un grupo de comunicación)
+    #+END_QUOTE
+** Integración Empresarial
+*** Patrones de Integración Empresarial (EIP)
+    - Formas estandarizadas para integrar aplicaciones
+    - Derivan a causa de la aparición del incremento de Sistemas Distribuidos más complejos
+    - NO dependen de una tecnología determinada
+*** Servicios de Mensajería
+    - Manera en que se comunican distintas aplicaciones distribuidas
+    - Envían/Reciben mensajes en diferentes lenguajes, siempre que cada extremo de la comunicación entienda
+      1) el formato del mensaje
+      2) el protocolo de mensajería
+*** Tipos de Integración
+    - Integración de aplicaciones
+    - Integración de datos
+    - Integración de procesos
+    - Integración de dispositivos
+** Sistemas Distribuidos
+   - requieren de un *Middleware* que actúe como puente para la comunicación entre sus componentes/servicios
+   - los componentes del sistema trabajan
+     1) *distribuidos físicamente* en
+        - distintas *plataformas* (donde construimos la aplicación con un lenguaje de programación determinado, Java, .NET, ...)
+        - distintos *entornos* (manejamos la infraestructura, elegimos el SO, la plataforma, etc, es más complejo)
+     2) conectados en red
+     3) comunicados y coordinanos sólo mediante el *paso de mensajes*
+     4) de forma independiente (/lo hace tolerante a fallos, si alguno falla no afecta al resto de los componentes/)
+     5) concurrentemente (/usando estrategias que mantengan la integridad de la información/)
+** Broadcast (Conexión multipunto)
+*** Conceptos
+    - un *Broadcast* es una *conexión multipunto*
+    - la transmisión de datos es *One to Many* porque envía un *paquete de datos* desde un punto a todos los *nodos de una red*
+
+    #+BEGIN_QUOTE
+    Ejemplos de un broadcast
+    1) La televisión por cable, el proveedor envía la tranmisión a TODOS los usuarios televidentes (red de usuarios que pagan)
+    2) Un newsletter ó Boletín digital, notifica a TODOS los suscriptores (red de suscriptores que se registraron)
+    #+END_QUOTE
+*** Actores
+**** Emisor
+     - envía el paquete de datos al *Broadcast* (éste entrega/distribuye el mensaje)
+     - no necesita conocer quienes reciben el mensaje
+     - no necesita hacer múltiples envíos a cada Receptor, sólo hace un envío, es responsabilidad del *Broadcast* distribuirlo
+**** Receptores
+     - reciben un paquete de datos distribuido/entregado por *Broadcast*
+*** Diagramas
+**** Diagrama 1 - Formas de transmisión de datos entre redes
+     [[file:assets/images/formas-de-transmision-de-datos-en-redes.jpg]]
+*** Referencias
+    1. https://devopedia.org/local-area-network
+    2. https://www.ionos.es/digitalguide/servidores/know-how/broadcast/
+** Canales (Channel)
+   - Un *canal* es sólo una *dirección lógica* por eso también se los llama *Canal Virtual*
+   - Actúan como un tunel (pipe) virtual que conecta al Emisor y Receptor
+   - Son utilizados por un (MOM) Middleware Orientado a Mensaje para transmitir datos
+   - Existen como un recurso dentro del (MOM)
+   - Cuando una aplicación envía ó recupera datos de un (MOM) lo hace de un *Canal de Mensajes* específico
+** Agentes de Mensajería - Middleware Orientado a Mensajes (MOM)
+   - son un *tipo de middleware* un *Middleware Orientado a la Mensajería* (MOM)
+   - soportan el envío/recepción de *paquetes de datos* de forma sincrónica/asincrónica
+   - las aplicaciones se conectan a ellos para facilitar de forma asíncrona la creación, envío, recepción y lectura de mensajes
+   - encargados de transmitir los *eventos* a través de un *canal de eventos* (es el puente que conecta al Emisor y al Receptor)
+
+   #+BEGIN_QUOTE
+   Sirven no solo para mediar entre *componentes de un sistema* si no también entre *distintas aplicaciones*
+   1) la conectividad (suelen soportan varios protocolos de conectividad como HTTP/S, SSL, TCP/IP, ...)
+   2) la mensajería
+   #+END_QUOTE
+** Proceso de transmisión de un mensaje en un (MOM)
+*** Conceptos
+   #+BEGIN_QUOTE
+   En un MOM, un mensaje se transmite en cinco pasos:
+   1) *Crear:* El Emisor CREA un mensaje y coloca los datos que desea transmitir
+   2) *Enviar:*. El Emisor AGREGA el mensaje en el canal
+   3) *Entregar:*. El (MOM) Agente/Sistema de mensajería TRANSFIERE el mensaje al Receptor
+   4) *Recibir:*. El Receptor LEE/RETIRA el mensaje desde el canal
+   5) *Procesar:* El Receptor EXTRAE los datos del mensaje
+   #+END_QUOTE
+*** Operaciones asincrónicas - Enviar y Olvidar (send and forget)
+    #+BEGIN_QUOTE
+    En el paso 2 (Enviar), la aplicación emisora envía el mensaje a un canal.
+    1) Una vez que el envío es completado, la aplicación puede realizar otras tareas mientras que el MOM transmite el mensaje en paralelo
+    2) La aplicación confiará en que el receptor recibirá el mensaje y puede no esperar hasta que esto ocurra (operación asincrónica)
+    #+END_QUOTE
+*** Almacenamiento Temporal (Store-and-forward)
+    #+BEGIN_QUOTE
+    En el paso 2 (Enviar), cuando la aplicación emisora ENVIA el mensaje a un canal,
+    el (MOM) Sistema de Mensajería lo PERSISTE "temporalmente" en la computadora del *Emisor* (en memoria o disco)
+
+    En el paso 3 (Entregar), el (MOM) Sistema de Mensajería ENTREGA el mensaje direccionándolo
+    hasta la computadora del *Receptor* donde se PERSISTE allí una vez más (ó reacciona y realiza alguna acción)
+    #+END_QUOTE
+   #+END_QUOTE
+** Diagramas
+*** Diagrama 1 - Modelo Cola de Mensajes ó (PTP) Punto a Punto
+    #+ATTR_HTML: :width 400px
+    [[file:assets/images/ptp.jpg]]
+*** Diagrama 2 - Modelo Publicación/Suscripción extensión del Patrón de Diseño Observer
+    #+ATTR_HTML: :width 500px
+    [[file:assets/images/modelo-ps.png]]
+*** Diagrama 3 - Modelo Publicación/Suscripción basado en tópicos extensión del Modelo Publish/Subscribe
+    #+ATTR_HTML: :width 400px
+    [[file:assets/images/pubsub.jpg]]
+*** Diagrama 4 - Modelo (LBS) Servicio basado en localización
+    [[file:assets/images/lbs-con-middleware.png]]
+*** Diagrama 5 - Pasos de transmisión de un mensaje en un (MOM) Middleware Orientado a Mensajes
+    [[file:assets/images/pasos-de-un-mom.png]]
+*** Diagrama 6 - Modelo Publicación/Suscripción enviando eventos
+    [[file:assets/images/pubsub-eventos.png]]
+** Referencias
+*** Referencias de Universidades
+    1. [[http://www.jtech.ua.es/j2ee/publico/mens-2010-11/sesion01-apuntes.html][Introducción a JMS (Universidad de Alicante)]]
+    2. [[https://riunet.upv.es/bitstream/handle/10251/6408/Comunicaciones%20en%20los%20sistemas%20distribuidos.pdf][Sistemas de comunicaciones más utilizados en Control Distribuido (Universidad Politécnica de Valencia, Ing. Miguel Merlino)]]
+    3. [[https://www.colibri.udelar.edu.uy/jspui/bitstream/20.500.12008/21724/1/tm-merlino-miguel.pdf][Extensión especial de Middleware orientada a mensajeria (Universidad de la República Uruguay)]]
+    4. [[http://cs.uns.edu.ar/~sd/data/apuntes/SD-2019-mod%2003.pdf][Comunicación en Sistemas Distribuidos (Universidad Nacional del Sur, Argentina)]]
+    5. [[https://www.cartagena99.com/recursos/alumnos/apuntes/AED_fifo_lifo.pdf][Pilas LIFO y Colas LIFO (Universidad Politécnica de Madrid)]]
+*** Referencias Destacadas
+    1. [[https://www.redhat.com/es/topics/integration][Concepto de integración empresarial (redhat.com)]]
+    2. [[https://www.sap.com/latinamerica/insights/enterprise-integration.html][Integración Empresarial (sap.com)]]
+    3. [[https://www.atlassian.com/es/microservices/microservices-architecture/distributed-architecture][Arquitectura de microservicios (atlassian.com)]]
+    4. [[https://aws.amazon.com/es/what-is/middleware/][¿Qué es un middleware? (aws.amazon.com)]]
+*** Otras Referencias
+    1. [[https://sg.com.mx/revista/58/desarrollo-de-sistemas-distribuidos][Desarrollo de Sistemas Distribuidos (sg.com.mx)]]
+    2. [[https://tekla.io/blog/middleware-que-es/][Middleware, qué es y para qué sirve? (tekla.io)]]
+    3. [[https://www.programaenlinea.net/que-plataforma-tecnologica-es-mejor-java-vs-net/][Que plataforma es mejor java o net (programaenlinea.net)]]
+    4. [[https://www.cybermedian.com/es/enterprise-integration-patterns-eip-tutorial/][Enterprise INtegrration patterns tutorial (cybermedian.com)]]
+    5. [[https://medium.com/@maniakhitoccori/los-10-patrones-comunes-de-arquitectura-de-software-d8b9047edf0b][Los 10 patrones comunes de arquitectura de software (medium.com/@maniakhitoccori)]]
+*** Issues
+    1. [[https://stackoverflow.com/questions/6574291/ems-esb-and-mom-jms][EMS, ESB, MOM and JMS (stackoverflow.com)]]
