@@ -1,4 +1,24 @@
 #+TITLE: Concurrencia
+#+BEGIN_COMMENT
+https://medium.com/swlh/asynchronous-clojure-a59fa0f9bda0
+
+Seguir leyendo...
+https://www.learn-clojurescript.com/section-4/lesson-25-intro-to-core-async/#communicating-over-channels
+
+Después agregar los ejemplos del proyecto operaciones-asincronicas
+
+complementar async con
+1. http://funcool.github.io/clojurescript-unraveled/#csp-with-core-async
+2. https://www.braveclojure.com/core-async/
+#+END_COMMENT
+* TODO Concurrencia y Multiprocesamiento
+  https://www.youtube.com/watch?v=oV9rvDllKEg
+* Referencias
+** Referencias Oficiales
+** TODO Referencias Extraoficiales
+   1) [[https://thecodest.co/blog/asynchronous-and-single-threaded-javascript-meet-the-event-loop/][Asynchronous and single-threaded Javascript? Meet the event loop (thecodest.co)]]
+   2) [[https://www.geeksforgeeks.org/why-javascript-is-a-single-thread-language-that-can-be-non-blocking/][Why JavaScript is a single-thread language that can be non-blocking? (geeksforgeeks.org)]]
+   3) [[https://levelup.gitconnected.com/javascript-single-threaded-but-non-blocking-45c26d4d5bcc][JavaScript, single-threaded but Non-Blocking (levelup.gitconnected.com)]]
 * Atomos (Atom)
 ** Conceptos
    - ~atom~ crea y *transforma una estructura ó valor en un tipo de dato Atom* al que se lo puede bindear/vincular a un nombre de variable

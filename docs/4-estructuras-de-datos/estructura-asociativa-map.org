@@ -1,16 +1,4 @@
-#+TITLE: Modelado de Dominio
-* TODO Modelado de Dominio
-** Referencias
-*** Referencias Oficiales
-    1. [[https://martinfowler.com/eaaCatalog/domainModel.html][Domain model (martinfowler.com)]]
-    2. [[https://www.ibm.com/docs/es/ida/9.1.2?topic=types-domain-models][Modelos de Dominio (ibm.com)]]
-    3. [[https://domaindrivendesign.org/the-main-goal-of-domain-driven-design/][The main goal of (DDD) Domain Driven Design (domaindrivendesign.org)]]
-    4. [[https://martinfowler.com/books/dsl.html][(DSLs) Domain Specific Languages (martinfowler.com)]]
-    5. [[https://repositorio.grial.eu/bitstream/grial/1153/1/8.%20Modelo%20de%20dominio.pdf][Modelo de Dominio (Universidad de Salamanca, Ingeniería de Software)]]
-*** Referencias Extraoficiales
-    1. [[https://www.scaledagileframework.com/domain-modeling/][Domain modeling (scaledagileframework.com)]]
-    2. [[https://www.geeksforgeeks.org/software-engineering-domain-modeling/][Domain modeling (geeksforgeeks.com)]]
-    3. [[https://jeronimopalacios.com/software/domain-driven-development/][(DDD) Diseño Guiado por el Dominio, Domain Driven Design (jeronimopalacios.com)]]
+#+TITLE: Estructura Asociativa Map
 * Convención de nombre para funciones que modifican el Estado de Objetos
 ** Conceptos
   #+BEGIN_QUOTE

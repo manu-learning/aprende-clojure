@@ -1,0 +1,50 @@
+#+TITLE: English Vocabulary
+* template
+** definition
+   -
+** synonyms
+   -
+** example sentences
+   -
+* keystroke
+** definition
+   - (n) the act or an instance of depressing a key on a keyboard
+** synonyms
+   -
+** example sentences
+   - He deleted all of my work with a single keystroke
+   - Open a document and copy multiple items using the Ctrl + C keystroke
+* supply
+** definition
+   1) (v) to make available for use
+   2) to satisfy the needs or wishes of
+   3) to substitute for another in (/specifically to serve as a suply in a church or pulpit/)
+   4) to add as a supplement
+** synonyms
+   -
+** example sentences
+   1) supplied the necessary funds
+* park
+** definition
+   1) (v) to set and leave temporarily
+   2) (v) to place, settle, or stablish especially for a considerable time
+** synonyms
+   -
+** example sentences
+   1) parked his book on the chair
+   2) kids parked in front of the tv
+* convey
+** definition
+   - (v) to transfer or deliver (something) to another especially by a sealed writing
+   - (V) to cause to pass from one place or person to another (Ex. convery a message)
+** synonyms
+   -
+** example sentences
+   -
+* cornerstone
+** definition
+  - (n) a basic element (foundation)
+** synonyms
+  - base, ground, basis, foundation, keystone, ..
+** example sentences
+  - Ex. a cornsetone of a foreign policy

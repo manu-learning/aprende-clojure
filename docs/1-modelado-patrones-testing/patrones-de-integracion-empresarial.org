@@ -65,7 +65,7 @@
      - reciben un paquete de datos distribuido/entregado por *Broadcast*
 *** Diagramas
 **** Diagrama 1 - Formas de transmisión de datos entre redes
-     [[file:assets/images/formas-de-transmision-de-datos-en-redes.jpg]]
+     [[file:./../assets/images/formas-de-transmision-de-datos-en-redes.jpg]]
 *** Referencias
     1. https://devopedia.org/local-area-network
     2. https://www.ionos.es/digitalguide/servidores/know-how/broadcast/
@@ -114,19 +114,19 @@
 ** Diagramas
 *** Diagrama 1 - Modelo Cola de Mensajes ó (PTP) Punto a Punto
     #+ATTR_HTML: :width 400px
-    [[file:assets/images/ptp.jpg]]
+    [[file:./../assets/images/ptp.jpg]]
 *** Diagrama 2 - Modelo Publicación/Suscripción extensión del Patrón de Diseño Observer
     #+ATTR_HTML: :width 500px
-    [[file:assets/images/modelo-ps.png]]
+    [[file:./../assets/images/modelo-ps.png]]
 *** Diagrama 3 - Modelo Publicación/Suscripción basado en tópicos extensión del Modelo Publish/Subscribe
     #+ATTR_HTML: :width 400px
-    [[file:assets/images/pubsub.jpg]]
+    [[file:./../assets/images/pubsub.jpg]]
 *** Diagrama 4 - Modelo (LBS) Servicio basado en localización
-    [[file:assets/images/lbs-con-middleware.png]]
+    [[file:./../assets/images/lbs-con-middleware.png]]
 *** Diagrama 5 - Pasos de transmisión de un mensaje en un (MOM) Middleware Orientado a Mensajes
-    [[file:assets/images/pasos-de-un-mom.png]]
+    [[file:./../assets/images/pasos-de-un-mom.png]]
 *** Diagrama 6 - Modelo Publicación/Suscripción enviando eventos
-    [[file:assets/images/pubsub-eventos.png]]
+    [[file:./../assets/images/pubsub-eventos.png]]
 ** Referencias
 *** Referencias de Universidades
     1. [[http://www.jtech.ua.es/j2ee/publico/mens-2010-11/sesion01-apuntes.html][Introducción a JMS (Universidad de Alicante)]]
