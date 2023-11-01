@@ -1,13 +1,54 @@
 #+TITLE: Variables
 * def - Vincular/Bindear un valor a un nombre de variable
 ** Conceptos
-    - ~def~ vincula/bindea un valor a un nombre de variable
+    - ~def~ vincula/bindea *un valor* a un *nombre de variable*
+    - ~def~ crea una *variable global* con *visibilidad* en todo un *Namespace*, una _variable definida por el usuario_
     - NO confundir con una *asignación*, ese concepto permite *multiples asignaciones*
-    - similar al concepto de definir una *variable constante* ó *inmutable* (no se puede alterar, cambiar su valor)
+    - similar al concepto de definir una *variable constante* ó *inmutable* (no se puede alterar, ni cambiar su valor)
 ** Ejemplo Básico
+*** Ejemplo con Variables
   #+BEGIN_SRC clojure
-    (def startrek-personajes-nombres
-      ["Jean Luc Picard" "William Riker" "Deanna Troi"])
+    ;; 1) vinculamos un nombre a una variable (una variable global con visibilidad en todo un namespace y definida por el usuario)
+    ;;  - el nombre: capitan
+    ;;
+    ;; 2) vinculamos un string como valor a un símbolo (el símbolo referencia a un string)
+    ;;   - el símbolo: capitan
+    ;;   - el string: "Jean Luc Picard"
+    (def capitan "Jean Luc Picard")
+
+    ;; si evaluamos la siguiente s-expression (s-exp)
+    ;; 1) el nombre capitan está vinculado a una variable (una variable global con visibilidad en todo un namespace y definida por el usuario)
+    ;; 2) la variable referencia a un string "Jean Luc Picard"
+    ;; 3) por tanto.. el símbolo capitan, es una variable que referencia a un string
+    capitan
+
+    ;; vinculamos un símbolo con un número entero como valor
+    (def velocidad-warp 10)
+
+    ;; si evaluamos la siguiente s-expression (s-exp)
+    ;; 1) el nombre dificultad-de-navegacion está vinculado a una variable (una variable global con visibilidad en todo un namespace y definida por el usuario)
+    ;; 2) la variable está vinculada al resultado de una función
+    ;; 3) por tanto.. el símbolo dificultad-de-navegacion, es una variable que referencia a una función
+    ;;
+    ;; - el símbolo: dificultad-de-navegacion
+    ;; - la función: (* 10 velocidad-warp)
+    (def dificultad-de-navegacion (* 10 velocidad-warp))
+  #+END_SRC
+*** Ejemplo con funciones
+  #+BEGIN_SRC clojure
+    ;; 1) vinculamos un nombre a una función
+    ;;  - el nombre: doble
+    ;;
+    ;; 2) vinculamos un nombre al "parámetro de una función nombrada"
+    ;; - el nombre: numero
+    ;; - función nombrada: doble
+    ;;
+    ;; 3) la función está vinculada al resultado de (* 2 numero)
+    ;;
+    ;; 4) pero..! el símbolo numero, es una "variable local" que referencia al "parámetro de una función"
+    ;; (ésta es una variable local porque "vive sólo dentro del scope de la función" nombrada)
+    (defn doble [numero]
+      (* 2 numero))
   #+END_SRC
 * Variable Shadowing
 ** Concepto
