@@ -94,9 +94,9 @@
     4. [[https://www.javatpoint.com/shadowing-in-java][Shadowing in java (javatpoint.com)]]
 * Let
 ** Conceptos
-   - Crea un nuevo scope, y prioriza el vínculo de las variables definidas en su scope
+   - _Crea un nuevo scope_, y prioriza el vínculo de las variables definidas en su scope
    - Permite aplicar el concepto de *Destructuring*
-   - Evalúa una expresión una única vez y reutiliza el resultado, muy útil en escenarios dónde
+   - _Evalúa una expresión una única vez_ y _reutiliza el resultado_, muy útil en escenarios dónde
      1. si el obtener el resultado implíca llamar a una función costosa en términos de eficiencia/velocidad
      2. queremos generar efecto en la variable pero sólo dentro de let
 ** Ejemplos
@@ -117,9 +117,36 @@
      (def personajes-marvel
        ["Iron Man" "Capitan America" "Hulk" "Doctor Doom" "Thor"])
 
-     ;; bindeamos/enlazamos/vinculamos al nombre personajes-destacados el resultado de la expresión (take 3 personajes-marvel)
-     (let [personajes-destacados (take 3 personajes-marvel)]
-       personajes-destacados)
+     (defn juego-gratuito [jugador]
+       ;; - "reutilizamos los valores de las variables locales" definidas dentro de let (Ej. datos en nombre)
+       ;; aunque bien podríamos utilizado una función (get-in David [:datos :nombre]) ó.. (:nombre (:datos David))
+       ;;
+       ;; - la variable local personajes-marvel tiene más prioridad de ser evaluada, que la variable global personajes-marvel
+       (let [datos (:datos jugador)
+             nombre (:nombre datos)
+             personajes-marvel (take 2 personajes-marvel)]
+         (print "Bienvenido" nombre "sólo puedes elegir entre estos personajes " personajes-marvel)))
+
+     (defn juego-premium [jugador]
+       ;; - definimos variables locales, que tienen "visibilidad sólo dentro el scope de let"  (de éste let)
+       ;; estas variables locales viven en todo el ciclo de vida de let es decir.. cuando se termine de evaluar la última s-expression que contenga
+       ;; (en éste caso la última s-expression es el print)
+       ;;
+       ;; - al definir estas variables locales, nos evitamos definir una variable global que tenga de lógica devolver tres elementos,
+       ;; suponemos que no repite la lógica en otras funciones, y es sólo particular de ésta función jugar
+       ;;
+       ;; - bindeamos/enlazamos/vinculamos al nombre personajes-destacados,
+       ;; el resultado de la expresión (take 3 personajes-marvel)
+       (let [datos (:datos jugador)
+             nombre (:nombre datos)]
+         (print "Bienvenido" nombre "puedes elegir entre estos personajes " personajes-marvel)))
+
+     (def David {:datos {:nombre "David", :edad 100, :email "david@mocosoft.com"}})
+
+     (juego-gratuito David)
+     (juego-premium David)
+
+
    #+END_SRC
 *** Ejemplo 2 - Let + Destructuring
     #+BEGIN_SRC clojure
