@@ -2,10 +2,10 @@
 * Secuencias
 ** Conceptos
    #+BEGIN_QUOTE
-    Clojure trata las listas, vectores y set como secuencias
-    por ende en todas podemos utilizar funciones para secuencias
+    Clojure trata _las Listas, los Vectores y los Set_ como *Secuencias*
+    por ende _en todas podemos utilizar funciones para secuencias_
 
-    Algunas de las operaciones incluidas en la biblioteca de secuencias son:
+    Algunas de las _operaciones incluidas en la biblioteca de secuencias_ son:
     - map, reduce, take-while, drop-while, filter
     - some
     - sort, sort-by
@@ -14,13 +14,13 @@
 ** Ejemplos
 *** Ejemplo 1 - Listas, Vectores y Sets como Secuencias
   #+BEGIN_SRC clojure
-    ;; el resultado de evaluar esta Lista será una secuencia, es lo que hace por defecto clojure
+    ;; el resultado de evaluar esta Lista será una Secuencia, es lo que hace por defecto clojure
     (seq '(1 2 3))
 
-    ;; el resultado de evaluar este Vector será una secuencia, es lo que hace por defecto clojure
+    ;; el resultado de evaluar este Vector será una Secuencia, es lo que hace por defecto clojure
     (seq [1 2 3])
 
-    ;; el resultado de evaluar este Set será una secuencia, es lo que hace por defecto clojure
+    ;; el resultado de evaluar este Set será una Secuencia, es lo que hace por defecto clojure
     (seq #{1 2 3})
   #+END_SRC
 * Map
