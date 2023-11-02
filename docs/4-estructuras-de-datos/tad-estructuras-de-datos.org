@@ -291,12 +291,12 @@
 
       (my-conj [0] 1 2 3)
     #+END_SRC
-* Descomponer los elementos de una Secuencia (Destructuring)
+* Descomponer los elementos de una Secuencia (Destructuring Binding)
 ** Conceptos
    - Bindea/vincula a un nombre un elemento por su *posición* si es un vector/lista ó por su *keyword* si es una estructura asociativa Map
    - Para *estructuras asociativas Map* usamos las llaves ~{}~ quedando ~{nombre :nombre edad :edad} cliente~
    - Para *listas y vectores** usamos los corchetes ~[]~ de la forma ~[nombre] cliente~ ó ~[primero segundo] lista~ ó ~[cabeza & cola] lista~
-** Destructuring en Listas/Vectores
+** Destructuring Binding en Listas y Vectores
 *** Conceptos
     - Bindea/vincula a un nombre un elemento por su *posición* (/los trata por igual por ser una secuencia/)
     - Diferenciamos los elementos *cabeza* y *cola* (/éste último utiliza el concepto del parameter rest/)
@@ -362,45 +362,127 @@
 
       (anime-favoritos ["the legend of hei" "saint seiya" "spirited away" "digimon" "pokemon"])
     #+END_SRC
-** Destructuring en estructura asociativa Map
+** Destructuring Binding con una Estructura Asociativa Map
 *** Conceptos
-    - Bindea/vincula a un nombre un elemento por su *keyword*
-    - La keyword especial ~:keys~ evita generar redundancia del tipo ~:nombre nombre :edad edad ..~ por cada elemento de la estructura map
-    - La keyword especial ~:as~ bindeas/vincula a un nombre la estructura map original
-      (/por si queremos reutilizarla y no usar sólo sus elementos por separado/)
+    - Bindeamos/vinculamos _cada valor asociada a cada keyword_ de una *Estructura Map* a un *nombre de variable*
+*** TODO Keyword especial :keys
+    - la sintáxis es de la forma ..
+    - permite aplicar el _Destructuring Binding en una estructura Map_
+*** TODO Keyword especial :as
+    - la sintáxis es de la forma ..
+    - bindea/vincula a un *nombre de variable* la *Estructura Map original*
+    - si queremos reutilizar la *Estructura Map* original como parámetro de otra función
+    - cuando el objetivo NO es usar los elementos de la *Estructura Map* por separado para asignarlos a nombres de variables
+*** TODO Keyword especial :or
 *** Ejemplo Básico
     #+BEGIN_SRC clojure
-      (def cliente {:nombre "Carlitos" :edad 19 :sexo "masculino"})
+      (def cliente {:nombre "Carlitos"
+                    :edad 19
+                    :email "carlitos@mocosoft.com"
+                    :sexo "masculino"})
 
-      ;; usando destructuring para una estructura map
-      (let [{nombre :nombre edad :edad} cliente]
+      ;; 1) usando la técnica de "Destructuring Binding" en una Estructura map
+      ;; ====================================================================
+      ;;
+      ;; 1. a la variable local nombre (1º parámetro de let),
+      ;; le vincula el valor asociado a la keyword :nombre de la Estructura Map cliente
+      ;;
+      ;; 2. a la variable local edad (2º parámetro de let),
+      ;; le vincula el valor asociado a la keyword :edad de la Estructura Map cliente
+      (let [{nombre :nombre, edad :edad, email :email} cliente]
         (println "Hola" nombre "tu edad es" edad))
 
-      ;; usando la keyword especial :keys
+      ;; 2) Comparamos que ocurre si NO utilizamos la técnica de "Destructuring Binding"
+      ;; ===============================================================================
+      ;;
+      ;; - utilizamos las keywords de la Estructura Map como funciones, para obtener su valor asociado
+      ;; - la consecuencia será "lógica repetida" porque repetimos el nombre de la variable que referencia a la Estructura Map
+      ;; - luego veremos que utilizar la keyword especial :keys optimiza ésta lógica repetida
+      (let [nombre (:nombre cliente)
+            edad (:edad cliente)
+            email (:email cliente)]
+        (println "Hola" nombre "tu edad es" edad "te contactaremos a" email))
+
+      ;; 3) Usamos la keyword especial :keys + la técnica "Destructuring Binding"
+      ;; =========================================================================
+      ;;
+      ;; 1) a la keyword :keys le pasamos por parámetro un vector de nombres de variables
+      ;;
+      ;; 2) Clojure vinculará a cada nombre de variable,
+      ;; el valor asociado a la keyword que coincida con el nombre de la variable
+      ;;
+      ;; Ej. a la variable nombre de let, le asignará el valor "Carlitos" que tiene asociado la keyword :nombre de la Estructura Map cliente
+      ;; Ej. a la variable edad de let, le asignará el valor 19 que tiene asociado la keyword :edad de la Estructura Map cliente
+      ;;
+      ;; Conclusión:
+      ;; - evitamos MUCHA lógica repetida y queda más entendible
+      ;; - aporta al código la cualidad de Extensibilidad (agregar nuevas características, sin agregar errores)
+      ;; - aporta al código la cualidad de Mantenibilidad (modificar características existentes, sin agregar errores)
       (let [{:keys [nombre edad]} cliente]
         (println "Hola" nombre "y tu edad es" edad))
     #+END_SRC
 *** Ejemplos
-**** Ejemplo 1 - Obtener el valor de una keyword de una estructura asociativa map
+**** Ejemplo 1 - Obtener el valor de una Keyword de una Estructura Asociativa Map
      #+BEGIN_SRC clojure
-       ;; - recibe una estructura map y bindea/vincula un nombre a los keywords de la estructura asociativa
-       ;; - vincular nombre :nombre con cada elemento de la estructura map es redundante y se puede evitar usando la keyword especial :keys
+       ;; 1) la función recibe por parámetro una Estructura Map,
+       ;; 2) usamos la técnica de "Destructuring Binding" pero con la sintáxis de una Estructura Map
+       ;;
+       ;; 2.1) las keywords serán de la forma nombre1 nombre2 en vez de :nombre1 :nombre2
+       ;; porque serán símbolos que referencian a una variable
+       ;; similar a (let [nombre "carlitos", edad 11] cuerpo-de-let)
+       ;;
+       ;; 2.2) los valores asociados a las keywords serán de la forma :valor1 :valor2
+       ;; porque se usarán como funciones para obtener el valor de la estructura map
+       ;; similar a (:nombre {:nombre "carlitos", :edad 11})
+
+       ;; Conclusión:
+       ;; - recibimos por parámetro una Estructura Map
+       ;; y bindeamos/vinculamos un nombre de variable a cada valor asociado a una Keyword de la Estructura Map
+       ;;
+       ;; - a cada nombre de variable que es parámetro de la función notificar-estado-del-clima,
+       ;; se le vinculará el valor que obtiene la keyword (éstas keywords :ciudad :temperatura hacen de función)
+       ;;
+       ;; - el bindear/vincular cada elemento de la Estructura Map es REDUNDANTE,
+       ;; y se puede evitar usando la Keyword especial :keys
+       ;;
        (defn notificar-estado-del-clima
-         [{ciudad :ciudad temperatura :temperatura}]
+         [{ciudad :ciudad, temperatura :temperatura}]
          (println (str "En la ciudad de " ciudad))
          (println (str "hay una temperatura de " temperatura " grados")))
 
-       (notificar-estado-del-clima {:ciudad "buenos aires" :fecha "10/12/2050" :trafico "terrible" :temperatura 30})
+       (notificar-estado-del-clima {:ciudad "buenos aires",
+                                    :fecha "10/12/2050",
+                                    :trafico "terrible",
+                                    :temperatura 30})
+
+       ;; recordemos que en una Estructura Map, las comas son opcionales
+       (notificar-estado-del-clima {:ciudad "buenos aires"
+                                    :fecha "10/12/2050"
+                                    :trafico "terrible"
+                                    :temperatura 30})
      #+END_SRC
-**** Ejemplo 2 - La keyword especial :keys
+**** Ejemplo 2 - La Keyword especial :keys
      #+BEGIN_SRC clojure
-       ;; con :keys asocia las keyword 
+       ;; - asociamos "el valor de cada keyword" a una "variable con el mismo nombre que la keyword"
+       ;; y nos evita crear la Estructura Map que asocia la Keyword con los valores
+       ;;
+       ;; - estas "variables que tienen el valor de la keyword, serán declaradas como parámetros" de la función,
+       ;; y por tanto se pueden "utilizar en el cuerpo de la función"
        (defn notificar-estado-del-clima
          [{:keys [ciudad temperatura]}]
          (println (str "En la ciudad de " ciudad))
          (println (str "hay una temperatura de " temperatura " grados")))
 
-       (notificar-estado-del-clima {:ciudad "buenos aires" :fecha "10/12/2050" :trafico "terrible" :temperatura 30})
+       (notificar-estado-del-clima {:ciudad "buenos aires",
+                                    :fecha "10/12/2050",
+                                    :trafico "terrible",
+                                    :temperatura 30})
+
+       ;; recordemos que en una Estructura Map, las comas son opcionales
+       (notificar-estado-del-clima {:ciudad "buenos aires"
+                                    :fecha "10/12/2050"
+                                    :trafico "terrible"
+                                    :temperatura 30})
      #+END_SRC
 **** Ejemplo 3 - La keyword especial :as
      #+BEGIN_SRC clojure
