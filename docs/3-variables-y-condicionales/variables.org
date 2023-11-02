@@ -4,7 +4,7 @@
     - ~def~ vincula/bindea *un valor* a un *nombre de variable*
     - ~def~ crea una *variable global* con *visibilidad* en todo un *Namespace*, una _variable definida por el usuario_
     - NO confundir con una *asignación*, ese concepto permite *multiples asignaciones*
-    - similar al concepto de definir una *variable constante* ó *inmutable* (no se puede alterar, ni cambiar su valor)
+    - similar al concepto de definir una *variable constante* ó *inmutable* (NO se puede alterar, ni cambiar su valor)
 ** Ejemplo Básico
 *** Ejemplo con Variables
   #+BEGIN_SRC clojure
@@ -52,28 +52,36 @@
   #+END_SRC
 * Variable Shadowing
 ** Concepto
-   - el concepto de ~shadowing~ ocurre cuando definimos al menos dos variables con igual nombre en distintos scopes (ámbitos)
+   - el concepto de ~shadowing~ ocurre cuando _definimos al menos dos variables con igual nombre en distintos scopes_ (ámbitos)
    - si dentro de una función referenciamos a una variable que existe en un scope superior (Ej. fuera de la función)
-     - la variable definida en un scope superior estará en la sombra de la variable local de la función
-     - la variable local ó parámetro de la función tendrá más prioridad de ser evaluada al invocar la función
+     - _la variable definida en el scope superior_ estará en la sombra de la *variable local* declarada en la función (en su cuerpo ó como parámetro)
+     - _la variable local declarada como parámetro ó dentro de la función_ tendrá más prioridad de ser evaluada cuando se invoque/evalúe la función que la contiene
 
    #+BEGIN_QUOTE
    Lo siguiente puede estar en desorden, es sólo para organizar las ideas..
-   1. En una función ~f~ definimos una variable ~a~
-   2. Definimos otra variable ~a~ en un scope superior (/fuera de la definición de la función/)
-   3. Cuando usemos la variable ~a~ de la función ~f~, ésta tendrá prioridad de ser evaluada
+   1. En una función ~f~ definimos una *variable local* ~a~
+   2. Definimos otra variable ~a~ pero en un *scope superior* (/fuera de la definición de la función/)
+   3. Cuando usemos la variable ~a~ declarada en la función ~f~, ésta tendrá mayor prioridad que la del scope superior para ser evaluada
 
-   Es decir usará el valor de la variable definida más cercana en el scope donde se esté,
-   en el caso de una función, ésta dará prioridad a las variables locales de su scope.
+   Es decir el compilador usará el valor de la variable definida más cercana en el scope donde se esté,
+   en el caso de una función, ésta dará prioridad a las variables locales de su scope (declaradas como parámetro ó dentro de la función)
    #+END_QUOTE
 ** Ejemplos
 *** Ejemplo 1 - Parametros de una función Vs Variables Globales
    #+BEGIN_SRC clojure
+     ;; "variable global" declarada por el usuario, con "visibilidad en todo el namespace"
      (def servidor "localhost")
 
+     ;; "variable local" declarada como parámetro de una función,
+     ;; ésta tiene "visibilidad unicamente dentro de la función" es decir
+     ;;
+     ;;  - en el cuerpo de la función
+     ;;  - en el listado de los parámetros (porque un 2º ó 3º parámetro podría reutilizar su valor)
      (defn conectar-servidor [servidor]
        (str "Conectando al servidor " servidor "..."))
 
+     ;; tendrá prioridad la variable local de la función (la declarada como parámetro)
+     ;; por sobre la variable global
      (conectar-servidor "192.168.1.1")
    #+END_SRC
 *** Ejemplo 2 - Variables definidas en Let Vs Variables Globales
@@ -118,13 +126,15 @@
        ["Iron Man" "Capitan America" "Hulk" "Doctor Doom" "Thor"])
 
      (defn juego-gratuito [jugador]
-       ;; - "reutilizamos los valores de las variables locales" definidas dentro de let (Ej. datos en nombre)
-       ;; aunque bien podríamos utilizado una función (get-in David [:datos :nombre]) ó.. (:nombre (:datos David))
+       ;; - "reutilizamos los valores de las variables locales" definidas dentro de let (Ej. max-personajes, datos en nombre)
+       ;; aunque quizás para el nombre podríamos haber utilizado (get-in jugador [:datos :nombre]) ó bien.. (:nombre (:datos jugador))
        ;;
-       ;; - la variable local personajes-marvel tiene más prioridad de ser evaluada, que la variable global personajes-marvel
+       ;; - la variable local personajes-marvel declarada dentro de let tiene mayor prioridad al momento de ser evaluada,
+       ;; que la variable global personajes-marvel
        (let [datos (:datos jugador)
              nombre (:nombre datos)
-             personajes-marvel (take 2 personajes-marvel)]
+             max-personajes 2
+             personajes-marvel (take max-personajes personajes-marvel)]
          (print "Bienvenido" nombre "sólo puedes elegir entre estos personajes " personajes-marvel)))
 
      (defn juego-premium [jugador]
@@ -145,15 +155,56 @@
 
      (juego-gratuito David)
      (juego-premium David)
-
-
    #+END_SRC
-*** Ejemplo 2 - Let + Destructuring
+*** Ejemplo 3 - Let + técnica Destructuring Bindings en un Vector
     #+BEGIN_SRC clojure
+      ;; usamos el concepto de "Destructuring Bindings" en un Vector
+      ;; al declarar los parámetros que recibe una función de la forma [[nombre1 nombre2 ..] [valor1 valor2 ...]]
+      ;;
+      ;;  - existen otras maneras más eficientes de utilizar "Destructuring Bindings", revisar tad-estructuras-de-datos.org
+      ;;  - Clojure trata a los Vectores, las Listas (colección ordenada) y los Set (colección sin orden, sin elementos repetidos) como Secuencias
+      ;;
+      ;;  - la sintáxis es de la forma
+      ;;
+      ;;    1. [[param1 param2 ...] [valor1 valor2 ...]] si usamos un Vector
+      ;;    2. [[param1 param2 ...] (list valor1 valor2 ..)] si usamos una Lista
+      ;;    3. [{nombre1 :nombre1, nombre2 :nombre2} {:nombre1 valor1, :nombre2 valor}] si usamos una Estructura Map (se puede optimizar con la keyword especial :keys)
+      ;;
+      ;;  - bindeamos/vinculamos múltiples valores de una Secuencia (del lado derecho) a un Vector de nombres (del lado izquierdo)
+      ;;  - "el orden de los elementos" de la Secuencia (del lado derecho) y del Vector de nombres (del lado izq.) es fundamental
+      ;;  - si.. el vector de nombres (del lado izq) tiene más elementos que la Secuencia, esos elementos del Vector se los vinculará con el valor nil
+      ;;
+      (let [[id _ name city] [101 "steve@mocosoft.com" "Steve" "New York City"]]
+        (println (str "Bienvenido " name ", nuestro equipo de " city " ya agendamos tu ID " id " y luego te contactará")))
+
+      ;; - éste otro ejemplo es similar al anterior, pero NO estamos aplicando la técnica de "Destructuring Bindings"
+      ;; y nos damos cuenta porque es de la forma [nombre1 valor1, nombre2 valor2, ..]
+      ;; y por tanto NO es de la forma [[nombre1 nombre2 ..] [valor1 valor2 ...]]
+      ;;
+      ;; - declaramos cada variable como parámetro de let y a cada una le bindeamos/vinculamos un valor
+      (let [id 101,
+            name "Steve",
+            email "steve@mocosoft.com"
+            city "New York City"]
+        (println (str "Bienvenido " name ", nuestro equipo de " city " ya agendamos tu ID " id " y luego te contactará")))
+
+      ;; un refactor del primer escenario
+      (def cliente [101 "Steve" "steve@mocosoft.com" "New York City"])
+
+      (let [[id name _ city] cliente]
+        (println (str "Bienvenido " name ", nuestro equipo de " city " ya agendamos tu ID " id " y luego te contactará")))
+    #+END_SRC
+*** Ejemplo 3 - Let + técnica Destructuring Bindings en un Vector + Parameter Rest
+    #+BEGIN_SRC clojure
+      ;; - usamos el concepto de "Parameter Rest" como si fuera una "Función Variádica"
+      ;; - una "Función Variádica" recibe una "cantidad indefinida de parámetros"
+      ;; - el "Rest Parameter" es una variable que "contiene una lista con resto de los parámetros como elementos"
+      (let [[serie-mas-vista & series-menos-vistas] ["foundation" "Glitch" "Avenue" "Cosmos"]]
+        (println (str "La serie más vista es " serie-mas-vista)))
+
+      ;; refactor de ejemplo anterior
       (def tv-series ["foundation" "Glitch" "Avenue" "Cosmos"])
 
-      ;; - podemos usar el "parameter rest" como si fuera una función variádica
-      ;; - usamos el concepto de "destructuring" que usamos al recibir argumentos en las funciones
       (let [[serie-mas-vista & series-menos-vistas] tv-series]
         (println (str "La serie más vista es " serie-mas-vista)))
     #+END_SRC
