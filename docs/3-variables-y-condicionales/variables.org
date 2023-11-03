@@ -168,7 +168,7 @@
       ;;
       ;;    1. [[param1 param2 ...] [valor1 valor2 ...]] si usamos un Vector
       ;;    2. [[param1 param2 ...] (list valor1 valor2 ..)] si usamos una Lista
-      ;;    3. [{nombre1 :nombre1, nombre2 :nombre2} {:nombre1 valor1, :nombre2 valor}] si usamos una Estructura Map (se puede optimizar con la keyword especial :keys)
+      ;;    3. [{nombre1 :nombre1, nombre2 :nombre2} {:nombre1 valor1, :nombre2 valor}] si usamos una Estructura Map (se puede optimizar con la clave especial :keys)
       ;;
       ;;  - bindeamos/vinculamos múltiples valores de una Secuencia (del lado derecho) a un Vector de nombres (del lado izquierdo)
       ;;  - "el orden de los elementos" de la Secuencia (del lado derecho) y del Vector de nombres (del lado izq.) es fundamental
