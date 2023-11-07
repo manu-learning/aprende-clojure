@@ -2,18 +2,25 @@
 * Control de Flujo
 ** Condicional Simple - if
 *** Conceptos
-    - la sintáxis es de la forma ~(if predicado rama-if rama-else)~
-    - la ~rama-else~ es opcional y no es necesario definir con una palabra clave
-      (/en otros lenguajes es necesario usar la palabra clave else/)
-
+    - la sintáxis es de la forma ~(if predicado rama-then rama-else)~
+    - utilizado cuando tenemos que _elegir entre dos valores_
+*** Resultado luego evaluar
+    - será siempre _un valor_
+    - ó.. el valor del 2º parámetro ~rama-then~
+    - ó.. el valor del 3º parámetro ~rama-else~ (suponiendo que no se omitió éste 3º parámetro)
+*** Predicado ó Función booleana
     #+BEGIN_QUOTE
     El primer parámetro del ~if~ es un *predicado* (/una función booleana/)
-    según si se cumple ó no, evaluará la expresión que tenga la ~rama-if~ ó ~rama-else~
+    según si se cumple ó no, evaluará la expresión que tenga la ~rama-then~ ó ~rama-else~
 
     El *predicado* se considera que se cumple si devuelve un valor diferente a ~false~ ó ~nil~
-    por tanto no necesariamente debe devolver ~true~ para que se evalúe la ~rama-if~
+    por tanto no necesariamente debe devolver ~true~ para que se evalúe la ~rama-then~
     #+END_QUOTE
-*** Ejemplos Básico
+*** Rama else
+    - es opcional, podría no agregarse (la función ~if~ quedaría con los primeros dos parámetros)
+    - NO es necesario utilizar una palabra clave, porque representa el 3º parámetro ~if~
+    - en otros lenguajes es necesario usar la palabra clave ~else~
+*** Ejemplos Básicos
 **** Ejemplo 1 - Escenarios donde se cumple el predicado (función booleana)
     #+BEGIN_SRC clojure
       ;; en éste caso podriamos como no hay una rama-else
@@ -81,11 +88,21 @@
     #+END_SRC
 ** Condicional when
 *** Conceptos
-    - ~when~ NO tiene una rama ~else~, evalúa las expresiones contenidas en el cuerpo de la función sólo si se cumple el *predicado*
-    - ~when~ es una combinación entre
-      1) ~if~ valida si cumple o no el *predicado* pasado como primer parámetro
-      2) ~do~ extiende la cantidad de expresiones que se puede evaluar
-*** Ejemplo
+    - la sintáxis es de la forma ~(when predicado cuerpo-when)~
+    - utilizado cuando queremos
+      - _transformar un valor_ que nunca es ~nil~ (Ej. operaciones ariméticas, evitar una división por cero)
+      - _aplicar *efecto de lado* ó side effect_ (Ej. en modificar elementos del DOM)
+*** Casi idéntico al condicional if
+    - NO tiene una rama ~else~
+    - la rama ~then~ ó bien el cuerpo de la función ~when~, puede incluir más de una s-expression
+*** Predicado
+    - si se cumple el *predicado*, el resultado de _evalúar las s-expressions_ contenidas en el *cuerpo de la función*
+    - si NO se cumple el *predicado*, el resultado será el valor ~nil~
+*** Similar a combinar if + do
+    - ~if~ _valida si cumple o no el predicado_ pasado como primer parámetro
+    - ~do~ extiende la _cantidad de expresiones que se puede evaluar_
+*** Ejemplos Básicos
+**** Ejemplo 1
     #+BEGIN_SRC clojure
       ;; when
       ;; - actúa como el if + do
@@ -94,6 +111,41 @@
         (println "Se cumplió la condición! :)")
         (println "Vamos por buen camino (?)")
         "sip")
+    #+END_SRC
+**** Ejemplo 2 - Transformar un valor
+    #+BEGIN_SRC clojure
+      ;; datos de ejemplo
+      (def usuarios-registrados [{:name "pepito", :age 11, :compras-del-mes 0}
+                                 {:name "samuel", :age 19, :compras-del-mes 10}
+                                 {:name "fede", :age 23, :compras-del-mes 5}])
+
+      ;; lógica para el ejemplo
+      (defn cantidad-compras-del-mes [usuarios]
+        (reduce +
+                (map #(:compras-del-mes %) usuarios)))
+
+      ;; transformamos el resultado de la división (/ compras usuarios)
+      ;; porque restringimos "la división por cero"
+      (defn ratio-ventas-del-mes [usuarios]
+        (let [cantidad-usuarios (count usuarios)
+              cantidad-compras (cantidad-compras-del-mes usuarios)]
+          (when (> cantidad-usuarios 0)
+            (/ cantidad-compras cantidad-usuarios))))
+
+      (ratio-ventas-del-mes usuarios-registrados)
+    #+END_SRC
+**** Ejemplo 3 - Efecto de lado
+    #+BEGIN_SRC clojure
+      ;; lógica para el ejemplo
+      (defn error-page [number-page text]
+        (println number-page text))
+
+      ;; Supongamos el escenario..
+      ;;
+      ;; 1. luego de una petición a una API Rest, ésta nos devuelve un 404 como respuesta
+      ;; 2. modificamos el DOM del Web Browser (side effect), cargando un plantilla para los errores de página (403, 404, ..)
+      (when (= 404 (:status response))
+        (error-page 404 (:body response)))
     #+END_SRC
 ** when-let
 *** Conceptos
